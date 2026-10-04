@@ -15,7 +15,7 @@ done, and the real integration waits.
 | ID | Component | Phase | Depends on | Status | Owner (branch) | Notes |
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
-| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | todo | | Owner allowlist comes from `ADMIN_OWNER_EMAILS` |
+| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | in-progress | `feat/c01-identity` | Built ahead of C02 behind interfaces: `GrantStore` (grants nothing yet) and `AuditSink` (logs) get DB-backed versions once `admin_role_grants` / `audit_log` exist. Onboarding answers live in Clerk `publicMetadata.onboarding` until `profiles` exists |
 | C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | todo | | Most backend components wait on this |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
@@ -53,6 +53,12 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| `GET /v1/me`, `GET /v1/admin/me` | C01 | `services/api/src/sg_api/routers/{me,admin}.py` | Bearer = Clerk session token. Admin routes need owner allowlist or grant, verified email, and a second factor in the session |
+| Auth dependencies | C01 | `services/api/src/sg_api/auth/` | `current_session`, `current_admin`, `require_capability(cap)`, `admin_origin_guard` (CSRF), `record_audit(...)`. Mount admin routers under `/v1/admin` so `AuditMiddleware` audits every mutation |
+| `sg_core.identity` | C01 | `services/core/src/sg_core/identity/` | `ClerkTokenVerifier` (JWKS), `ClerkUserDirectory`, `Capability`, `GrantStore`, `AuditSink`/`AuditEvent`; for the API and the MCP gateway |
+| Identity contracts | C01 | `packages/contracts/src/identity.ts` | `Capability`, `Me`, `AdminMe`, `OnboardingProfile`; mirror of the Python side |
+| Next auth helpers | C01 | `apps/web/src/lib/{session,api}.ts`, `apps/admin/src/lib/{owner,api}.ts` | `requireOnboardedLearner()`, `requireOwner()`, `apiGet()` (server-side, forwards the Clerk token). `src/proxy.ts` in each app is optimistic only |
+| Clerk appearance | C01 | `packages/ui/src/index.ts` (`clerkAppearance`) | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
