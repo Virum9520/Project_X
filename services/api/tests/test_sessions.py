@@ -6,9 +6,11 @@ from pathlib import Path
 import httpx
 import pytest
 import yaml
+from drona_fixtures import FakeStore
 from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
 
+from sg_api.drona.store import get_session_store
 from sg_api.main import create_app
 from sg_api.sessions.briefing import StubBriefingProvider, get_briefing_provider
 from sg_api.sessions.router import get_elevenlabs
@@ -35,7 +37,9 @@ def _token_ok(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, json={"token": "lk_token", "conversation_id": "conv_123"})
 
 
-def _app(settings: Settings, handler: Handler = _token_ok) -> AsyncClient:
+def _app(
+    settings: Settings, handler: Handler = _token_ok, store: FakeStore | None = None
+) -> AsyncClient:
     app = create_app()
 
     async def fake_elevenlabs() -> AsyncIterator[ElevenLabsClient]:
@@ -47,6 +51,8 @@ def _app(settings: Settings, handler: Handler = _token_ok) -> AsyncClient:
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_elevenlabs] = fake_elevenlabs
     app.dependency_overrides[get_briefing_provider] = StubBriefingProvider  # no database
+    fake = store or FakeStore()
+    app.dependency_overrides[get_session_store] = lambda: fake
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
 
@@ -204,3 +210,52 @@ def test_tool_token_is_bound_to_its_conversation() -> None:
     with pytest.raises(HTTPException) as other:
         check_conversation(claims, "conv_2")
     assert other.value.status_code == 403
+
+
+async def test_start_session_persists_the_row_with_a_uuid_id() -> None:
+    import uuid
+
+    store = FakeStore()
+    async with _app(_settings(), store=store) as client:
+        response = await client.post(
+            "/v1/sessions",
+            json={
+                "character": "drona",
+                "focus_concept_id": "dsa.binary_search",
+                "mode": "teach_back",
+            },
+            headers=DEV_HEADERS,
+        )
+    body = response.json()
+    assert body["persisted"] is True
+    (stored,) = store.stored
+    assert str(stored.session_id) == body["session_id"]
+    assert uuid.UUID(body["session_id"])
+    assert stored.mode == "teach_back"
+    assert stored.conversation_id == "conv_123"
+    assert stored.agent_id == "agent_drona"
+    assert stored.focus_concept == "dsa.binary_search"
+    assert stored.clerk_user_id == "user_1"
+
+
+async def test_unstored_learner_still_gets_a_session() -> None:
+    async with _app(_settings(), store=FakeStore(can_store=False)) as client:
+        response = await client.post(
+            "/v1/sessions", json={"character": "drona"}, headers=DEV_HEADERS
+        )
+    assert response.status_code == 201
+    assert response.json()["persisted"] is False
+
+
+async def test_store_failure_degrades_in_local_and_test_environments() -> None:
+    async with _app(_settings(), store=FakeStore(broken=True)) as client:
+        ok = await client.post("/v1/sessions", json={"character": "drona"}, headers=DEV_HEADERS)
+    assert ok.status_code == 201 and ok.json()["persisted"] is False
+
+
+async def test_panel_sessions_default_to_the_panel_mode() -> None:
+    store = FakeStore()
+    settings = _settings(elevenlabs_agent_ids={"drona": "agent_drona", "panel": "agent_drona"})
+    async with _app(settings, store=store) as client:
+        await client.post("/v1/sessions", json={"character": "panel"}, headers=DEV_HEADERS)
+    assert store.stored[0].mode == "panel_interview"
