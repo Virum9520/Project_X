@@ -14,7 +14,8 @@ from sg_core.settings import Environment, get_settings
 @lru_cache
 def get_hatchet() -> Hatchet:
     settings = get_settings()
-    if settings.hatchet_client_token is not None:
+    token = settings.hatchet_client_token
+    if token is not None and token.get_secret_value().strip():
         return Hatchet()  # reads HATCHET_CLIENT_TOKEN and related env vars
     if settings.environment in (Environment.LOCAL, Environment.TEST):
         return Hatchet.from_embedded()

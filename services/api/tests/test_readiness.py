@@ -12,7 +12,8 @@ from sg_core.settings import get_settings
 
 @pytest.fixture(autouse=True)
 def _fresh_settings(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    monkeypatch.delenv("REDIS_URL", raising=False)
+    # An empty env var beats a developer .env that configures Redis.
+    monkeypatch.setenv("REDIS_URL", "")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
