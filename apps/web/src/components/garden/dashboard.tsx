@@ -138,8 +138,6 @@ export function GardenDashboard({
           </div>
         </header>
 
-        <StartingLevelsNotice dataset={dataset} />
-
         <PracticeLinks />
 
         {state.scrubDate && (
@@ -212,6 +210,8 @@ export function GardenDashboard({
             onPractise={onPractise}
           />
         )}
+
+        <StartingLevelsNotice dataset={dataset} />
 
         <StatsOverview
           dataset={dataset}

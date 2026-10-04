@@ -39,18 +39,21 @@ const WILT_BY_STATUS: Partial<Record<PlantSnapshot["status"], number>> = { due: 
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
 
-/** Unproven seedling growth per part for a self-rated starting level. Drawn as ghost growth. */
+/**
+ * Starting growth per part for a self-rated level, so a new garden is visibly planted. It is a
+ * render hint only: it carries no evidence, and real evidence replaces it as soon as it exists.
+ */
 const BASELINE_GROWTH: Record<1 | 2 | 3, Partial<Record<Dimension, number>>> = {
-  1: { explanation: 0.3 },
-  2: { explanation: 0.5, application: 0.4 },
-  3: { explanation: 0.7, application: 0.6, transfer: 0.3 },
+  1: { explanation: 0.55, application: 0.35 },
+  2: { explanation: 0.75, application: 0.6, transfer: 0.3 },
+  3: { explanation: 0.9, application: 0.85, transfer: 0.6, retention: 0.3 },
 };
 
 function partGrowth(plant: PlantSnapshot, dimension: Dimension): PartGrowth {
   const score = plant.dimensions[dimension];
-  const solid = clamp01(score.independent);
   const seedling = plant.baselineLevel ? (BASELINE_GROWTH[plant.baselineLevel][dimension] ?? 0) : 0;
-  const confirmed = Math.max(solid, clamp01(score.assisted), seedling);
+  const solid = Math.max(clamp01(score.independent), seedling);
+  const confirmed = Math.max(solid, clamp01(score.assisted));
   const total = Math.max(confirmed, clamp01(plant.provisional?.[dimension] ?? 0));
   return { solid, confirmed, total };
 }

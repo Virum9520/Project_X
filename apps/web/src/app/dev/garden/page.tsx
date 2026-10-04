@@ -1,7 +1,10 @@
+import type { ExperienceLevel } from "@sg/contracts";
 import { notFound } from "next/navigation";
 
+import { EXPERIENCE_LABELS } from "@/app/onboarding/options";
 import { GardenDashboard } from "@/components/garden/dashboard";
 import { getSampleGardenDataset } from "@/lib/garden/data";
+import { baselineFor } from "@/lib/garden/baseline";
 import { parseState } from "@/lib/garden/state";
 
 /**
@@ -10,6 +13,28 @@ import { parseState } from "@/lib/garden/state";
  */
 export default async function GardenPreviewPage({ searchParams }: PageProps<"/dev/garden">) {
   if (process.env.NODE_ENV === "production") notFound();
-  const [dataset, params] = await Promise.all([getSampleGardenDataset(), searchParams]);
+  const [sample, params] = await Promise.all([getSampleGardenDataset(), searchParams]);
+  // `?fresh=<experience>` previews a brand-new account: no evidence, only the onboarding baseline.
+  const fresh = typeof params.fresh === "string" ? params.fresh : null;
+  const dataset =
+    fresh && fresh in EXPERIENCE_LABELS
+      ? {
+          ...sample,
+          evidence: [],
+          growthEvents: [],
+          sessions: [],
+          memories: [],
+          misconceptions: [],
+          nextBest: [],
+          streakDays: 0,
+          baseline: baselineFor({
+            major: "CS",
+            goals: [],
+            experience: fresh as ExperienceLevel,
+            timezone: "UTC",
+            completedAt: sample.generatedAt,
+          }),
+        }
+      : sample;
   return <GardenDashboard dataset={dataset} initialState={parseState(params, dataset)} isMock />;
 }
