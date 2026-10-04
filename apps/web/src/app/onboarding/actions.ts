@@ -44,7 +44,7 @@ export async function completeOnboarding(
   // publicMetadata is writable only with the secret key, so learners can't forge it client-side.
   const clerk = await clerkClient();
   await clerk.users.updateUserMetadata(user.id, { publicMetadata: { onboarding } });
-  redirect("/garden");
+  redirect("/home");
 }
 
 function isTimeZone(value: string) {

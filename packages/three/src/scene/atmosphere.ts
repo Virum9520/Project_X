@@ -32,9 +32,9 @@ const KEYS: Key[] = [
   { hour: 0, top: "#050816", horizon: "#141c3a", sun: "#7f9cff", sunIntensity: 0.35, hemi: 0.56 },
   { hour: 5, top: "#0b1230", horizon: "#2a2850", sun: "#8fa6ff", sunIntensity: 0.35, hemi: 0.64 },
   { hour: 6.5, top: "#2a3f7a", horizon: "#f2a68a", sun: "#ffb88a", sunIntensity: 1.1, hemi: 0.96 },
-  { hour: 9, top: "#3d7fc4", horizon: "#bfe3f2", sun: "#fff1d6", sunIntensity: 2.2, hemi: 1.44 },
-  { hour: 13, top: "#3a86c8", horizon: "#cdeef5", sun: "#ffffff", sunIntensity: 2.6, hemi: 1.6 },
-  { hour: 17, top: "#3b6fb0", horizon: "#f6d3a0", sun: "#ffd9a0", sunIntensity: 2, hemi: 1.36 },
+  { hour: 9, top: "#5a49c2", horizon: "#e9b2cc", sun: "#fff1d6", sunIntensity: 2.2, hemi: 1.44 },
+  { hour: 13, top: "#6a55d6", horizon: "#f2c4d0", sun: "#ffffff", sunIntensity: 2.6, hemi: 1.6 },
+  { hour: 17, top: "#5642b0", horizon: "#f2a98e", sun: "#ffd9a0", sunIntensity: 2, hemi: 1.36 },
   { hour: 19, top: "#2a2f6a", horizon: "#f2a65a", sun: "#ff9e6a", sunIntensity: 1.1, hemi: 0.96 },
   {
     hour: 20.5,

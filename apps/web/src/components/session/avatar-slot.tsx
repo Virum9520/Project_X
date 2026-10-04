@@ -1,14 +1,23 @@
 "use client";
 
+import type { Character } from "@sg/contracts";
 import type { LipSyncDriver } from "@sg/three/avatar";
-import dynamic from "next/dynamic";
 
-/** The avatar is three.js and touches WebGL, so it loads client-side only. */
-const AvatarStage = dynamic(() => import("@sg/three/avatar").then((m) => m.AvatarStage), {
-  ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse bg-dusk/40" />,
-});
+import { CharacterAvatar } from "@/components/character/character-avatar";
 
-export function AvatarSlot({ driver, vrmUrl }: { driver: LipSyncDriver; vrmUrl?: string }) {
-  return <AvatarStage driver={driver} vrmUrl={vrmUrl} className="h-full w-full" />;
+/** The speaker's portrait, pulsing with their voice (the lip-sync driver supplies the level). */
+export function AvatarSlot({
+  driver,
+  character = "drona",
+}: {
+  driver: LipSyncDriver;
+  character?: Character;
+  /** Kept for callers that still pass a VRM URL; portraits replaced the 3D avatar. */
+  vrmUrl?: string;
+}) {
+  return (
+    <div className="grid h-full w-full place-items-center">
+      <CharacterAvatar character={character} size={240} driver={driver} />
+    </div>
+  );
 }

@@ -261,7 +261,7 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
             style={{ flexGrow: panel ? shotWeight(shot, who) : 1, flexBasis: 0 }}
             data-speaker={who}
           >
-            <AvatarSlot driver={sync} vrmUrl={vrm} />
+            <AvatarSlot driver={sync} vrmUrl={vrm} character={who} />
             <span
               className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs backdrop-blur ${
                 talking === who && inCall ? "bg-glow/80 text-night" : "bg-night/70"

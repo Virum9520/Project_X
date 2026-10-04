@@ -1,7 +1,8 @@
 "use client";
 
+import { CHARACTER_META, CharacterAvatar } from "@/components/character/character-avatar";
+import { COACHES } from "@/components/character/coaches";
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
-import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -119,7 +120,9 @@ export function GardenDashboard({
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-base uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
-            <h1 className="mt-1 text-4xl font-semibold sm:text-5xl">Your garden</h1>
+            <h1 className="mt-1 bg-gradient-to-r from-foreground via-glow to-bloom bg-clip-text text-4xl font-semibold text-transparent sm:text-5xl">
+              Your garden
+            </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
             <SoundControls recentGrowthPlantKeys={recentGrowth} />
@@ -137,10 +140,6 @@ export function GardenDashboard({
             </span>
           </div>
         </header>
-
-        <StartingLevelsNotice dataset={dataset} />
-
-        <PracticeLinks />
 
         {state.scrubDate && (
           <div
@@ -161,45 +160,48 @@ export function GardenDashboard({
           </div>
         )}
 
-        <div className="flex min-w-0 flex-col gap-3">
-          <Breadcrumb
-            focus={focus}
-            dataset={dataset}
-            onFocus={actions.focusOn}
-            onZoomOut={actions.zoomOut}
-          />
-          <GardenSceneSlot
-            groves={dataset.groves}
-            plants={view.plants}
-            focus={focus}
-            onFocusChange={actions.focusOn}
-            asOf={new Date(view.cutoff).toISOString()}
-            isTimeTravel={view.isPast}
-            recentGrowthPlantKeys={recentGrowth}
-            evidence={view.evidence}
-            prerequisites={dataset.prerequisites}
-            revision={revision}
-            ruleVersion={dataset.freshness.rulesVersion}
-          />
-          <p className="sr-only" role="status" aria-live="polite">
-            Focused on {scopeLabel}.
-          </p>
-          {notice && (
-            <p
-              role="status"
-              className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
-            >
-              <span>{notice}</span>
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                aria-label="Dismiss"
-                className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
-              >
-                ×
-              </button>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+          <div className="flex min-w-0 flex-col gap-3">
+            <Breadcrumb
+              focus={focus}
+              dataset={dataset}
+              onFocus={actions.focusOn}
+              onZoomOut={actions.zoomOut}
+            />
+            <GardenSceneSlot
+              groves={dataset.groves}
+              plants={view.plants}
+              focus={focus}
+              onFocusChange={actions.focusOn}
+              asOf={new Date(view.cutoff).toISOString()}
+              isTimeTravel={view.isPast}
+              recentGrowthPlantKeys={recentGrowth}
+              evidence={view.evidence}
+              prerequisites={dataset.prerequisites}
+              revision={revision}
+              ruleVersion={dataset.freshness.rulesVersion}
+            />
+            <p className="sr-only" role="status" aria-live="polite">
+              Focused on {scopeLabel}.
             </p>
-          )}
+            {notice && (
+              <p
+                role="status"
+                className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
+              >
+                <span>{notice}</span>
+                <button
+                  type="button"
+                  onClick={() => setNotice(null)}
+                  aria-label="Dismiss"
+                  className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
+                >
+                  ×
+                </button>
+              </p>
+            )}
+          </div>
+          <PracticeLinks />
         </div>
 
         {focusedPlant && (
@@ -212,6 +214,8 @@ export function GardenDashboard({
             onPractise={onPractise}
           />
         )}
+
+        <StartingLevelsNotice dataset={dataset} />
 
         <StatsOverview
           dataset={dataset}
@@ -302,27 +306,36 @@ export function GardenDashboard({
   );
 }
 
-const PRACTICE: { href: Route; label: string; hint: string }[] = [
-  { href: "/session", label: "Voice session", hint: "Drona, concept by concept" },
-  { href: "/interview", label: "HR and panel interview", hint: "Vidura and Arjuna" },
-  { href: "/interview/technical", label: "Technical interview", hint: "Arjuna, with code" },
-];
-
-/** Entry points to every practice mode, so the garden is one click from the next session. */
+/** Your guides: a column beside the garden. Each portrait breathes, and swells on hover. */
 function PracticeLinks() {
   return (
-    <nav aria-label="Practice" className="flex flex-wrap items-center gap-3 text-lg">
-      <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Practise</span>
-      {PRACTICE.map((p) => (
-        <Link
-          key={p.href}
-          href={p.href}
-          title={p.hint}
-          className="rounded-xl border border-white/15 px-5 py-2.5 text-foreground/90 outline-none hover:border-glow/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-glow"
-        >
-          {p.label}
-        </Link>
-      ))}
+    <nav aria-label="Guides" className="flex min-w-0 flex-col gap-3">
+      <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Your guides</span>
+      {COACHES.map((p) => {
+        const meta = CHARACTER_META[p.id];
+        return (
+          <Link
+            key={p.href}
+            href={p.href}
+            className="glass group flex items-center gap-4 rounded-2xl p-3 outline-none transition hover:-translate-y-0.5 hover:border-glow/40 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-glow"
+          >
+            <CharacterAvatar character={p.id} size={84} />
+            <span className="min-w-0">
+              <span className="block text-xs uppercase tracking-[0.2em] text-foreground/50">
+                {meta.name} · {meta.role}
+              </span>
+              <span className="mt-0.5 block text-lg font-medium leading-tight">{p.feature}</span>
+              <span className="block text-sm text-foreground/60">{p.hint}</span>
+            </span>
+            <span
+              aria-hidden
+              className="ml-auto text-xl text-glow transition group-hover:translate-x-1"
+            >
+              →
+            </span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

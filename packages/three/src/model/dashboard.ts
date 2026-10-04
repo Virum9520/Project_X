@@ -51,6 +51,7 @@ export function snapshotFromPlants(input: SnapshotInput): GardenSnapshot {
       status: p.wilting ? "wilting" : p.stage,
       dimensions,
       evidenceCount: p.evidenceCount.independent + p.evidenceCount.assisted,
+      baselineLevel: p.baselineLevel,
       lastEvidenceAt: p.lastEvidenceAt,
       nextReviewAt: p.nextReviewAt,
     };

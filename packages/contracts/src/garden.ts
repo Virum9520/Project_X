@@ -209,6 +209,8 @@ export interface PlantState {
   /** Passes the active filters; unmatched plants dim. */
   matched: boolean;
   evidenceCount: { independent: number; assisted: number };
+  /** Starting level from onboarding when the plant has no evidence yet. */
+  baselineLevel?: 1 | 2 | 3;
 }
 
 // ─── Analytics API (C14) ────────────────────────────────────────────────────────────────────

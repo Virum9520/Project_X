@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --night: #0b1020;
-  --dusk: #1a2340;
-  --moss: #3fae7a;
-  --bloom: #f4b8d4;
-  --glow: #9be7ff;
-  --ember: #f2a65a;
-  --wilt: #8a7f6a;
+  --night: #0c0a1e;
+  --dusk: #1b1640;
+  --moss: #4fd1a1;
+  --bloom: #ff9ec7;
+  --glow: #ffcf70;
+  --ember: #ff8a5c;
+  --wilt: #9a8f7a;
   --background: var(--night);
-  --foreground: #e8ecf6;
+  --foreground: #f3eefc;
 }
 
 @theme inline {
@@ -27,7 +27,12 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgb(120 84 255 / 0.22), transparent 60%),
+    radial-gradient(800px 480px at 95% 4%, rgb(255 138 92 / 0.12), transparent 60%),
+    radial-gradient(900px 600px at 50% 110%, rgb(79 209 161 / 0.1), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
@@ -195,5 +200,38 @@ html {
   .dot-pulse circle {
     animation: none;
     opacity: 0.7;
+  }
+}
+
+/* Character avatars: a gentle breathing loop; speaking is driven imperatively from JS. */
+@keyframes avatar-breathe {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+@keyframes avatar-ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+.avatar-breathe {
+  animation: avatar-breathe 4.2s ease-in-out infinite;
+}
+.avatar-ripple {
+  animation: avatar-ripple 1.8s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar-breathe,
+  .avatar-ripple {
+    animation: none;
   }
 }

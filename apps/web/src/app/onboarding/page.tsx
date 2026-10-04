@@ -6,7 +6,7 @@ import { OnboardingForm } from "./onboarding-form";
 
 export default async function OnboardingPage() {
   const user = await requireLearner();
-  if (onboardingOf(user)) redirect("/account");
+  if (onboardingOf(user)) redirect("/home");
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-10 px-6 pb-16 pt-32">
