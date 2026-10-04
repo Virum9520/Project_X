@@ -159,3 +159,36 @@ def test_cli_plan_and_selection(capsys: pytest.CaptureFixture[str]) -> None:
     out = capsys.readouterr().out
     assert "sfx.growth" in out and "music." not in out
     assert main(["plan", "--only", "nothing.*"]) == 1
+
+
+async def test_tts_with_timestamps_parses_alignment_and_records_characters() -> None:
+    import base64
+
+    import httpx
+    from pydantic import SecretStr
+
+    from sg_core.economics import InMemoryUsageRecorder
+    from sg_core.models.enums import CostCenter
+    from sg_core.providers.elevenlabs import ElevenLabsClient
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v1/text-to-speech/v1/with-timestamps"
+        return httpx.Response(
+            200,
+            json={
+                "audio_base64": base64.b64encode(b"mp3").decode(),
+                "alignment": {
+                    "characters": ["h", "i"],
+                    "character_start_times_seconds": [0.0, 0.1],
+                    "character_end_times_seconds": [0.1, 0.2],
+                },
+            },
+        )
+
+    rec = InMemoryUsageRecorder()
+    client = ElevenLabsClient(SecretStr("k"), transport=httpx.MockTransport(handler), recorder=rec)
+    ctx = UsageContext(cost_center=CostCenter.LEARNER, component="sanjaya_recap")
+    out = await client.text_to_speech_with_timestamps("v1", "hi", usage=ctx)
+    assert out.audio == b"mp3" and out.alignment is not None
+    assert out.alignment.end_times == [0.1, 0.2]
+    assert rec.records[0][1].billable_units == Decimal(2)

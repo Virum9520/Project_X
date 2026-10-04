@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     elevenlabs_base_url: str = "https://api.elevenlabs.io"
     # Character key -> ElevenLabs agent ID (JSON). Print it with `uv run sg-agents ids`.
     elevenlabs_agent_ids: dict[str, str] = {}
+    # ElevenLabs voice ID Sanjaya narrates the weekly recap with (Voice Design result, C20).
+    sanjaya_voice_id: str | None = None
     # Signs the session-scoped tokens that agents send to /v1/agent-tools/* (server tools).
     agent_tool_token_secret: SecretStr | None = None
     agent_tool_token_ttl_seconds: int = 3600

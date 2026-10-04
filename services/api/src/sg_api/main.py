@@ -18,8 +18,10 @@ from sg_api.garden.router import router as garden_router
 from sg_api.garden.tool import router as query_analytics_router
 from sg_api.knowledge.router import router as documents_router
 from sg_api.middleware import AuditMiddleware, RequestContextMiddleware
+from sg_api.recap.router import router as recap_router
 from sg_api.routers import admin, health, me
 from sg_api.sessions.router import router as sessions_router
+from sg_api.soundscape.router import router as soundscape_router
 from sg_api.webhooks.router import router as webhooks_router
 from sg_core.db import get_sessionmaker
 from sg_core.identity.db import seed_identity_catalog_committed
@@ -76,6 +78,8 @@ def create_app() -> FastAPI:
     app.include_router(query_analytics_router)
     app.include_router(commitments_tool_router)
     app.include_router(accountability_router)
+    app.include_router(soundscape_router)
+    app.include_router(recap_router)
     return app
 
 
