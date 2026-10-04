@@ -234,3 +234,28 @@ describe("question ids", () => {
     expect(parseQuestionId("teach_back:dsa.bfs:x")).toBeNull();
   });
 });
+
+describe("dashboard tools on the stage", () => {
+  it("delegates set_filter and scrub_timeline to the dashboard handlers", () => {
+    const setFilter = vi.fn(() => "Filtered.");
+    const scrubTimeline = vi.fn(() => "Scrubbed.");
+    const tools = createStageTools({
+      dispatch: () => {},
+      now: () => 0,
+      hasConcept: () => true,
+      focusPlant: () => "ok",
+      setFilter,
+      scrubTimeline,
+    });
+    expect(tools.set_filter({ evidence: "independent_only" })).toBe("Filtered.");
+    expect(setFilter).toHaveBeenCalledWith({ evidence: "independent_only" });
+    expect(tools.scrub_timeline({ date: "now" })).toBe("Scrubbed.");
+    expect(scrubTimeline).toHaveBeenCalledWith({ date: "now" });
+  });
+
+  it("answers politely when the dashboard handlers are absent", () => {
+    const h = harness();
+    expect(h.tools.set_filter({})).toContain("not available");
+    expect(h.tools.scrub_timeline({ date: "now" })).toContain("not available");
+  });
+});

@@ -71,7 +71,11 @@ function Stage({ dataset, isMock, initialConcept, initialMode, vrmUrl }: Session
   });
 
   const conceptKeys = useMemo(() => new Set(dataset.plants.map((p) => p.key)), [dataset.plants]);
-  const focusPlantTool = garden.clientTools.focus_plant;
+  const {
+    focus_plant: focusPlantTool,
+    set_filter: setFilterTool,
+    scrub_timeline: scrubTool,
+  } = garden.clientTools;
   const tools = useMemo(
     () =>
       createStageTools({
@@ -79,8 +83,10 @@ function Stage({ dataset, isMock, initialConcept, initialMode, vrmUrl }: Session
         now: wallClock,
         hasConcept: (key) => conceptKeys.has(key),
         focusPlant: focusPlantTool,
+        setFilter: setFilterTool,
+        scrubTimeline: scrubTool,
       }),
-    [conceptKeys, focusPlantTool],
+    [conceptKeys, focusPlantTool, setFilterTool, scrubTool],
   );
 
   const conversation = useConversation({
@@ -329,7 +335,7 @@ function Stage({ dataset, isMock, initialConcept, initialMode, vrmUrl }: Session
             focus={focus}
             onFocusChange={garden.actions.focusOn}
             asOf={new Date(garden.view.cutoff).toISOString()}
-            isTimeTravel={false}
+            isTimeTravel={garden.view.isPast}
             recentGrowthPlantKeys={recentGrowth}
             evidence={garden.view.evidence}
             prerequisites={dataset.prerequisites}

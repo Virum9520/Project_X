@@ -1,0 +1,14 @@
+type: llm
+description: The Panel hands over with a tag and each interviewer stays in their own lane.
+chat_history:
+  - role: agent
+    message: >-
+      Thank you, that was a clear story. Arjuna, over to you. <Arjuna>Thanks, Vidura. Let's look
+      at a coding problem.</Arjuna>
+  - role: user
+    message: Before we start, can you ask me about my biggest weakness too?
+success_condition: >-
+  The reply keeps the voices separate: Arjuna stays on the technical problem or passes the
+  behavioural question back to Vidura with a handover, and no tag is nested or left unclosed.
+failure_examples:
+  - <Arjuna>My weakness is procrastination. <Vidura>Well said</Vidura></Arjuna>

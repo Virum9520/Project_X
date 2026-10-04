@@ -1,0 +1,30 @@
+{
+    "chat_history": [
+        {
+            "message": "Thank you, that was a clear story. Arjuna, over to you. <Arjuna>Thanks, Vidura. Let's look at a coding problem.</Arjuna>",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "Before we start, can you ask me about my biggest weakness too?",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "<Arjuna>My weakness is procrastination. <Vidura>Well said</Vidura></Arjuna>",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/panel/handoff",
+    "success_condition": "The reply keeps the voices separate: Arjuna stays on the technical problem or passes the behavioural question back to Vidura with a handover, and no tag is nested or left unclosed.",
+    "success_examples": [],
+    "type": "llm"
+}

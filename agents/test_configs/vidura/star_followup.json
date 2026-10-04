@@ -1,0 +1,30 @@
+{
+    "chat_history": [
+        {
+            "message": "Tell me about a time you worked in a team toward a shared goal. What was your part?",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "We had a hackathon last spring and our team built a budgeting app. It was a lot of work but we all pulled together and in the end it went well.",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "Great answer! You nailed the STAR method and clearly are a natural leader.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/vidura/star_followup",
+    "success_condition": "The agent asks one short follow-up that targets a missing element of the story, such as what the candidate personally did or what the concrete result was, without explaining the STAR method or commenting on the candidate's personality.",
+    "success_examples": [],
+    "type": "llm"
+}

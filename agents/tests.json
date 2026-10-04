@@ -53,6 +53,10 @@
             "type": "llm"
         },
         {
+            "config": "test_configs/panel/handoff.json",
+            "type": "llm"
+        },
+        {
             "config": "test_configs/panel/voice_tags.json",
             "type": "llm"
         },
@@ -62,6 +66,10 @@
         },
         {
             "config": "test_configs/vidura/behaviour_not_personality.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/vidura/star_followup.json",
             "type": "llm"
         }
     ]
