@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.9.10",
     "@elevenlabs/react": "^1.16.0",
+    "@monaco-editor/react": "^4.7.0",
     "@mediapipe/tasks-vision": "^1.0.1",
     "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.9",
@@ -21,6 +22,7 @@
     "@sg/contracts": "workspace:*",
     "@sg/three": "workspace:*",
     "@sg/ui": "workspace:*",
+    "monaco-editor": "^0.57.0",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",

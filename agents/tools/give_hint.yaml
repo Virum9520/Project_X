@@ -1,0 +1,14 @@
+name: give_hint
+type: webhook
+path: /v1/agent-tools/give_hint
+description: >-
+  Get the next hint for the coding problem the candidate is stuck on. Hints come in three levels
+  and the backend gives them in order. Calling it records that the candidate was helped, so what
+  they solve afterwards on this problem counts as assisted. Give the hint in your own words, once.
+timeout_secs: 8
+parameters:
+  required: [problem_id]
+  properties:
+    problem_id:
+      type: string
+      description: The problem ID returned by fetch_question.

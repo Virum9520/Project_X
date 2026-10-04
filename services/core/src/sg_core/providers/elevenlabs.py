@@ -363,6 +363,18 @@ class ElevenLabsClient:
             duration_secs=duration,
         )
 
+    async def create_scribe_token(self) -> str:
+        """Single-use token for the browser's realtime Scribe WebSocket (live captions).
+
+        The API key never reaches the browser; the token is valid for one connection and expires
+        in about 15 minutes. Usage is billed to the account by the provider, not ledgered here.
+        """
+        data = await self._request("POST", "/v1/single-use-token/realtime_scribe")
+        token = data.get("token") if isinstance(data, dict) else None
+        if not isinstance(token, str) or not token:
+            raise ElevenLabsError(502, "no token in the realtime Scribe token response")
+        return token
+
     async def create_instant_voice_clone(
         self,
         *,

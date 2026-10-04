@@ -108,7 +108,15 @@ export function TeachBackPanel({
   );
 }
 
-export function Captions({ agent, user }: { agent: string; user: string }) {
+export function Captions({
+  agent,
+  user,
+  speaker = "Drona",
+}: {
+  agent: string;
+  user: string;
+  speaker?: string;
+}) {
   return (
     <div
       className="glass min-h-24 rounded-2xl p-4 text-sm leading-relaxed"
@@ -118,11 +126,11 @@ export function Captions({ agent, user }: { agent: string; user: string }) {
     >
       {agent ? (
         <p>
-          <span className="mr-2 text-xs uppercase tracking-widest text-glow">Drona</span>
+          <span className="mr-2 text-xs uppercase tracking-widest text-glow">{speaker}</span>
           {agent}
         </p>
       ) : (
-        <p className="text-foreground/50">Captions appear here as Drona speaks.</p>
+        <p className="text-foreground/50">Captions appear here as {speaker} speaks.</p>
       )}
       {user && (
         <p className="mt-2 text-foreground/70">

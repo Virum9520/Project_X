@@ -1,6 +1,10 @@
 {
     "tests": [
         {
+            "config": "test_configs/arjuna/gives_hint_with_tool.json",
+            "type": "tool"
+        },
+        {
             "config": "test_configs/arjuna/no_full_solution.json",
             "type": "llm"
         },
