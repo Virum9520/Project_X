@@ -48,6 +48,8 @@ def test_header_lookup_is_case_insensitive() -> None:
         ({}, BODY),
         ({"elevenlabs-signature": "garbage"}, BODY),
         ({"elevenlabs-signature": "t=abc,v0=00"}, BODY),
+        ({"elevenlabs-signature": f"t={int(NOW)},v0=\u00e9\u00e9"}, BODY),  # non-ASCII digest
+        ({"elevenlabs-signature": "t=\u0661\u0662\u0663,v0=00"}, BODY),  # Unicode digits
         (sign(BODY, secret="other"), BODY),
         (sign(BODY), BODY + b" "),  # body tampered
         (sign(BODY, ts=int(NOW) - 3600), BODY),  # replay outside tolerance

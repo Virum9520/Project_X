@@ -72,8 +72,12 @@ class ElevenLabsVerifier:
             raise SignatureError("missing signature header")
         parts = dict(p.strip().split("=", 1) for p in header.split(",") if "=" in p)
         timestamp, provided = parts.get("t"), parts.get("v0")
-        if not timestamp or not provided or not timestamp.isdigit():
+        if not timestamp or not provided or not (timestamp.isascii() and timestamp.isdigit()):
             raise SignatureError("malformed signature header")
+        try:
+            provided_bytes = provided.encode("ascii")
+        except UnicodeEncodeError:
+            raise SignatureError("malformed signature header") from None
         if abs(self._now() - int(timestamp)) > self._tolerance:
             raise SignatureError("timestamp outside tolerance")
         expected = hmac.new(
@@ -81,7 +85,7 @@ class ElevenLabsVerifier:
             timestamp.encode() + b"." + body,
             hashlib.sha256,
         ).hexdigest()
-        if not hmac.compare_digest(expected, provided):
+        if not hmac.compare_digest(expected.encode(), provided_bytes):
             raise SignatureError("signature mismatch")
 
     def parse(self, body: bytes) -> ParsedEvent:

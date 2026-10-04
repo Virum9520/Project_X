@@ -27,7 +27,7 @@ MAX_ERROR_CHARS = 2000
 class ProcessOutcome(StrEnum):
     PROCESSED = "processed"
     IGNORED = "ignored"
-    SKIPPED = "skipped"  # already terminal, missing, or being handled by another run
+    SKIPPED = "skipped"  # already terminal or missing
     FAILED = "failed"
 
 
@@ -56,16 +56,16 @@ async def process_provider_event(
 ) -> ProcessOutcome:
     """Run the handler exactly-once-effective for a stored event.
 
-    The row is locked (SKIP LOCKED) for the whole run, so concurrent or duplicate jobs cannot both
-    execute the handler, and terminal rows are never reprocessed. Handler writes commit together
-    with the status change. On error the handler's writes roll back, the failure is recorded, and
-    the exception is re-raised so the job system can retry.
+    The row is locked (FOR UPDATE) for the whole run, so concurrent or duplicate jobs cannot both
+    execute the handler, and terminal rows are never reprocessed. The lock blocks rather than
+    skipping: a run that starts while ingest still holds the row (between dispatch and the ENQUEUED
+    update) waits for that commit instead of returning early and leaving the event unprocessed.
+    Handler writes commit together with the status change. On error the handler's writes roll
+    back, the failure is recorded, and the exception is re-raised so the job system can retry.
     """
     event = (
         await session.execute(
-            select(ProviderEvent)
-            .where(ProviderEvent.id == provider_event_id)
-            .with_for_update(skip_locked=True)
+            select(ProviderEvent).where(ProviderEvent.id == provider_event_id).with_for_update()
         )
     ).scalar_one_or_none()
     if event is None or event.status in _TERMINAL:
