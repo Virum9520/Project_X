@@ -51,6 +51,11 @@ class RulesProfile(BaseModel):
             raise ValueError("outcome_credit must not define `unassessable` (it never counts)")
         if self.outcome_credit[AssessmentOutcome.DEMONSTRATED] < self.reach_threshold:
             raise ValueError("one demonstrated outcome must reach `reach_threshold`")
+        credits = self.outcome_credit
+        if credits[AssessmentOutcome.NOT_DEMONSTRATED] != 0:
+            raise ValueError("outcome_credit.not_demonstrated must be 0 (a miss never grows)")
+        if credits[AssessmentOutcome.PARTIAL] > credits[AssessmentOutcome.DEMONSTRATED]:
+            raise ValueError("outcome_credit.partial must not exceed demonstrated")
         if any(i <= 0 for i in self.review_intervals_seconds):
             raise ValueError("review_intervals_seconds must be positive")
         if list(self.review_intervals_seconds) != sorted(self.review_intervals_seconds):

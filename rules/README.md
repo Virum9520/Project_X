@@ -19,7 +19,10 @@ keep their `rule_ver`; replaying them requires the matching profile version.
 - Time never lowers scores. A plant becomes DUE at `next_review_at` and WILTING after
   `wilt_grace_seconds`; a passed review (independent, new family) advances the interval step, an
   independent miss at review time steps it back.
-- Judge uncertainty above `max_uncertainty` grows nothing and is returned in `reassess`.
+- Judge uncertainty above `max_uncertainty` (or NaN) grows nothing and is returned in `reassess`.
+- `outcome_credit.not_demonstrated` must be 0 and `partial` must not exceed `demonstrated`.
+- An observation older than its plant's `last_evidence_at` is skipped as `out_of_order` and not
+  consumed; the caller (C11) must rebuild the garden with `replay()` over all observations.
 
 ### Decision: the `communication` dimension (open question from C06)
 

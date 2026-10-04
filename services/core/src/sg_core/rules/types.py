@@ -27,6 +27,7 @@ SkipReason = Literal[
     "assisted_retention_not_counted",
     "retention_before_learning",
     "retention_too_soon",
+    "out_of_order",
 ]
 
 

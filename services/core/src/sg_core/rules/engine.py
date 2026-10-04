@@ -15,10 +15,15 @@ Persistent garden changes come only from here. Guarantees (each covered by tests
   whose review is overdue; a successful review clears it, scores are untouched.
 * Distinct problem families: repeats of the same family do not count again, and transfer needs a
   family different from the one credited for application.
-* Ambiguous evidence (judge uncertainty above the profile limit) grows nothing and is returned in
-  `reassess` so the pipeline can re-judge it.
+* Ambiguous evidence (judge uncertainty above the profile limit, or NaN) grows nothing and is
+  returned in `reassess` so the pipeline can re-judge it.
+* Out-of-order evidence is never applied incrementally. An observation older than its plant's
+  `last_evidence_at` is skipped as `out_of_order` and not consumed (it stays out of `applied` and
+  `processed`), because applying it on top of newer evidence could differ from `replay()`. The
+  caller (C11) must then rebuild the garden with `replay()` over all of its observations.
 """
 
+import math
 import uuid
 from collections.abc import Collection, Iterable
 from dataclasses import replace
@@ -113,7 +118,11 @@ def propose(
     """
     if now.tzinfo is None:
         raise ValueError("`now` must be timezone-aware")
-    ordered = sorted(observations, key=lambda o: (o.occurred_at, str(o.assessment_id)))
+    items = list(observations)
+    for o in items:
+        if o.occurred_at.tzinfo is None:
+            raise ValueError(f"`occurred_at` must be timezone-aware (assessment {o.assessment_id})")
+    ordered = sorted(items, key=lambda o: (o.occurred_at, str(o.assessment_id)))
 
     plants = dict(state.plants)
     applied = set(state.applied)
@@ -137,6 +146,9 @@ def propose(
         rejection = _precheck(obs)
         if rejection is None and _is_ambiguous(obs, profile):
             reassess.append(obs.assessment_id)
+            continue
+        if rejection is None and _is_out_of_order(plants.get(obs.concept_key), obs):
+            skip(obs, "out_of_order")  # not consumed: the caller rebuilds with `replay()`
             continue
         applied.add(obs.assessment_id)
         processed.append(obs.assessment_id)
@@ -232,7 +244,13 @@ def _precheck(obs: Observation) -> SkipReason | None:
 
 
 def _is_ambiguous(obs: Observation, profile: RulesProfile) -> bool:
-    return obs.uncertainty is not None and obs.uncertainty > profile.max_uncertainty
+    u = obs.uncertainty
+    return u is not None and (math.isnan(u) or u > profile.max_uncertainty)
+
+
+def _is_out_of_order(plant: PlantState | None, obs: Observation) -> bool:
+    last = plant.last_evidence_at if plant is not None else None
+    return last is not None and obs.occurred_at < last
 
 
 def _apply(

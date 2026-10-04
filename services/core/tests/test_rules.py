@@ -108,6 +108,19 @@ def test_profile_rejects_bad_numbers(normal: RulesProfile) -> None:
         RulesProfile.model_validate(data)
 
 
+@pytest.mark.parametrize(
+    ("partial", "missed", "match"),
+    [(0.5, 0.7, "not_demonstrated"), (0.5, 0.1, "not_demonstrated"), (1.0, 0.0, "partial")],
+)
+def test_profile_never_credits_failures(
+    normal: RulesProfile, partial: float, missed: float, match: str
+) -> None:
+    data = normal.model_dump()
+    data["outcome_credit"] = {D: 0.9, P: partial, N: missed}
+    with pytest.raises(ValueError, match=match):
+        RulesProfile.model_validate(data)
+
+
 # ── Growth ladder: every stage within one session ──
 def session(demo_clock: bool = False) -> list[Observation]:
     return [
@@ -244,6 +257,13 @@ def test_ambiguous_evidence_is_flagged_not_grown(normal: RulesProfile) -> None:
     assert propose(result.state, [o], minutes(1), normal).reassess == (o.assessment_id,)
 
 
+def test_nan_uncertainty_is_ambiguous(normal: RulesProfile) -> None:
+    o = obs("explanation", minutes(1), uncertainty=float("nan"))
+    result = replay([o], minutes(1), normal)
+    assert result.reassess == (o.assessment_id,)
+    assert not result.changes and o.assessment_id not in result.state.applied
+
+
 def test_communication_never_grows_a_plant(normal: RulesProfile) -> None:
     result = replay(
         [obs("communication", minutes(1), concept="behavioral.star-method")], minutes(1), normal
@@ -335,6 +355,27 @@ def test_batching_matches_one_shot_replay(normal: RulesProfile, seed: int) -> No
     one_shot = replay(items, now, normal).state
     assert state.plants == one_shot.plants
     assert state.applied == one_shot.applied
+
+
+def test_out_of_order_evidence_is_not_applied_incrementally(normal: RulesProfile) -> None:
+    explain = obs("explanation", minutes(0), family="teach-back")
+    recall = obs("retention", minutes(10))
+    late = obs("application", minutes(9), family="two-pointers")
+    state = propose(GardenState(), [explain, recall], minutes(10), normal).state
+    result = propose(state, [late], minutes(11), normal)
+    assert [(s.assessment_id, s.reason) for s in result.skipped] == [
+        (late.assessment_id, "out_of_order")
+    ]
+    assert not result.changes and result.state == state
+    assert late.assessment_id not in result.state.applied and not result.processed
+    # Replay of all three applies them in time order (so the recall is now too soon after the
+    # application), and is unaffected by the incremental skip.
+    full = replay([explain, recall, late], minutes(11), normal)
+    assert [(s.assessment_id, s.reason) for s in full.skipped] == [
+        (recall.assessment_id, "retention_too_soon")
+    ]
+    assert full.state == replay([late, recall, explain], minutes(11), normal).state
+    assert full.state.plants[CONCEPT].dimension("application").independent == 1.0
 
 
 @pytest.mark.parametrize("profile_name", ["normal", "demo"])
@@ -441,6 +482,12 @@ def test_demo_clock_wilts_within_minutes(demo: RulesProfile) -> None:
 def test_naive_now_is_rejected(normal: RulesProfile) -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
         propose(GardenState(), [], datetime(2026, 1, 1), normal)
+
+
+def test_naive_occurred_at_is_rejected(normal: RulesProfile) -> None:
+    items = [obs("explanation", minutes(1)), obs("explanation", datetime(2026, 1, 1))]
+    with pytest.raises(ValueError, match="`occurred_at` must be timezone-aware"):
+        propose(GardenState(), items, minutes(2), normal)
 
 
 # ── Persistence shape ──
