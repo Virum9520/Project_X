@@ -1,10 +1,10 @@
 "use client";
 
-import { EXPERIENCE_LEVELS, LEARNER_GOALS, STARTING_LEVEL_AREAS } from "@sg/contracts";
+import { EXPERIENCE_LEVELS, LEARNER_GOALS } from "@sg/contracts";
 import { useActionState, useSyncExternalStore } from "react";
 
 import { completeOnboarding, type OnboardingState } from "./actions";
-import { AREA_LABELS, EXPERIENCE_LABELS, GOAL_LABELS, LEVEL_LABELS } from "./options";
+import { EXPERIENCE_LABELS, GOAL_LABELS } from "./options";
 
 const FALLBACK_TIMEZONE = "America/New_York";
 const noSubscription = () => () => {};
@@ -66,34 +66,6 @@ export function OnboardingForm({ timezones }: { timezones: string[] }) {
           ))}
         </select>
       </label>
-
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-lg font-medium">How strong are you in each area?</legend>
-        <p className="text-foreground/70">
-          This sets the starting seedlings in your garden. Plants only grow further when you prove a
-          skill in a session.
-        </p>
-        {STARTING_LEVEL_AREAS.map((area) => (
-          <div
-            key={area}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-dusk/60 px-4 py-3"
-          >
-            <span className="text-base">{AREA_LABELS[area]}</span>
-            <select
-              name={`level_${area}`}
-              defaultValue="0"
-              aria-label={`${AREA_LABELS[area]} level`}
-              className="rounded-lg border border-white/15 bg-night px-3 py-2"
-            >
-              {([0, 1, 2, 3] as const).map((l) => (
-                <option key={l} value={l}>
-                  {LEVEL_LABELS[l]}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
-      </fieldset>
 
       <label className="flex flex-col gap-2">
         <span className="font-medium">Your time zone</span>

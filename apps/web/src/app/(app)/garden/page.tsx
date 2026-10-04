@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { GardenDashboard } from "@/components/garden/dashboard";
 import { getGardenData } from "@/lib/garden/data";
+import { baselineFor } from "@/lib/garden/baseline";
 import { parseState } from "@/lib/garden/state";
 import { requireOnboardedLearner } from "@/lib/session";
 
@@ -17,7 +18,7 @@ export default async function GardenPage({ searchParams }: PageProps<"/garden">)
   ]);
   const withBaseline: GardenDataset = {
     ...dataset,
-    baseline: profile.startingLevels ?? dataset.baseline,
+    baseline: baselineFor(profile),
   };
   return (
     <GardenDashboard

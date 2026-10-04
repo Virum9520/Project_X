@@ -20,7 +20,7 @@ export function StartingLevelsNotice({ dataset }: { dataset: GardenDataset }) {
         <div>
           <h2 className="text-2xl font-semibold sm:text-3xl">Your garden starts here 🌱</h2>
           <p className="mt-2 max-w-3xl text-lg text-foreground/80">
-            We planted seedlings from the levels you told us. They grow into real plants when you
+            We planted seedlings based on your experience level. They grow into real plants when you
             prove a skill in a voice session.
           </p>
         </div>
