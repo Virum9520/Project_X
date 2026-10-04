@@ -113,12 +113,42 @@ async def test_dev_identity_requires_header() -> None:
 
 
 @pytest.mark.parametrize("environment", [Environment.DEV, Environment.PROD])
-async def test_dev_identity_stub_fails_closed_outside_local(environment: Environment) -> None:
+async def test_dev_headers_are_ignored_outside_local(environment: Environment) -> None:
     async with _app(_settings(environment=environment)) as client:
         response = await client.post(
             "/v1/sessions", json={"character": "drona"}, headers=DEV_HEADERS
         )
-    assert response.status_code == 501
+    assert response.status_code == 401
+
+
+async def test_clerk_session_identifies_the_learner() -> None:
+    from sg_core.identity import InvalidTokenError, SessionClaims
+
+    class FakeVerifier:
+        async def verify(self, token: str) -> SessionClaims:
+            if token != "good":
+                raise InvalidTokenError("bad token")
+            return SessionClaims(
+                user_id="user_clerk",
+                session_id="sess_1",
+                authorized_party=None,
+                expires_at=int(time.time()) + 60,
+                factor_verification_age=(1, -1),
+            )
+
+    settings = _settings(environment=Environment.PROD)
+    async with _app(settings) as client:
+        client._transport.app.state.identity.verifier = FakeVerifier()  # type: ignore[attr-defined]
+        ok = await client.post(
+            "/v1/sessions", json={"character": "drona"}, headers={"Authorization": "Bearer good"}
+        )
+        bad = await client.post(
+            "/v1/sessions", json={"character": "drona"}, headers={"Authorization": "Bearer nope"}
+        )
+    assert ok.status_code == 201, ok.text
+    claims = verify_tool_token(ok.json()["dynamic_variables"]["secret__sg_tool_token"], settings)
+    assert claims.user_id == "user_clerk"
+    assert bad.status_code == 401
 
 
 async def test_unknown_character_is_rejected() -> None:

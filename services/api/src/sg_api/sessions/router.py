@@ -5,7 +5,6 @@ a WebRTC conversation token for the private agent, the dynamic variables (briefi
 context and the server-tool token) and the session ID.
 
 Pending integrations (see docs/PROGRESS.md, C06 row):
-- C01: real learner auth replaces the `current_learner` dev stub.
 - C02: persist the session row (`sessions.el_conversation_id`, `agent_version`).
 - C09: the real briefing builder replaces `StubBriefingProvider`.
 - C03: budget reservation before minting a token.
