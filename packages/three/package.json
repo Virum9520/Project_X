@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./scene": "./src/scene/index.ts"
+    "./scene": "./src/scene/index.ts",
+    "./avatar": "./src/avatar/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,7 @@
   },
   "dependencies": {
     "@dgreenheck/ez-tree": "^1.1.0",
+    "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
     "@react-three/postprocessing": "^3.1.3",

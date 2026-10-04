@@ -1,7 +1,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Optimistic gate only: pages and actions re-check the session (see `src/lib/session.ts`).
-const isPublic = createRouteMatcher(["/", "/healthz", "/sign-in(.*)", "/sign-up(.*)"]);
+const isPublic = createRouteMatcher([
+  "/",
+  "/healthz",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  // Dev-only component harnesses (the pages 404 in production).
+  ...(process.env.NODE_ENV === "production" ? [] : ["/dev", "/dev/(.*)"]),
+]);
 
 export default clerkMiddleware(
   async (auth, request) => {
