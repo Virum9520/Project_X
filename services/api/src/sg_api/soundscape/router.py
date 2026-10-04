@@ -8,8 +8,8 @@ browser engine stays silent, which is a supported state.
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel
 
+from sg_api.garden.schemas import Wire
 from sg_api.sessions.identity import Learner, current_learner
 from sg_core.providers.base import ProviderNotConfiguredError
 from sg_core.providers.storage import ObjectStore, object_store_from_settings
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/v1/soundscape", tags=["soundscape"])
 URL_TTL_SECONDS = 3600
 
 
-class SoundAssetOut(BaseModel):
+class SoundAssetOut(Wire):
     id: str
     kind: str
     url: str
@@ -31,7 +31,7 @@ class SoundAssetOut(BaseModel):
     content_type: str
 
 
-class SoundManifestOut(BaseModel):
+class SoundManifestOut(Wire):
     version: int
     expires_in_seconds: int
     assets: list[SoundAssetOut]

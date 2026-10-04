@@ -6,6 +6,8 @@ const isPublic = createRouteMatcher([
   "/healthz",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // Private recap links: the signed token is the credential (checked by the API).
+  "/recap/shared/(.*)",
   // Dev-only component harnesses (the pages 404 in production).
   ...(process.env.NODE_ENV === "production" ? [] : ["/dev", "/dev/(.*)"]),
 ]);

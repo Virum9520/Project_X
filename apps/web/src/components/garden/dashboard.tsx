@@ -16,6 +16,8 @@ import { MemoryPanel } from "./memory-panel";
 import { PlantDetail } from "./plant-detail";
 import { PlantsTable } from "./plants-table";
 import { PART_LABEL, cap, formatDateTime } from "./primitives";
+import { SoundControls } from "../soundscape/sound-controls";
+import { SoundscapeProvider } from "../soundscape/soundscape-provider";
 import { Timeline } from "./timeline";
 import { useGardenDashboard } from "./use-garden-dashboard";
 
@@ -89,168 +91,181 @@ export function GardenDashboard({
     [view.growthEvents],
   );
 
+  const audioState = useMemo(
+    () => ({ plants: view.plants.map((p) => ({ stage: p.stage, wilting: p.wilting })) }),
+    [view.plants],
+  );
+
   return (
-    <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
-          <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
-            Your garden, grown from evidence
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
-          {isMock && (
-            <span
-              className="rounded-full bg-ember/15 px-2.5 py-1 text-ember ring-1 ring-ember/40"
-              title={fallbackReason ? `API unavailable (${fallbackReason})` : undefined}
-            >
-              Sample data
+    <SoundscapeProvider garden={audioState}>
+      <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
+            <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
+              Your garden, grown from evidence
+            </h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
+            <SoundControls recentGrowthPlantKeys={recentGrowth} />
+            {isMock && (
+              <span
+                className="rounded-full bg-ember/15 px-2.5 py-1 text-ember ring-1 ring-ember/40"
+                title={fallbackReason ? `API unavailable (${fallbackReason})` : undefined}
+              >
+                Sample data
+              </span>
+            )}
+            <span>
+              Updated {formatDateTime(dataset.freshness.projectionAt)} · rules{" "}
+              {dataset.freshness.rulesVersion} · {dataset.freshness.curriculum}
             </span>
-          )}
-          <span>
-            Updated {formatDateTime(dataset.freshness.projectionAt)} · rules{" "}
-            {dataset.freshness.rulesVersion} · {dataset.freshness.curriculum}
-          </span>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      {state.scrubDate && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-glow/30 bg-glow/10 px-4 py-2 text-sm text-glow"
-        >
-          <span>
-            Time travel: showing the garden as it was on {scrubDate}. This is a read-only replay of
-            past revisions.
-          </span>
-          <button
-            type="button"
-            onClick={() => actions.scrubTo(null)}
-            className="rounded-lg bg-glow/20 px-3 py-1 outline-none hover:bg-glow/30 focus-visible:ring-2 focus-visible:ring-glow"
+        {state.scrubDate && (
+          <div
+            role="status"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-glow/30 bg-glow/10 px-4 py-2 text-sm text-glow"
           >
-            Back to now
-          </button>
-        </div>
-      )}
+            <span>
+              Time travel: showing the garden as it was on {scrubDate}. This is a read-only replay
+              of past revisions.
+            </span>
+            <button
+              type="button"
+              onClick={() => actions.scrubTo(null)}
+              className="rounded-lg bg-glow/20 px-3 py-1 outline-none hover:bg-glow/30 focus-visible:ring-2 focus-visible:ring-glow"
+            >
+              Back to now
+            </button>
+          </div>
+        )}
 
-      <FiltersBar
-        dataset={dataset}
-        filters={filters}
-        onChange={actions.setFilters}
-        onClear={actions.clearFilters}
-        matchedCount={view.matched.length}
-      />
+        <FiltersBar
+          dataset={dataset}
+          filters={filters}
+          onChange={actions.setFilters}
+          onClear={actions.clearFilters}
+          matchedCount={view.matched.length}
+        />
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
-        <aside
-          aria-label={focusedPlant ? "Plant details" : "Key metrics"}
-          className="order-2 xl:order-1"
-        >
-          {focusedPlant ? (
-            <PlantDetail
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
+          <aside
+            aria-label={focusedPlant ? "Plant details" : "Key metrics"}
+            className="order-2 xl:order-1"
+          >
+            {focusedPlant ? (
+              <PlantDetail
+                dataset={dataset}
+                plant={focusedPlant}
+                part={focus.level === "part" ? focus.part : null}
+                evidence={view.evidence}
+                onFocus={actions.focusOn}
+                onPractise={onPractise}
+              />
+            ) : (
+              <KpiRail
+                dataset={dataset}
+                scopePlants={scopePlants}
+                focus={focus}
+                cutoff={view.cutoff}
+                streakDays={dataset.streakDays}
+                hoursThisWeek={view.hoursThisWeek}
+                onFocus={actions.focusOn}
+              />
+            )}
+          </aside>
+
+          <div className="order-1 flex min-w-0 flex-col gap-3 lg:col-span-2 xl:order-2 xl:col-span-1">
+            <Breadcrumb
+              focus={focus}
               dataset={dataset}
-              plant={focusedPlant}
-              part={focus.level === "part" ? focus.part : null}
+              onFocus={actions.focusOn}
+              onZoomOut={actions.zoomOut}
+            />
+            <GardenSceneSlot
+              groves={dataset.groves}
+              plants={view.plants}
+              focus={focus}
+              onFocusChange={actions.focusOn}
+              asOf={new Date(view.cutoff).toISOString()}
+              isTimeTravel={view.isPast}
+              recentGrowthPlantKeys={recentGrowth}
               evidence={view.evidence}
+              prerequisites={dataset.prerequisites}
+              revision={revision}
+              ruleVersion={dataset.freshness.rulesVersion}
+            />
+            <p className="sr-only" role="status" aria-live="polite">
+              Focused on {scopeLabel}.
+            </p>
+            {notice && (
+              <p
+                role="status"
+                className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
+              >
+                <span>{notice}</span>
+                <button
+                  type="button"
+                  onClick={() => setNotice(null)}
+                  aria-label="Dismiss"
+                  className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
+                >
+                  ×
+                </button>
+              </p>
+            )}
+          </div>
+
+          <aside aria-label="Insights" className="order-3 flex flex-col gap-4">
+            <AskSanjaya dataset={dataset} live={!isMock} onFocus={actions.focusOn} />
+            <InsightsRail
+              dataset={dataset}
+              growthEvents={view.growthEvents}
+              evidence={view.evidence}
+              scopeKeys={scopeKeys}
+              scopeLabel={scopeLabel}
               onFocus={actions.focusOn}
               onPractise={onPractise}
-            />
-          ) : (
-            <KpiRail
-              dataset={dataset}
-              scopePlants={scopePlants}
-              focus={focus}
               cutoff={view.cutoff}
-              streakDays={dataset.streakDays}
-              hoursThisWeek={view.hoursThisWeek}
-              onFocus={actions.focusOn}
             />
-          )}
-        </aside>
-
-        <div className="order-1 flex min-w-0 flex-col gap-3 lg:col-span-2 xl:order-2 xl:col-span-1">
-          <Breadcrumb
-            focus={focus}
-            dataset={dataset}
-            onFocus={actions.focusOn}
-            onZoomOut={actions.zoomOut}
-          />
-          <GardenSceneSlot
-            groves={dataset.groves}
-            plants={view.plants}
-            focus={focus}
-            onFocusChange={actions.focusOn}
-            asOf={new Date(view.cutoff).toISOString()}
-            isTimeTravel={view.isPast}
-            recentGrowthPlantKeys={recentGrowth}
-            evidence={view.evidence}
-            prerequisites={dataset.prerequisites}
-            revision={revision}
-            ruleVersion={dataset.freshness.rulesVersion}
-          />
-          <p className="sr-only" role="status" aria-live="polite">
-            Focused on {scopeLabel}.
-          </p>
-          {notice && (
-            <p
-              role="status"
-              className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
-            >
-              <span>{notice}</span>
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                aria-label="Dismiss"
-                className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
-              >
-                ×
-              </button>
-            </p>
-          )}
+          </aside>
         </div>
 
-        <aside aria-label="Insights" className="order-3 flex flex-col gap-4">
-          <AskSanjaya dataset={dataset} live={!isMock} onFocus={actions.focusOn} />
-          <InsightsRail
+        <Timeline
+          series={series}
+          sessions={dataset.sessions}
+          scrubDate={scrubDate}
+          onScrub={actions.scrubTo}
+          rangeFrom={filters.dateFrom}
+          rangeTo={filters.dateTo}
+        />
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <EvidenceTimeline
             dataset={dataset}
             growthEvents={view.growthEvents}
             evidence={view.evidence}
             scopeKeys={scopeKeys}
             scopeLabel={scopeLabel}
-            onFocus={actions.focusOn}
-            onPractise={onPractise}
-            cutoff={view.cutoff}
           />
-        </aside>
-      </div>
+          <MemoryPanel
+            dataset={dataset}
+            cutoff={view.cutoff}
+            live={!isMock}
+            onFocusPlant={(key) => actions.focusOn({ level: "plant", plantKey: key })}
+          />
+        </div>
 
-      <Timeline
-        series={series}
-        sessions={dataset.sessions}
-        scrubDate={scrubDate}
-        onScrub={actions.scrubTo}
-        rangeFrom={filters.dateFrom}
-        rangeTo={filters.dateTo}
-      />
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <EvidenceTimeline
+        <PlantsTable
           dataset={dataset}
-          growthEvents={view.growthEvents}
-          evidence={view.evidence}
-          scopeKeys={scopeKeys}
-          scopeLabel={scopeLabel}
+          plants={view.plants}
+          focus={focus}
+          onFocus={actions.focusOn}
         />
-        <MemoryPanel
-          dataset={dataset}
-          cutoff={view.cutoff}
-          live={!isMock}
-          onFocusPlant={(key) => actions.focusOn({ level: "plant", plantKey: key })}
-        />
-      </div>
-
-      <PlantsTable dataset={dataset} plants={view.plants} focus={focus} onFocus={actions.focusOn} />
-    </main>
+      </main>
+    </SoundscapeProvider>
   );
 }
 
