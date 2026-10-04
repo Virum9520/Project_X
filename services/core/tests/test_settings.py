@@ -38,3 +38,10 @@ def test_origins_and_issuer_are_normalized(monkeypatch: pytest.MonkeyPatch) -> N
     assert settings.cors_origins == ["http://localhost:3000", "https://app.example.com"]
     assert settings.authorized_parties == settings.cors_origins
     assert settings.clerk_issuer == "https://x.clerk.accounts.dev"
+
+
+def test_empty_curriculum_dir_means_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sg_core.settings import Settings
+
+    monkeypatch.setenv("CURRICULUM_DIR", "")
+    assert Settings(_env_file=None).curriculum_dir is None  # type: ignore[call-arg]

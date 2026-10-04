@@ -93,6 +93,12 @@ class Settings(BaseSettings):
     def _normalize_database_url(cls, value: object) -> object:
         return normalize_database_url(value) if isinstance(value, str) else value
 
+    @field_validator("curriculum_dir", mode="before")
+    @classmethod
+    def _empty_curriculum_dir(cls, value: object) -> object:
+        # `CURRICULUM_DIR=` (as in .env.example) means "use the default", not Path(".").
+        return None if isinstance(value, str) and not value.strip() else value
+
     @field_validator("admin_owner_emails", mode="before")
     @classmethod
     def _split_emails(cls, value: object) -> object:
