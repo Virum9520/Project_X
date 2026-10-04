@@ -23,7 +23,6 @@ for (const p of [
   "app/sign-in",
   "app/sign-up",
   "app/recap",
-  "app/lab",
   "app/dev",
   "app/healthz",
 ]) {

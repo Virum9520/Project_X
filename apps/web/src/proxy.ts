@@ -8,6 +8,8 @@ const isPublic = createRouteMatcher([
   "/sign-up(.*)",
   // Private recap links: the signed token is the credential (checked by the API).
   "/recap/shared/(.*)",
+  // Garden growth simulator: mock data only, no learner data.
+  "/lab/garden",
   // Dev-only component harnesses (the pages 404 in production).
   ...(process.env.NODE_ENV === "production" ? [] : ["/dev", "/dev/(.*)"]),
 ]);
