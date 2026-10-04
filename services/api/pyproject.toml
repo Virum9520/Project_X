@@ -9,6 +9,7 @@ dependencies = [
   "uvicorn[standard]>=0.32",
   "alembic>=1.14",
   "pyjwt[crypto]>=2.9",
+  "python-multipart>=0.0.32",
 ]
 
 [build-system]

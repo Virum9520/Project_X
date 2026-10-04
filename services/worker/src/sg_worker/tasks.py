@@ -10,8 +10,10 @@ from hatchet_sdk.types.idempotency import TTLBasedIdempotencyConfig
 from pydantic import BaseModel
 
 from sg_core.db import get_sessionmaker
+from sg_core.knowledge import run_ingestion_job
+from sg_core.providers import object_store_from_settings
 from sg_worker.client import get_hatchet
-from sg_worker.dispatch import PROVIDER_EVENT_KEY
+from sg_worker.dispatch import DOCUMENT_INGEST_KEY, PROVIDER_EVENT_KEY
 from sg_worker.provider_events import process_provider_event
 
 hatchet = get_hatchet()
@@ -62,4 +64,46 @@ async def process_event(input: ProviderEventInput, ctx: Context) -> ProviderEven
     return ProviderEventOutput(outcome=outcome.value)
 
 
-ALL_WORKFLOWS: list[BaseWorkflow[Any]] = [ping, process_event]
+class IngestDocumentInput(BaseModel):
+    document_version_id: uuid.UUID
+    request_id: str = ""
+
+
+class IngestDocumentOutput(BaseModel):
+    status: str
+    chunks: int = 0
+    mappings: int = 0
+    detail: str | None = None
+
+
+@hatchet.task(
+    name="knowledge.ingest_document",
+    input_validator=IngestDocumentInput,
+    on_events=[DOCUMENT_INGEST_KEY],
+    retries=3,
+    backoff_factor=2.0,
+    backoff_max_seconds=120,
+    execution_timeout=timedelta(minutes=15),
+    idempotency=TTLBasedIdempotencyConfig(
+        key_expression="input.request_id", ttl=timedelta(hours=1)
+    ),
+)
+async def ingest_document(input: IngestDocumentInput, ctx: Context) -> IngestDocumentOutput:
+    """Extract, map, chunk, embed and activate one uploaded document version.
+
+    Transient provider failures raise (Hatchet retries); permanent ones mark the version
+    `failed` with a learner-readable reason and finish normally. The previous active version
+    keeps serving until the new one is fully indexed.
+    """
+    result = await run_ingestion_job(
+        get_sessionmaker(), object_store_from_settings(), input.document_version_id
+    )
+    return IngestDocumentOutput(
+        status=result.status.value,
+        chunks=result.chunks,
+        mappings=result.mappings,
+        detail=result.detail,
+    )
+
+
+ALL_WORKFLOWS: list[BaseWorkflow[Any]] = [ping, process_event, ingest_document]

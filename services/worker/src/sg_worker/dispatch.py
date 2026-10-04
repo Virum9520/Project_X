@@ -5,6 +5,7 @@ import uuid
 from sg_worker.client import get_hatchet
 
 PROVIDER_EVENT_KEY = "provider_event.received"
+DOCUMENT_INGEST_KEY = "knowledge.document.ingest_requested"
 
 
 class HatchetDispatcher:
@@ -22,4 +23,18 @@ class HatchetDispatcher:
                 "provider": provider,
                 "event_type": event_type,
             },
+        )
+
+
+class HatchetIngestDispatcher:
+    """Asks the worker to ingest one document version (`knowledge.ingest_document`).
+
+    Each push carries a fresh `request_id`, so a deliberate retry of a failed version is not
+    swallowed by Hatchet's idempotency window; the pipeline itself is idempotent per version.
+    """
+
+    async def dispatch(self, document_version_id: uuid.UUID) -> None:
+        await get_hatchet().event.aio_push(
+            DOCUMENT_INGEST_KEY,
+            {"document_version_id": str(document_version_id), "request_id": uuid.uuid4().hex},
         )

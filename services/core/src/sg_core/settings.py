@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     s3_access_key_id: SecretStr | None = None
     s3_secret_access_key: SecretStr | None = None
     s3_region: str = "auto"
+    # Largest accepted document upload (C08).
+    max_upload_bytes: int = 25 * 1024 * 1024
 
     # Providers
     elevenlabs_api_key: SecretStr | None = None
