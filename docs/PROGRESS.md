@@ -67,7 +67,7 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
-- 2026-10-04 · C13 · PR_LINK · 3D garden scene in `packages/three`: deterministic garden generator, shader-grown concept plants (roots/stem/branches/blossoms, assisted ghost growth, live provisional glow, wilting), floating island with pond, grass, ez-tree elder trees, glowing prerequisite roots, day-night, bloom and depth of field, Garden → Grove → Plant → Part camera zoom with keyboard navigation and orbiting evidence cards, mock garden data, `/lab/garden` showcase.
+- 2026-10-04 · C13 · [#13](https://github.com/Virum9520/Project_X/pull/13) · 3D garden scene in `packages/three`: deterministic garden generator, shader-grown concept plants (roots/stem/branches/blossoms, assisted ghost growth, live provisional glow, wilting), floating island with pond, grass, ez-tree elder trees, glowing prerequisite roots, day-night, bloom and depth of field, Garden → Grove → Plant → Part camera zoom with keyboard navigation and orbiting evidence cards, mock garden data, `/lab/garden` showcase.
 
 - 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.
