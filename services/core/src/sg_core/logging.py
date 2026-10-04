@@ -5,6 +5,8 @@ import sys
 
 import structlog
 
+from sg_core.redaction import redact_event_dict
+
 
 def configure_logging(level: str = "INFO", *, json: bool = True) -> None:
     processors: list[structlog.types.Processor] = [
@@ -13,6 +15,8 @@ def configure_logging(level: str = "INFO", *, json: bool = True) -> None:
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
+        # Last, so exception text and every bound field are scrubbed before rendering.
+        redact_event_dict,
     ]
     renderer: structlog.types.Processor = (
         structlog.processors.JSONRenderer() if json else structlog.dev.ConsoleRenderer()

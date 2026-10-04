@@ -32,7 +32,8 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         log.info(
             "request",
             method=request.method,
-            path=request.url.path,
+            # The route template, never the raw path: path params carry signed share tokens.
+            path=getattr(request.scope.get("route"), "path", None) or "<unmatched>",
             status=response.status_code,
             duration_ms=round((time.perf_counter() - started) * 1000, 1),
         )

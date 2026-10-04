@@ -33,6 +33,7 @@ from sg_api.webhooks.router import router as webhooks_router
 from sg_core.db import get_sessionmaker
 from sg_core.identity.db import seed_identity_catalog_committed
 from sg_core.logging import configure_logging, get_logger
+from sg_core.observability import init_observability, instrument_fastapi
 from sg_core.settings import Environment, get_settings
 
 log = get_logger(__name__)
@@ -41,6 +42,7 @@ log = get_logger(__name__)
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level, json=settings.environment is not Environment.LOCAL)
+    init_observability("sg-api", settings)  # Sentry + OpenTelemetry; no-ops without env config
     http = httpx.AsyncClient(timeout=httpx.Timeout(5.0))
 
     @asynccontextmanager
@@ -95,6 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(arjuna_router)
     app.include_router(arjuna_tools_router)
     app.include_router(vidura_delivery_router)
+    instrument_fastapi(app, settings)
     return app
 
 

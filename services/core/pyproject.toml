@@ -18,6 +18,11 @@ dependencies = [
   "e2b>=2.52.0",
   "pymupdf>=1.28.2",
   "pywebpush>=2.5.0",
+  "sentry-sdk>=2.71.0",
+  "opentelemetry-sdk>=1.45.0",
+  "opentelemetry-exporter-otlp-proto-http>=1.45.0",
+  "opentelemetry-instrumentation-fastapi>=0.66b0",
+  "opentelemetry-instrumentation-httpx>=0.66b0",
 ]
 
 [build-system]

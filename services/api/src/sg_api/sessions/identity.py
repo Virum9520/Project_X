@@ -11,7 +11,7 @@ from fastapi import Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel
 
 from sg_api.auth.deps import IdentityDep, current_session
-from sg_core.settings import Environment, Settings, get_settings
+from sg_core.settings import Settings, get_settings
 
 
 class Learner(BaseModel):
@@ -31,7 +31,7 @@ async def current_learner(
     if request.headers.get("Authorization"):
         claims = await current_session(request, identity)
         return Learner(user_id=claims.user_id)
-    if dev_user_id and settings.environment in (Environment.LOCAL, Environment.TEST):
+    if dev_user_id and settings.dev_identity_allowed:
         return Learner(user_id=dev_user_id, display_name=dev_user_name or "there")
     raise HTTPException(
         status.HTTP_401_UNAUTHORIZED,
