@@ -24,7 +24,7 @@ done, and the real integration waits.
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | done | `feat/c07-curriculum` | 86 concepts in 6 groves, 117 prerequisite + 9 related edges, 94 rubrics. Not yet loaded into the dev DB: run `uv run python -m sg_core.curriculum load --activate` |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
-| C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | todo | | Pure Python, can start on mocks |
+| C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | done | `feat/c10-rules-engine` | Pure `sg_core.rules`, 158 tests (seeded property checks: determinism, order independence, idempotence, monotonic scores, assisted isolation). `communication` is decided: never grows a plant (see `rules/README.md`) |
 | C11 | Evidence and judge pipeline: post-call workflow, micro-judge, validation, garden revisions | 5 | C03, C04, C09, C10 | todo | | |
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
 | C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | claimed | `feat/c13-3d-garden-scene` | Ready to start; uses mock garden state |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C08, C09, C10, C13, C15, C18, C19, C21.
+**Ready now** (dependencies met): C08, C09, C13, C15, C18, C19, C21.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -94,10 +94,13 @@ event name or SSE channel), record it here in the same PR.
 | `sg_core.webhooks`: `VerifierRegistry`, `WebhookVerifier`, `ElevenLabsVerifier`, `default_registry`, `ingest_webhook`, `mark_event` | C04 | `services/core/src/sg_core/webhooks/` | Add a provider by implementing `verify(headers, body)` + `parse(body)` (stable `event_id`) and registering it in `default_registry`. ElevenLabs event id = `<type>:<conversation_id>` |
 | Event handlers: `sg_worker.provider_events.handlers.register(provider, event_type)` | C04 | `services/worker/src/sg_worker/provider_events.py` | `async (session, ProviderEvent) -> None`; runs under a row lock, exactly-once-effective, writes commit with the status change. C11 registers `elevenlabs`/`post_call_transcription`. Unregistered types become `ignored`; failures become `failed` (see `list_dead_letters`) and are retried by Hatchet |
 | Hatchet event `provider_event.received` and task `provider_event.process` | C04 | `services/worker/src/sg_worker/{dispatch,tasks}.py` | Idempotent on `provider_event_id` (Hatchet TTL idempotency plus DB lock). `HatchetDispatcher` is what the API uses |
+| `sg_core.rules`: `propose(state, observations, now, profile) -> RulesResult`, `replay`, `apply_decay`, `due_concepts`, `status_at`, `load_profile("normal"\|"demo")` | C10 | `services/core/src/sg_core/rules/`, `rules/profile.yaml`, `rules/profile.demo.yaml` | Pure and deterministic. C11 maps accepted `assessments` to `Observation`, loads `PlantState.from_row`, commits `RulesResult.to_revision_changes()` / `.rule_version` / `.assessment_ids` / `.revision_reason` as a `garden_revisions` row plus `plant_states` (`to_scores()` is the `dimension_scores` JSON). Pass `GardenState.applied` from earlier revisions' `assessment_ids` so replays are no-ops; `reassess` lists ambiguous assessments to re-judge. `rule_ver` looks like `rules@1+normal.1` |
+| Demo profile switch | C10 | `profile_for_account(demo=...)` | Demo and test accounts only |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C10 · [#18](https://github.com/Virum9520/Project_X/pull/18) · Deterministic versioned rules engine `sg_core.rules` with normal and demo profiles; assisted/independent tracks, distinct problem families, citations, spaced-repetition DUE/WILTING overlay, replay and idempotence tests.
 - 2026-10-04 · C01 follow-up · [#17](https://github.com/Virum9520/Project_X/pull/17) · DB-backed grants, `audit_log` sink and users/profiles mirror (no migration); capability catalogue seeded idempotently.
 - 2026-10-04 · C03 · [#14](https://github.com/Virum9520/Project_X/pull/14) · Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, R2 ObjectStore), usage ledger with cost reconciliation, race-safe budget holds. Not yet exercised against live providers.
 - 2026-10-04 · C04 · [#16](https://github.com/Virum9520/Project_X/pull/16) · Job infrastructure: Hatchet workflow conventions, idempotency keys, `POST /v1/webhooks/{provider}` with HMAC verification (ElevenLabs first), store-first `provider_events` and idempotent dispatch.
