@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alignmentToSegments, fromTtsTimestamps } from "./alignment";
+import { alignmentToSegments, fromAgentAlignment, fromTtsTimestamps } from "./alignment";
 import { createIdleAnimator } from "./idle";
 import { LipSyncDriver } from "./lipsync-driver";
 import { mockAlignment } from "./mock";
@@ -50,6 +50,16 @@ describe("alignmentToSegments", () => {
     });
     expect(a.charStartTimesMs).toEqual([0, 100]);
     expect(a.charDurationsMs[1]).toBeCloseTo(150);
+  });
+
+  it("converts the agent onAudioAlignment payload", () => {
+    const a = fromAgentAlignment({
+      chars: ["h", "a"],
+      char_start_times_ms: [0, 80],
+      char_durations_ms: [80, 120],
+    });
+    expect(a).toEqual({ chars: ["h", "a"], charStartTimesMs: [0, 80], charDurationsMs: [80, 120] });
+    expect(alignmentToSegments(a).at(-1)).toMatchObject({ viseme: "aa", startMs: 80, endMs: 200 });
   });
 });
 
@@ -146,6 +156,28 @@ describe("LipSyncDriver", () => {
     expect(f.mouth.aa).toBeGreaterThan(0.7);
     d.setLevel(0);
     expect(d.frame(0, 0.1).speaking).toBe(false);
+  });
+
+  it("restarts the clock for a turn pushed after the previous one has played out", () => {
+    let now = 1000;
+    const d = new LipSyncDriver({ now: () => now, smoothing: 1000 });
+    d.pushAlignment(mockAlignment("a", 200));
+    now = 5000; // second turn, long after the first ended
+    d.pushAlignment(mockAlignment("a", 200));
+    const f = d.frame(5100, 0.1);
+    expect(f.speaking).toBe(true);
+    expect(f.mouth.aa).toBeGreaterThan(0.8);
+  });
+
+  it("keeps the clock for chunks of the same utterance", () => {
+    let now = 1000;
+    const d = new LipSyncDriver({ now: () => now, smoothing: 1000 });
+    d.pushAlignment(mockAlignment("a", 200));
+    now = 1100; // second chunk arrives while the first is still playing
+    d.pushAlignment(mockAlignment("o", 200), 200);
+    const f = d.frame(1300, 0.1);
+    expect(f.speaking).toBe(true);
+    expect(f.mouth.oh).toBeGreaterThan(0.8);
   });
 
   it("reset clears queued alignment", () => {

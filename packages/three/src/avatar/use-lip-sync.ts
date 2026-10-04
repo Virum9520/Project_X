@@ -9,7 +9,7 @@ import { LipSyncDriver, type LipSyncDriverOptions } from "./lipsync-driver";
  * ```ts
  * const lipSync = useLipSync();
  * useConversation({
- *   onAudioAlignment: (a) => lipSync.pushAlignment(a, audioStartMs),
+ *   onAudioAlignment: (a) => lipSync.pushAlignment(fromAgentAlignment(a), audioStartMs),
  * });
  * <Avatar driver={lipSync} />
  * ```

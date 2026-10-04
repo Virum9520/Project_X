@@ -1,13 +1,28 @@
 import type { MouthViseme, VisemeSegment } from "./visemes";
 
 /**
- * Character timings as ElevenLabs reports them to `onAudioAlignment` (Conversational AI SDK) and
- * as the TTS `with-timestamps` endpoint returns them (after `fromTtsTimestamps`).
+ * Character timings in milliseconds. Build one from ElevenLabs payloads with `fromAgentAlignment`
+ * (Conversational AI `onAudioAlignment`) or `fromTtsTimestamps` (TTS `with-timestamps`).
  */
 export interface CharAlignment {
   chars: readonly string[];
   charStartTimesMs: readonly number[];
   charDurationsMs: readonly number[];
+}
+
+/** Payload of the Conversational AI SDK `onAudioAlignment` callback (see ADR 0003). */
+export interface AgentAudioAlignment {
+  chars: readonly string[];
+  char_start_times_ms: readonly number[];
+  char_durations_ms: readonly number[];
+}
+
+export function fromAgentAlignment(a: AgentAudioAlignment): CharAlignment {
+  return {
+    chars: a.chars,
+    charStartTimesMs: a.char_start_times_ms,
+    charDurationsMs: a.char_durations_ms,
+  };
 }
 
 /** Shape of the REST `/text-to-speech/{voice}/with-timestamps` alignment object. */

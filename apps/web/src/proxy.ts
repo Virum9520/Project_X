@@ -7,7 +7,7 @@ const isPublic = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   // Dev-only component harnesses (the pages 404 in production).
-  ...(process.env.NODE_ENV === "production" ? [] : ["/dev(.*)"]),
+  ...(process.env.NODE_ENV === "production" ? [] : ["/dev", "/dev/(.*)"]),
 ]);
 
 export default clerkMiddleware(

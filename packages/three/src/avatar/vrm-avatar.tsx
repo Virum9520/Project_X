@@ -41,7 +41,6 @@ export function VrmAvatar({ url, driver, onError }: VrmAvatarProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let loaded: VRM | null = null;
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
     loader.load(
@@ -57,7 +56,6 @@ export function VrmAvatar({ url, driver, onError }: VrmAvatarProps) {
           VRMUtils.deepDispose(model.scene);
           return;
         }
-        loaded = model;
         setVrm(model);
       },
       undefined,
@@ -65,12 +63,18 @@ export function VrmAvatar({ url, driver, onError }: VrmAvatarProps) {
     );
     return () => {
       cancelled = true;
-      if (loaded) VRMUtils.deepDispose(loaded.scene);
       setVrm(null);
     };
     // onError is deliberately not a dependency: reloading the model on every render is wasteful.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
+
+  // Dispose a model only after it has been replaced (or on unmount), once `<primitive>` no longer
+  // renders it.
+  useEffect(() => {
+    if (!vrm) return;
+    return () => VRMUtils.deepDispose(vrm.scene);
+  }, [vrm]);
 
   useFrame((_, dt) => {
     if (!vrm) return;

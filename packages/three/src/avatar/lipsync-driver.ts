@@ -21,12 +21,13 @@ export interface LipSyncDriverOptions {
 }
 
 /**
- * Framework-free lip-sync state machine. Feed it `onAudioAlignment` chunks plus the playback
- * origin, then call `frame(now, dt)` every render tick and apply the result to a rig.
+ * Framework-free lip-sync state machine. Feed it `onAudioAlignment` chunks (converted with
+ * `fromAgentAlignment`) plus the playback origin, then call `frame(now, dt)` every render tick and apply the result to a rig.
  *
  * Timing model: alignment times are relative to the start of each audio chunk. The caller passes
  * `audioStartMs`, the time in the utterance (ms since `start()`) at which that chunk begins. For a
- * single-shot TTS response that is simply 0.
+ * single-shot TTS response that is simply 0. A push that arrives after the current timeline has
+ * fully played out starts a new utterance: the clock restarts at that push.
  *
  * If no alignment is active, `setLevel(0..1)` (e.g. from output frequency/volume data) opens the
  * mouth as a fallback.
@@ -47,13 +48,22 @@ export class LipSyncDriver {
     this.smoothing = opts.smoothing ?? 30;
   }
 
-  /** Mark playback time zero. Called automatically by the first `pushAlignment`. */
+  /** Mark playback time zero. Called automatically by `pushAlignment` when nothing is playing. */
   start(atMs: number = this.now()): void {
     this.originMs = atMs;
   }
 
   pushAlignment(alignment: CharAlignment, audioStartMs = 0): void {
-    if (this.originMs === null) this.start();
+    const now = this.now();
+    // The previous utterance has fully played out: treat this push as a new one.
+    if (this.originMs !== null) {
+      const t = now - this.originMs;
+      if (t > this.timeline.endMs && !this.timeline.isActive(t)) {
+        this.timeline.clear();
+        this.originMs = null;
+      }
+    }
+    if (this.originMs === null) this.start(now);
     this.timeline.append(alignment, audioStartMs);
   }
 
