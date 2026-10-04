@@ -3,7 +3,8 @@
 
 export const REDACTED = "[redacted]";
 
-const SENSITIVE_KEY = /authorization|cookie|password|secret|token|api[_-]?key|email|phone|transcript|answer|quote/i;
+const SENSITIVE_KEY =
+  /authorization|cookie|password|secret|token|api[_-]?key|email|phone|transcript|answer|quote/i;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const BEARER = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/gi;
 const JWT = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*/g;
@@ -46,7 +47,15 @@ export function scrubEvent<T extends object>(event: T): T {
     delete request.query_string;
   }
   delete e.user;
-  for (const key of ["message", "exception", "breadcrumbs", "extra", "contexts", "tags", "request"]) {
+  for (const key of [
+    "message",
+    "exception",
+    "breadcrumbs",
+    "extra",
+    "contexts",
+    "tags",
+    "request",
+  ]) {
     if (key in e) e[key] = redactValue(e[key]);
   }
   return event;

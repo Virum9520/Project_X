@@ -16,7 +16,7 @@ describe("web error-report scrubbing", () => {
       user: { email: "x@y.com" },
       request: { url: "/a", data: "secret", cookies: "c", headers: { a: "b" } },
       extra: { transcript: "I said hello", count: 3 },
-    }) as Record<string, any>;
+    }) as { user?: unknown; request: { data?: unknown; headers?: unknown }; extra: unknown };
     expect(event.user).toBeUndefined();
     expect(event.request.data).toBeUndefined();
     expect(event.request.headers).toBeUndefined();

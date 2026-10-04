@@ -8,7 +8,7 @@ backstop if someone logs them anyway.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from typing import Any
 
 REDACTED = "[redacted]"
@@ -92,8 +92,8 @@ def redact_value(value: Any, *, _depth: int = 0) -> Any:
 
 
 def redact_event_dict(
-    _logger: object, _method: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+    _logger: Any, _method: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any]:
     """structlog processor: redact every field except the event name, timestamp and level."""
     out: dict[str, Any] = {}
     for key, value in event_dict.items():

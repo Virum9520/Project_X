@@ -15,7 +15,7 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
-from test_auth import KID, app, auth  # noqa: F401  (`app` is a fixture shared with test_auth)
+from test_auth import KID, app, audit, auth  # noqa: F401  (`app`, `audit`: fixtures from test_auth)
 
 from sg_api.sessions.tool_tokens import HEADER, mint_tool_token
 from sg_core.settings import Environment, Settings, get_settings
@@ -46,8 +46,8 @@ async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:  # noqa: F811
         yield client
 
 
-def operations(app: FastAPI) -> list[tuple[str, str]]:
-    schema = app.openapi()
+def operations(application: FastAPI) -> list[tuple[str, str]]:
+    schema = application.openapi()
     return [
         (method.upper(), path)
         for path, item in sorted(schema["paths"].items())
@@ -101,7 +101,9 @@ async def test_admin_routes_refuse_an_owner_without_mfa(
     client: AsyncClient,
 ) -> None:
     for method, path in (op for op in operations(app) if kind(op[1]) == "admin"):
-        status = await call(client, method, path, headers={**auth("user_owner_no_mfa"), **ADMIN_ORIGIN})
+        status = await call(
+            client, method, path, headers={**auth("user_owner_no_mfa"), **ADMIN_ORIGIN}
+        )
         assert status == 403, f"{method} {path} answered {status} to an owner without MFA"
 
 
@@ -211,11 +213,10 @@ async def test_unknown_webhook_provider_and_unsigned_bodies_are_rejected(
     assert status.status_code in (400, 401, 403, 503)
 
 
-async def test_access_log_never_contains_share_tokens(client: AsyncClient) -> None:
-    import structlog
-
-    with structlog.testing.capture_logs() as logs:
-        await client.get("/v1/recap/shared/SECRET.SIGNED.TOKEN")
-    requests = [entry for entry in logs if entry["event"] == "request"]
-    assert requests and all("SECRET" not in str(entry) for entry in requests)
-    assert requests[0]["path"] == "/v1/recap/shared/{token}"
+async def test_access_log_never_contains_share_tokens(
+    client: AsyncClient, capsys: pytest.CaptureFixture[str]
+) -> None:
+    await client.get("/v1/recap/shared/SECRET.SIGNED.TOKEN")
+    out = capsys.readouterr().out
+    assert "path" in out and "SECRET" not in out
+    assert "/v1/recap/shared/{token}" in out
