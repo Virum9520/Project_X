@@ -6,3 +6,4 @@ services
 docs
 **/*.md
 agents
+apps/web/public/monaco

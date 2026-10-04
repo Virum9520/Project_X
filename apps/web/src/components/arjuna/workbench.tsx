@@ -8,10 +8,14 @@ import type {
   RunnableLanguage,
 } from "@sg/contracts";
 import { RUNNABLE_LANGUAGES } from "@sg/contracts";
+import { loader } from "@monaco-editor/react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { describeRun } from "@/lib/arjuna/runs";
+
+// Serve Monaco from /monaco (copied by scripts/copy-monaco.mjs), not the jsDelivr default.
+loader.config({ paths: { vs: "/monaco/vs" } });
 
 /** Monaco is large and browser-only: load it on demand, never on the server. */
 const MonacoEditor = dynamic(() => import("@monaco-editor/react").then((m) => m.default), {

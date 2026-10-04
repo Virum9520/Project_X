@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Overlay copied over src/ only by the GitHub Pages build.
     "pages-demo/**",
+    // Self-hosted Monaco copied by scripts/copy-monaco.mjs.
+    "public/monaco/**",
   ]),
 ]);
 
