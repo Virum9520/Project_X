@@ -20,7 +20,7 @@ done, and the real integration waits.
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
-| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | claimed | `feat/c06-elevenlabs-agents` | The token endpoint needs C01; the rest can start now |
+| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | in-review | `feat/c06-elevenlabs-agents` | 8 agents, 15 tools, 14 agent tests, `sg-agents` CLI, ADRs 0001–0005. `POST /v1/sessions` works on stubs: dev identity until C01, no session row until C02, stub briefing until C09. Live steps need `ELEVENLABS_API_KEY`: `sg-agents voices design`, first `sg-agents sync`, commit registries |
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
@@ -53,6 +53,14 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| `POST /v1/sessions` (start voice session: conversation token, dynamic variables, tool token) | C06 | `services/api/src/sg_api/sessions/router.py` | Swap `current_learner` (C01), `get_briefing_provider` (C09); persist session + `conversation_id` (C02) |
+| Server-tool auth: `X-SG-Tool-Token`, `require_tool_token`, `check_conversation` | C06 | `services/api/src/sg_api/sessions/tool_tokens.py` | Every `/v1/agent-tools/*` route must use both |
+| Server-tool contracts `/v1/agent-tools/{get_briefing, record_observation, fetch_question, run_tests, log_commitment, report_commitment_progress, search_my_documents, query_my_analytics}` | C06 | `agents/tools/*.yaml` (request bodies) | Routes are built by the data owners: C09, C11/C12, C07/C12, C16, C18, C08, C14. `record_observation.dimension` adds `communication` (not yet in contracts `Dimension`) |
+| Client-tool contracts (`show_question_card`, `highlight_plant`, `open_editor`, `show_diagram`, `focus_plant`, `set_filter`, `scrub_timeline`) | C06 | `agents/tools/*.yaml` | Implemented in the browser by C12, C14, C16 |
+| Agent dynamic variables | C06 | `agents/dynamic_variables.yaml` | Set by `POST /v1/sessions`; a test enforces parity |
+| `ElevenLabsClient` (conversation token, Voice Design) | C06 | `services/core/src/sg_core/providers/elevenlabs.py` | C03 extends it (usage ledger, budgets) |
+| Settings `ELEVENLABS_AGENT_IDS`, `AGENT_TOOL_TOKEN_SECRET`, `ELEVENLABS_BASE_URL` | C06 | `services/core/src/sg_core/settings.py` | `uv run sg-agents ids` prints the agent IDs JSON |
+| `sg-agents` CLI (build, sync, test, voices, ids) | C06 | `services/agentops`, `agents/README.md` | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
