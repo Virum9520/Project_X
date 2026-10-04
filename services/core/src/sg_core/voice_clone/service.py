@@ -21,6 +21,7 @@ from typing import Protocol
 from sg_core.economics.usage import UsageContext
 from sg_core.logging import get_logger
 from sg_core.models.enums import CostCenter
+from sg_core.providers.base import ProviderError
 from sg_core.providers.elevenlabs import AudioResult, ElevenLabsError, Transcript
 from sg_core.providers.llm import ChatMessage, LLMResponse
 from sg_core.providers.storage import ObjectStore
@@ -245,7 +246,11 @@ class FutureSelfVoice:
 
         record_id = uuid.uuid4()
         key = f"voice-consents/{user_id}/{record_id}.{ext}"
-        await self._objects.put(key, audio, content_type=content_type)
+        try:
+            await self._objects.put(key, audio, content_type=content_type)
+        except ProviderError as exc:
+            log.error("future_self.store_failed", error=str(exc))
+            raise ProviderUnavailable("could not store your recording; try again") from exc
         record = ConsentRecord(
             id=record_id,
             user_id=user_id,
@@ -268,16 +273,22 @@ class FutureSelfVoice:
         except ElevenLabsError as exc:
             # No clone exists: erase the proof and the row so the learner can start over.
             log.warning("future_self.clone_failed", status=exc.status_code)
-            await self._objects.delete(key)
-            await self._store.delete(record_id)
+            await self._cleanup(key, record_id)
             raise ProviderUnavailable("voice cloning is unavailable; try again") from exc
         except BaseException:
-            await self._objects.delete(key)
-            await self._store.delete(record_id)
+            await self._cleanup(key, record_id)
             raise
         record = await self._store.set_voice(record_id, voice_id)
         log.info("future_self.cloned", user_id=str(user_id), record_id=str(record_id))
         return ConsentOutcome(True, match, transcript.text, record)
+
+    async def _cleanup(self, key: str, record_id: uuid.UUID) -> None:
+        """Best effort: a failure here must not mask the error that got us here."""
+        try:
+            await self._objects.delete(key)
+        except ProviderError:
+            log.warning("future_self.cleanup_object_failed", key=key)
+        await self._store.delete(record_id)
 
     async def revoke(self, user_id: uuid.UUID) -> bool:
         """Delete the clone and the data. Returns False when there was nothing to revoke."""
@@ -293,7 +304,13 @@ class FutureSelfVoice:
                     "could not delete the voice at ElevenLabs; nothing was changed, try again"
                 ) from exc
         if current.recording_s3:
-            await self._objects.delete(current.recording_s3)
+            try:
+                await self._objects.delete(current.recording_s3)
+            except ProviderError as exc:
+                log.error("future_self.revoke_storage_failed", error=str(exc))
+                raise ProviderUnavailable(
+                    "could not delete your recording; nothing was changed, try again"
+                ) from exc
         await self._store.revoke(current.id, at=self._clock())
         log.info("future_self.revoked", user_id=str(user_id), record_id=str(current.id))
         return True

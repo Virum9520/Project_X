@@ -21,9 +21,8 @@ worked by **one session at a time**. Keep that file current as you make progress
    - Only pick a component whose **Depends on** entries are all `done`, or one marked "can start on mocks".
    - Never pick a component that is `claimed`, `in-progress` or `in-review`.
 2. **Claim it right away**:
-   - Create a branch `feat/<id>-<slug>` from `main` (e.g. `feat/c07-curriculum`).
-   - Set the component to `claimed` with your branch name, and commit only that change to `main`
-     in a tiny PR (or push directly if the user allows).
+   - Do not create a branch or ask about one: work on the current branch (`main`).
+   - Set the component to `claimed` (owner: `main`) and commit that change straight to `main`.
    - If the claim conflicts with someone else's, re-read the board and pick something else.
 3. **While working**:
    - Update the row's status and notes on your branch (`in-progress`, then `in-review` when the PR opens).
@@ -51,7 +50,8 @@ worked by **one session at a time**. Keep that file current as you make progress
      and no table may hold a foreign key to them.
 
 ## Workflow and git
-- Work on feature branches and merge to `main` through PRs (squash merge). CI must be green.
+- Commit directly to the current branch (`main`) and push. Never ask about creating a branch or a PR
+  (owner decision, 2026-10-04). Keep CI green: run the quality gates below before pushing.
 - End commit messages with the attribution line the harness specifies.
 - Never commit secrets. `.env` and `.env.local` are gitignored; add new variables to `.env.example`.
 

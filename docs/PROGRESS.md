@@ -4,6 +4,11 @@ The **single shared source of truth** for parallel build sessions. Follow the pr
 [CLAUDE.md](../CLAUDE.md) whenever you claim, finish or block a component. The full spec is in
 [build-plan.md](build-plan.md).
 
+> **Working agreement (owner decision, 2026-10-04): no new branches.** Never ask whether to create a
+> branch or open a PR. Commit directly to the current branch (`main`) and push it; update this file
+> in the same commit. Where [CLAUDE.md](../CLAUDE.md) mentions feature branches, claim PRs or waiting
+> for approval before merging, this note overrides it.
+
 **Status values:** `todo` · `claimed` · `in-progress` · `in-review` (PR open) · `done` · `blocked`
 
 **Ready** means every component listed under **Depends on** is `done`. Some components say "can

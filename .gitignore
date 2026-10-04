@@ -38,3 +38,6 @@ __pycache__/
 # Local data
 .data/
 *.log
+
+# Local object storage (OBJECT_STORE=local)
+.local-storage/

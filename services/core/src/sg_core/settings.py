@@ -56,7 +56,11 @@ class Settings(BaseSettings):
     # Curriculum YAML root (`<dir>/<key>/<version>/`); defaults to the repo's `curriculum/`.
     curriculum_dir: Path | None = None
 
-    # Object storage (S3-compatible: MinIO locally, Cloudflare R2 now, AWS S3 later)
+    # Object storage (S3-compatible: MinIO locally, Cloudflare R2 now, AWS S3 later).
+    # `OBJECT_STORE=local` keeps objects on disk under `LOCAL_STORAGE_DIR` for machines without
+    # MinIO (no Docker); it is refused outside the local and test environments.
+    object_store: Literal["s3", "local"] = "s3"
+    local_storage_dir: Path = Path(".local-storage")
     s3_endpoint_url: str | None = "http://localhost:9000"
     s3_bucket: str = "skill-garden-local"
     s3_access_key_id: SecretStr | None = None

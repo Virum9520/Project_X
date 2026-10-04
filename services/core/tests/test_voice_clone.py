@@ -5,6 +5,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
+from sg_core.providers.base import ProviderError
 from sg_core.providers.elevenlabs import AudioResult, ElevenLabsClient, ElevenLabsError, Transcript
 from sg_core.providers.llm import ChatMessage, LLMResponse
 from sg_core.providers.storage import InMemoryObjectStore
@@ -274,6 +275,20 @@ async def test_clone_failure_rolls_back_proof_and_row() -> None:
         await _consent(svc, el)
     assert await store.history(USER) == []
     assert await objects.list_keys() == []
+
+
+class _BrokenStore(InMemoryObjectStore):
+    async def put(self, *args: object, **kwargs: object) -> None:  # type: ignore[override]
+        raise ProviderError("object_store", None, "EndpointConnectionError: no route")
+
+
+async def test_storage_outage_is_a_provider_error_not_a_crash() -> None:
+    # Regression: an unreachable object store used to escape as an unhandled error (HTTP 500).
+    el, store = FakeEL(), InMemoryConsentStore()
+    svc = FutureSelfVoice(store=store, objects=_BrokenStore(), elevenlabs=el, secret=SECRET)
+    with pytest.raises(ProviderUnavailable):
+        await _consent(svc, el)
+    assert await store.history(USER) == [] and el.voices == set()
 
 
 async def test_scribe_outage_is_reported() -> None:

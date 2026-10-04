@@ -5,8 +5,10 @@ run in a worker thread. Keys are namespaced by the caller; this adapter has no p
 """
 
 import asyncio
+import json
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Protocol
 
 import boto3
@@ -201,11 +203,92 @@ class InMemoryObjectStore:
         return f"memory://{key}?put=1&expires={expires_seconds}"
 
 
-def object_store_from_settings(recorder: UsageRecorder | None = None) -> S3ObjectStore:
+class LocalFileObjectStore:
+    """Development stand-in for S3 on a machine without MinIO: one file per key under `root`.
+
+    Same contract as the other stores; presigned URLs are `file://` links, so they are not
+    shareable. Use only locally.
+    """
+
+    def __init__(self, root: Path, recorder: UsageRecorder | None = None) -> None:
+        self._root = root.resolve()
+        self._recorder: UsageRecorder = recorder or NullUsageRecorder()
+
+    def _path(self, key: str) -> Path:
+        path = (self._root / key).resolve()
+        if self._root not in path.parents:
+            raise ValueError(f"object key escapes the storage root: {key!r}")
+        return path
+
+    async def put(
+        self,
+        key: str,
+        data: bytes,
+        *,
+        content_type: str | None = None,
+        usage: UsageContext | None = None,
+    ) -> None:
+        path = self._path(key)
+        try:
+            await asyncio.to_thread(self._write, path, data, content_type)
+        except OSError as exc:
+            raise ProviderError(PROVIDER, None, f"{type(exc).__name__}: {exc}") from exc
+        if usage is not None:
+            await self._recorder.record(
+                usage,
+                UsageMeasure(provider=PROVIDER, external_ref=key, storage_bytes=len(data)),
+            )
+
+    @staticmethod
+    def _write(path: Path, data: bytes, content_type: str | None) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        path.with_name(path.name + ".meta").write_text(json.dumps({"content_type": content_type}))
+
+    async def get(self, key: str) -> StoredObject:
+        path = self._path(key)
+        try:
+            data = await asyncio.to_thread(path.read_bytes)
+        except FileNotFoundError:
+            raise ObjectNotFoundError(key) from None
+        meta = path.with_name(path.name + ".meta")
+        content_type = json.loads(meta.read_text()).get("content_type") if meta.exists() else None
+        return StoredObject(key, data, content_type)
+
+    async def exists(self, key: str) -> bool:
+        return self._path(key).is_file()
+
+    async def delete(self, key: str) -> None:
+        path = self._path(key)
+        path.unlink(missing_ok=True)
+        path.with_name(path.name + ".meta").unlink(missing_ok=True)
+
+    async def list_keys(self, prefix: str = "", *, limit: int = 1000) -> list[str]:
+        keys = (
+            p.relative_to(self._root).as_posix()
+            for p in self._root.rglob("*")
+            if p.is_file() and p.suffix != ".meta"
+        )
+        return sorted(k for k in keys if k.startswith(prefix))[:limit]
+
+    async def presigned_get_url(self, key: str, *, expires_seconds: int = 900) -> str:
+        return self._path(key).as_uri()
+
+    async def presigned_put_url(
+        self, key: str, *, content_type: str | None = None, expires_seconds: int = 900
+    ) -> str:
+        return self._path(key).as_uri()
+
+
+def object_store_from_settings(recorder: UsageRecorder | None = None) -> ObjectStore:
     from sg_core.economics.ledger import DbUsageRecorder
-    from sg_core.settings import get_settings
+    from sg_core.settings import Environment, get_settings
 
     s = get_settings()
+    if s.object_store == "local":
+        if s.environment not in (Environment.LOCAL, Environment.TEST):
+            raise ProviderNotConfiguredError("OBJECT_STORE=local is only allowed locally")
+        return LocalFileObjectStore(s.local_storage_dir, recorder or DbUsageRecorder())
     if s.s3_access_key_id is None or s.s3_secret_access_key is None:
         raise ProviderNotConfiguredError(
             "S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY are not configured"
