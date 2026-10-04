@@ -1,0 +1,222 @@
+# Grove: databases.
+domain: databases
+concepts:
+  # ── Relational ──
+  - key: databases.relational_model
+    title: Relational model and SQL basics
+    topic: relational
+    difficulty: 1
+    summary: Tables, rows, keys and constraints, queried declaratively with SQL.
+    aliases: [SQL, primary key, foreign key, schema, SELECT]
+    rubric:
+      explanation:
+        - Explains tables, rows, columns, primary keys and foreign keys
+        - Explains that SQL is declarative (what to fetch, not how)
+        - Explains how constraints (NOT NULL, UNIQUE, CHECK, foreign keys) protect integrity
+      application:
+        - Writes SELECT queries with WHERE, ORDER BY and LIMIT for a stated question
+        - Designs a simple schema with the right keys for a described domain
+      transfer:
+        - Explains when a relational database fits a product's data better than a document store
+      misconceptions:
+        - A foreign key automatically creates an index in every database
+
+  - key: databases.joins_aggregation
+    title: Joins, grouping and aggregation
+    topic: relational
+    difficulty: 2
+    summary: Combining tables with joins, and summarizing rows with GROUP BY, aggregates and window functions.
+    aliases: [INNER JOIN, LEFT JOIN, GROUP BY, HAVING, window functions]
+    prerequisites: [databases.relational_model]
+    rubric:
+      explanation:
+        - Explains inner, left and full outer joins and what happens to unmatched rows
+        - Explains GROUP BY with aggregates, and WHERE versus HAVING
+        - Knows what a window function adds over GROUP BY
+      application:
+        - Writes a join plus aggregation query (for example, top customers by spend in the last 30 days)
+        - Finds rows with no match using a LEFT JOIN with an IS NULL check
+      transfer:
+        - Explains how a join can multiply rows and skew an aggregate, and how to avoid it
+      misconceptions:
+        - WHERE can filter on an aggregate result
+
+  - key: databases.normalization
+    title: Normalization and schema design
+    topic: relational
+    difficulty: 2
+    summary: Structuring tables to avoid redundancy and update anomalies, and knowing when to denormalize.
+    aliases: [1NF, 2NF, 3NF, denormalization, update anomaly]
+    prerequisites: [databases.relational_model]
+    rubric:
+      explanation:
+        - Explains the update, insert and delete anomalies that redundancy causes
+        - Explains first, second and third normal form in plain terms
+        - Explains when and why to denormalize (read performance, analytics)
+      application:
+        - Normalizes a flat table into related tables with correct keys
+      transfer:
+        - Weighs normalization against read patterns in a system design discussion
+      misconceptions:
+        - A more normalized schema is always faster
+
+  # ── Storage and performance ──
+  - key: databases.indexes
+    title: Indexes
+    topic: storage
+    difficulty: 3
+    summary: Auxiliary structures, usually B+ trees, that speed up lookups at the cost of writes and space.
+    aliases: [B-tree index, composite index, covering index, hash index]
+    prerequisites: [databases.relational_model, dsa.balanced_trees, dsa.hash_tables]
+    rubric:
+      explanation:
+        - Explains how a B+ tree index turns a full scan into O(log n) lookups and supports range queries
+        - Explains the write and storage cost of each index
+        - Explains composite indexes and the leftmost-prefix rule
+      application:
+        - Chooses indexes for a set of queries and explains which queries each one serves
+      transfer:
+        - Explains why an index may be ignored (low selectivity, functions on columns, leading wildcards)
+      misconceptions:
+        - Indexing every column makes the database faster
+
+  - key: databases.query_planning
+    title: Query plans and optimization
+    topic: storage
+    difficulty: 4
+    summary: How the database turns SQL into an execution plan, and how to read and improve it.
+    aliases: [EXPLAIN, query optimizer, N+1 queries, sequential scan, index scan]
+    prerequisites: [databases.indexes, databases.joins_aggregation]
+    rubric:
+      explanation:
+        - Explains that a cost-based optimizer chooses scans and join algorithms from statistics
+        - Reads a plan from EXPLAIN (sequential scan, index scan, nested loop, hash join)
+        - Explains the N+1 query problem
+      application:
+        - Diagnoses a slow query from its plan and proposes a fix (index, rewrite, batching)
+      transfer:
+        - Spots an N+1 pattern in ORM code and fixes it with a join or batch load
+      misconceptions:
+        - The database runs a query exactly in the order the SQL is written
+
+  # ── Transactions ──
+  - key: databases.transactions_acid
+    title: Transactions and ACID
+    topic: transactions
+    difficulty: 2
+    summary: Grouping operations so they succeed or fail together, with atomicity, consistency, isolation and durability.
+    aliases: [ACID, commit, rollback, write-ahead log]
+    prerequisites: [databases.relational_model]
+    rubric:
+      explanation:
+        - Defines each ACID property with an example
+        - Explains how a write-ahead log provides atomicity and durability
+      application:
+        - Wraps a money transfer in a transaction and explains what happens if it fails halfway
+      transfer:
+        - Explains what can go wrong when one business operation spans two services with no shared transaction
+      misconceptions:
+        - Consistency in ACID means the same thing as consistency in CAP
+
+  - key: databases.isolation_levels
+    title: Isolation levels and anomalies
+    topic: transactions
+    difficulty: 4
+    summary: What concurrent transactions can see of each other, and the anomalies each level allows.
+    aliases: [read committed, repeatable read, serializable, dirty read, phantom read, lost update]
+    prerequisites: [databases.transactions_acid, os.race_conditions]
+    rubric:
+      explanation:
+        - Names the standard levels and the anomalies each allows (dirty read, non-repeatable read, phantom read)
+        - Explains the lost-update anomaly and how SELECT FOR UPDATE or atomic updates prevent it
+        - Knows that serializable isolation can abort transactions that then need retrying
+      application:
+        - Identifies the anomaly in a concurrent booking scenario and picks the level or locking that fixes it
+      transfer:
+        - Connects isolation anomalies to application-level race conditions such as double-spending
+      misconceptions:
+        - Every database defaults to serializable isolation
+
+  - key: databases.concurrency_control
+    title: Locking and MVCC
+    topic: transactions
+    difficulty: 4
+    summary: How databases implement isolation with locks or multi-version concurrency control.
+    aliases: [MVCC, row locks, optimistic locking, pessimistic locking, two-phase locking]
+    prerequisites: [databases.isolation_levels, os.synchronization]
+    rubric:
+      explanation:
+        - Explains how MVCC lets readers see a snapshot without blocking writers
+        - Compares pessimistic locking with optimistic concurrency (version columns, compare-and-set)
+      application:
+        - Implements optimistic locking with a version column and handles the conflict case
+      transfer:
+        - Applies compare-and-set thinking to caches or distributed key-value stores
+      misconceptions:
+        - Readers always block writers in a relational database
+
+  # ── Distributed data ──
+  - key: databases.nosql_models
+    title: NoSQL data models
+    topic: distributed
+    difficulty: 2
+    summary: Key-value, document, wide-column and graph databases, and the access patterns each one fits.
+    aliases:
+      [
+        key-value store,
+        document database,
+        wide-column,
+        graph database,
+        DynamoDB,
+        MongoDB,
+        Cassandra,
+      ]
+    prerequisites: [databases.relational_model, dsa.hash_tables]
+    rubric:
+      explanation:
+        - Describes the key-value, document, wide-column and graph models with an example of each
+        - Explains designing around access patterns instead of normalizing first
+      application:
+        - Picks a data store for a described workload and justifies it by its access patterns
+      transfer:
+        - Explains what you give up (joins, multi-row transactions) and how applications compensate
+      misconceptions:
+        - NoSQL databases never have a schema
+
+  - key: databases.replication
+    title: Replication
+    topic: distributed
+    difficulty: 3
+    summary: Copying data across nodes for availability and read scaling, and the lag and failover issues it brings.
+    aliases: [leader-follower, primary-replica, read replica, replication lag, failover]
+    prerequisites: [databases.transactions_acid]
+    rubric:
+      explanation:
+        - Explains leader-follower replication and synchronous versus asynchronous modes
+        - Explains replication lag and its user-visible effects (stale reads, read-your-writes)
+        - Explains failover and the risk of losing acknowledged writes or ending up with two leaders
+      application:
+        - Routes reads and writes in an app with replicas while keeping read-your-writes for the author
+      transfer:
+        - Weighs multi-leader or leaderless replication for multi-region writes
+      misconceptions:
+        - Replicas make writes faster
+
+  - key: databases.partitioning
+    title: Partitioning and sharding
+    topic: distributed
+    difficulty: 4
+    summary: Splitting data across nodes by key range or hash to scale writes and storage.
+    aliases: [sharding, shard key, range partitioning, hash partitioning, hot spots]
+    prerequisites: [databases.indexes, databases.replication]
+    rubric:
+      explanation:
+        - Compares range partitioning with hash partitioning
+        - Explains choosing a shard key, and how hot keys cause hot spots
+        - Explains the cost of cross-shard queries and transactions
+      application:
+        - Chooses a shard key for a described workload and explains the trade-offs
+      transfer:
+        - Explains rebalancing when shards are added, and links it to consistent hashing
+      misconceptions:
+        - Sharding is the first thing to do when a database gets slow

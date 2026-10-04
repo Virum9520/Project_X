@@ -6,6 +6,7 @@ Every service reads configuration through `get_settings()`. Secrets are
 
 from enum import StrEnum
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -41,6 +42,9 @@ class Settings(BaseSettings):
     )
     # Optional: when unset, Redis-backed features stay off and /readyz skips the check.
     redis_url: str | None = None
+
+    # Curriculum YAML root (`<dir>/<key>/<version>/`); defaults to the repo's `curriculum/`.
+    curriculum_dir: Path | None = None
 
     # Object storage (S3-compatible: MinIO locally, Cloudflare R2 now, AWS S3 later)
     s3_endpoint_url: str | None = "http://localhost:9000"

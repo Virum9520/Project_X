@@ -1,0 +1,174 @@
+# Grove: computer networks.
+domain: networks
+concepts:
+  - key: networks.layered_model
+    title: Network layers (OSI and TCP/IP)
+    topic: layers
+    difficulty: 1
+    summary: The layered model of networking and what each layer is responsible for.
+    aliases: [OSI model, TCP/IP model, encapsulation, protocol stack]
+    rubric:
+      explanation:
+        - Names the TCP/IP layers (link, internet, transport, application) and maps them to OSI
+        - Explains encapsulation, with each layer adding its own header
+        - Places common protocols (Ethernet, IP, TCP, UDP, HTTP, DNS) in their layers
+      application:
+        - Explains which layer a given problem lives in (for example, a wrong MAC address versus a 404)
+      transfer:
+        - Uses layering to explain why HTTP works the same over Wi-Fi and Ethernet
+      misconceptions:
+        - Every real network implements all seven OSI layers as separate protocols
+
+  - key: networks.ip_routing
+    title: IP addressing and routing
+    topic: layers
+    difficulty: 2
+    summary: How hosts are addressed with IPv4 and IPv6, grouped into subnets and reached hop by hop.
+    aliases: [IPv4, IPv6, subnet, CIDR, NAT, router]
+    prerequisites: [networks.layered_model]
+    rubric:
+      explanation:
+        - Explains IP addresses, CIDR notation and subnets
+        - Explains hop-by-hop routing with routing tables and longest-prefix match
+        - Explains NAT and private address ranges
+      application:
+        - Determines whether two addresses are on the same subnet for a given mask
+      transfer:
+        - Explains how cloud VPC subnets and security groups apply these ideas
+      misconceptions:
+        - Packets follow a fixed, pre-established path from sender to receiver
+
+  - key: networks.tcp
+    title: TCP
+    topic: transport
+    difficulty: 3
+    summary: Reliable, ordered byte streams built on unreliable IP, with flow and congestion control.
+    aliases: [three-way handshake, TCP congestion control, sliding window protocol, retransmission]
+    prerequisites: [networks.ip_routing]
+    rubric:
+      explanation:
+        - Explains the three-way handshake and connection teardown
+        - Explains how sequence numbers, ACKs and retransmission give reliable, ordered delivery
+        - Distinguishes flow control (receiver window) from congestion control (slow start, backoff)
+      application:
+        - Explains why the first requests on a new connection are slower, and how keep-alive helps
+      transfer:
+        - Explains head-of-line blocking and why HTTP/3 moved to QUIC over UDP
+      misconceptions:
+        - TCP preserves message boundaries
+
+  - key: networks.udp
+    title: UDP
+    topic: transport
+    difficulty: 2
+    summary: Connectionless datagrams with no delivery guarantees, used where low latency beats reliability.
+    aliases: [datagram, connectionless transport]
+    prerequisites: [networks.ip_routing]
+    related: [networks.tcp]
+    rubric:
+      explanation:
+        - Explains what UDP does not provide (ordering, reliability, congestion control) and why that can be an advantage
+        - Lists typical uses (DNS, real-time voice and video, games, QUIC)
+      application:
+        - Chooses TCP or UDP for a scenario and justifies the choice
+      transfer:
+        - Explains how an application adds only the reliability it needs on top of UDP
+      misconceptions:
+        - UDP is always faster than TCP in every situation
+
+  - key: networks.dns
+    title: DNS
+    topic: application
+    difficulty: 2
+    summary: The distributed, cached system that resolves names to addresses.
+    aliases: [domain name system, DNS resolution, A record, CNAME, TTL]
+    prerequisites: [networks.udp]
+    rubric:
+      explanation:
+        - Walks through recursive resolution (resolver, root, TLD, authoritative server)
+        - Explains caching and TTLs, and why DNS changes take time to propagate
+        - Knows common record types (A, AAAA, CNAME, MX, TXT)
+      application:
+        - Debugs a "site works for some users but not others after migration" scenario using TTLs
+      transfer:
+        - Explains DNS-based load balancing or failover and its limits
+      misconceptions:
+        - DNS changes take effect everywhere immediately
+
+  - key: networks.http
+    title: HTTP
+    topic: application
+    difficulty: 2
+    summary: The request-response protocol of the web, its methods, status codes, headers and versions.
+    aliases: [HTTP methods, status codes, headers, HTTP/2, HTTP/3, cookies]
+    prerequisites: [networks.tcp]
+    rubric:
+      explanation:
+        - Explains the request and response structure (method, path, headers, body)
+        - Explains the semantics of the common methods (GET, POST, PUT, PATCH, DELETE), including safety and idempotency
+        - Explains status-code classes and common codes (200, 201, 301, 304, 400, 401, 403, 404, 429, 500, 503)
+        - Knows what HTTP/2 multiplexing improves over HTTP/1.1
+      application:
+        - Picks the correct method and status codes for a set of API operations
+      transfer:
+        - Uses caching headers (Cache-Control, ETag) to reduce load on a service
+      misconceptions:
+        - 401 and 403 mean the same thing
+        - POST requests are secure because the data is not in the URL
+
+  - key: networks.tls
+    title: TLS and HTTPS
+    topic: security
+    difficulty: 3
+    summary: Encrypting and authenticating connections with certificates, key exchange and symmetric encryption.
+    aliases: [SSL, HTTPS, certificate, TLS handshake, public key infrastructure]
+    prerequisites: [networks.http]
+    rubric:
+      explanation:
+        - Explains what TLS provides (confidentiality, integrity, server authentication)
+        - Explains the handshake at a high level (key exchange, then symmetric session keys)
+        - Explains how certificates and certificate authorities let a client trust a server
+      application:
+        - Explains what a browser certificate warning means and why it should not be ignored
+      transfer:
+        - Explains TLS termination at a load balancer and mutual TLS between services
+      misconceptions:
+        - HTTPS hides which website you are visiting from everyone on the network
+
+  - key: networks.realtime_transports
+    title: WebSockets, SSE and polling
+    topic: application
+    difficulty: 3
+    summary: Ways to push data from server to client in real time, and their trade-offs.
+    aliases: [WebSocket, server-sent events, SSE, long polling, WebRTC]
+    prerequisites: [networks.http]
+    rubric:
+      explanation:
+        - Compares short polling, long polling, server-sent events and WebSockets
+        - Explains the WebSocket upgrade handshake and full-duplex messaging
+        - Explains why SSE is one-way and when that is enough
+      application:
+        - Chooses a transport for live notifications, chat or a live dashboard and justifies it
+      transfer:
+        - Explains the scaling cost of long-lived connections (connection state, sticky sessions)
+      misconceptions:
+        - WebSockets are always better than HTTP for real-time features
+
+  - key: networks.url_to_page
+    title: What happens when you type a URL
+    topic: application
+    difficulty: 3
+    summary: The end-to-end path from typing a URL to a rendered page, tying the networking layers together.
+    aliases: [URL to page, browser request lifecycle]
+    prerequisites: [networks.dns, networks.tls]
+    rubric:
+      explanation:
+        - Covers in order DNS resolution, the TCP (or QUIC) connection, the TLS handshake, the HTTP request and the response
+        - Mentions the caching layers on the way (browser, OS, DNS, CDN)
+        - Explains how the browser fetches subresources and renders the page
+      application:
+        - Locates where a slow page load is spending time from a timing breakdown
+      transfer:
+        - Maps each step to a system design component (CDN, load balancer, app server, database)
+      misconceptions:
+        - The browser downloads the whole page in a single request

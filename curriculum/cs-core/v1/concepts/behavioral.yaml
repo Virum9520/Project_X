@@ -1,0 +1,188 @@
+# Grove: behavioral competencies. Answers are also scored against the communication rubrics
+# (structure, specificity, ownership, conciseness). Dimensions read as:
+#   explanation = tells a clear, specific story that shows the competency
+#   application = answers a new prompt for this competency with a fitting story
+#   transfer    = adapts the story to another competency, role or follow-up probe
+domain: behavioral
+concepts:
+  - key: behavioral.star_method
+    title: Structuring answers with STAR
+    topic: storytelling
+    difficulty: 1
+    summary: Answering behavioral questions with situation, task, action and result, with most of the time spent on actions.
+    aliases: [STAR, situation task action result, CARL]
+    rubric:
+      explanation:
+        - Explains each part of STAR and why the action should take most of the answer
+        - Explains why a result (ideally measurable) and a reflection make the answer land
+      application:
+        - Answers a behavioral prompt with all four parts in a sensible order and roughly two minutes long
+      transfer:
+        - Reuses one story for different prompts by shifting the emphasis of the action and result
+      misconceptions:
+        - The situation should be described in full detail before anything else
+
+  - key: behavioral.technical_project_deep_dive
+    title: Explaining a technical project
+    topic: storytelling
+    difficulty: 3
+    summary: Walking an interviewer through a project you built, with your decisions, trade-offs and impact, at the right depth.
+    aliases: [project walkthrough, tell me about a project, resume deep dive]
+    prerequisites: [behavioral.star_method]
+    rubric:
+      explanation:
+        - Gives a short overview (problem, users, your role) before details
+        - Explains at least one key technical decision, the alternatives considered and why
+        - States the impact or result, and what they would do differently
+      application:
+        - Handles a "why did you choose X?" probe with concrete reasoning rather than "it was popular"
+      transfer:
+        - Adjusts the depth for the audience (a recruiter versus an engineer) on request
+      misconceptions:
+        - Listing technologies used is the same as explaining the project
+
+  - key: behavioral.ownership
+    title: Ownership and initiative
+    topic: growth
+    difficulty: 2
+    summary: Taking responsibility for outcomes beyond the assigned task, and following through.
+    aliases: [initiative, accountability, bias for action, going above and beyond]
+    prerequisites: [behavioral.star_method]
+    rubric:
+      explanation:
+        - Tells a story where they noticed a problem and acted without being asked
+        - Makes their own actions explicit (I, not only we) and shows follow-through to a result
+      application:
+        - Answers "tell me about a time you went beyond your role" with a specific, real example
+      transfer:
+        - Shows ownership in a failure story by owning their part without blame
+      misconceptions:
+        - Ownership means doing everything yourself
+
+  - key: behavioral.failure_learning
+    title: Learning from failure
+    topic: growth
+    difficulty: 2
+    summary: Discussing a real mistake or failure honestly, what caused it and what changed afterwards.
+    aliases: [tell me about a failure, mistake, lessons learned, growth mindset]
+    prerequisites: [behavioral.star_method]
+    rubric:
+      explanation:
+        - Chooses a genuine failure with real stakes (not a disguised strength)
+        - Owns their part in the cause without blaming others
+        - Describes a concrete change in behavior and evidence that it stuck
+      application:
+        - Answers a failure or mistake prompt with a story that ends in a specific lesson applied later
+      transfer:
+        - Connects the lesson to how they would handle a similar risk in the target role
+      misconceptions:
+        - The safest failure story is one where nothing really went wrong
+
+  - key: behavioral.teamwork
+    title: Collaboration and teamwork
+    topic: collaboration
+    difficulty: 2
+    summary: Working effectively with others toward a shared goal, including communication and supporting teammates.
+    aliases: [collaboration, cross-functional work, team player, pair programming]
+    prerequisites: [behavioral.star_method]
+    rubric:
+      explanation:
+        - Describes their role within the team and how they coordinated or communicated
+        - Shows awareness of teammates' needs and perspectives
+      application:
+        - Answers "tell me about a successful team project" while separating their contribution from the team's
+      transfer:
+        - Adapts the story to show cross-functional collaboration (for example, with design or product)
+      misconceptions:
+        - Teamwork answers should only use "we"
+
+  - key: behavioral.conflict_resolution
+    title: Handling conflict and disagreement
+    topic: collaboration
+    difficulty: 3
+    summary: Resolving disagreements with teammates or stakeholders respectfully and productively.
+    aliases: [disagreement, difficult coworker, disagree and commit]
+    prerequisites: [behavioral.teamwork]
+    rubric:
+      explanation:
+        - Describes a real disagreement and the other person's perspective fairly
+        - Explains the actions taken to resolve it (listening, data, finding common goals, escalating appropriately)
+        - States the outcome and the effect on the working relationship
+      application:
+        - Answers a conflict prompt without blaming or caricaturing the other person
+      transfer:
+        - Shows they can disagree and still commit when the decision goes the other way
+      misconceptions:
+        - The best conflict story is one where you were proven right
+
+  - key: behavioral.feedback
+    title: Giving and receiving feedback
+    topic: collaboration
+    difficulty: 3
+    summary: Accepting critical feedback openly and acting on it, and giving specific, kind feedback to others.
+    aliases: [constructive criticism, code review feedback, coachability]
+    prerequisites: [behavioral.teamwork]
+    rubric:
+      explanation:
+        - Describes specific feedback they received, their reaction and what they changed
+        - Shows how they give feedback that is specific, timely and focused on behavior
+      application:
+        - Answers "tell me about critical feedback you received" with evidence that they acted on it
+      transfer:
+        - Applies the same approach to feedback in code reviews
+      misconceptions:
+        - Agreeing with all feedback is the best signal of coachability
+
+  - key: behavioral.leadership_influence
+    title: Leading without authority
+    topic: collaboration
+    difficulty: 3
+    summary: Influencing decisions and rallying others when you are not the manager.
+    aliases: [influence, leadership, mentoring, driving alignment]
+    prerequisites: [behavioral.ownership, behavioral.teamwork]
+    rubric:
+      explanation:
+        - Tells a story of persuading others or driving a decision without formal authority
+        - Explains how they built buy-in (data, prototypes, listening to concerns)
+      application:
+        - Answers "tell me about a time you led a project or mentored someone" with a concrete outcome
+      transfer:
+        - Shows the same skills in a different setting (a club, open source, a class project)
+      misconceptions:
+        - Leadership stories need a formal leadership title
+
+  - key: behavioral.ambiguity
+    title: Handling ambiguity and prioritization
+    topic: growth
+    difficulty: 3
+    summary: Making progress when goals or information are unclear, and choosing what matters most under constraints.
+    aliases: [prioritization, tight deadline, unclear requirements, trade-offs]
+    prerequisites: [behavioral.ownership]
+    rubric:
+      explanation:
+        - Describes how they clarified the goal or made explicit assumptions
+        - Explains how they prioritized (impact versus effort, deadlines, stakeholders) and what they dropped
+      application:
+        - Answers a tight-deadline or competing-priorities prompt with a clear decision and its result
+      transfer:
+        - Connects the same approach to scoping a system design question
+      misconceptions:
+        - Handling ambiguity means waiting for complete requirements
+
+  - key: behavioral.motivation_fit
+    title: Motivation and fit
+    topic: motivation
+    difficulty: 1
+    summary: Answering "why this company" and "why this role" with genuine, specific reasons tied to your own path.
+    aliases: [why this company, why this role, tell me about yourself, career goals]
+    prerequisites: [behavioral.star_method]
+    rubric:
+      explanation:
+        - Gives a concise "tell me about yourself" that connects past, present and the target role
+        - Names specific, researched reasons for wanting this company and role
+      application:
+        - Answers "why do you want to work here?" with reasons beyond pay, prestige or generic praise
+      transfer:
+        - Tailors the same narrative to a different company or role
+      misconceptions:
+        - A generic answer is safe because it fits every company
