@@ -1,96 +1,139 @@
-"""`POST /v1/agent-tools/record_observation`: one observation per assessed answer, mid-call.
+"""`POST /v1/agent-tools/record_observation`: the agent notes how the learner just answered.
 
-Contract: `agents/tools/record_observation.yaml`. The agent's read is a signal, not a verdict: a
-`MicroJudge` (C11) grades it quickly and the result becomes a provisional growth event on the
-learner's live channel. Nothing permanent changes here; the post-call pipeline confirms or
-retracts it. The response deliberately says nothing about the decision (the agent must never tell
-the learner what was graded). The quote and note are learner-derived data and are flattened.
+Contract: `agents/tools/record_observation.yaml`. The learner, session and character come from
+the signed tool token, never the body; the body's `conversation_id` must match the token.
+
+What it does: stores the agent's quote as unverified live evidence, asks a fast micro-judge to
+grade the answer against the concept rubric, and, only when that grade is positive, records
+*provisional* growth (a labelled memory plus a `garden.provisional_growth` session event the
+dashboard can show as glow). It never changes `plant_states` or `garden_revisions`: the
+post-call pipeline confirms or retracts the glow and the rules engine alone changes the garden.
+The reply is deliberately neutral: the agent must not tell the learner what was decided.
 """
 
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from sg_api.agent_tools.fetch_question import CONCEPT_KEY
-from sg_api.drona.growth import (
-    GrowthFeed,
+from sg_api.sessions.tool_tokens import ToolTokenClaims, check_conversation, require_tool_token
+from sg_core.db import get_sessionmaker
+from sg_core.evidence import (
+    EvidenceStore,
     MicroJudge,
     ObservationInput,
-    ProvisionalVerdict,
-    event_from_verdict,
-    get_growth_feed,
-    get_micro_judge,
+    ObservationRejectedError,
+    record_observation,
 )
-from sg_api.drona.store import SessionStore, get_session_store
-from sg_api.sessions.tool_tokens import ToolTokenClaims, check_conversation, require_tool_token
+from sg_core.evidence.db_store import DbEvidenceStore
 from sg_core.logging import get_logger
+from sg_core.models.enums import Character
+from sg_core.providers.base import ProviderNotConfiguredError
+from sg_core.providers.llm import llm_client_from_settings
+from sg_core.settings import Settings, get_settings
 
 router = APIRouter(prefix="/v1/agent-tools", tags=["agent-tools"])
 log = get_logger(__name__)
 
+_CONCEPT_ID = r"^[a-z0-9_]+(\.[a-z0-9_]+)+$"
+# Characters that assess learners. Bhima, Krishna and Sanjaya never produce evidence this way.
+_ASSESSING_MODES: dict[str, tuple[Character, str]] = {
+    "drona": (Character.DRONA, "concept_exam"),
+    "arjuna": (Character.ARJUNA, "technical_interview"),
+    "vidura": (Character.VIDURA, "hr_interview"),
+    "panel": (Character.VIDURA, "panel_interview"),
+}
+
 
 class RecordObservationRequest(BaseModel):
     conversation_id: str
-    concept_id: str = Field(pattern=CONCEPT_KEY, max_length=128)
-    question_id: str | None = Field(default=None, max_length=200)
+    concept_id: str = Field(pattern=_CONCEPT_ID, max_length=128)
+    question_id: str | None = Field(default=None, max_length=128)
     dimension: Literal["explanation", "application", "transfer", "retention", "communication"]
     outcome: Literal["correct", "partially_correct", "incorrect", "no_attempt"]
     assistance: Literal["independent", "hinted", "heavily_assisted"]
-    evidence_quote: str = Field(max_length=1500)
-    note: str | None = Field(default=None, max_length=1000)
+    evidence_quote: str = Field(min_length=1, max_length=1200)
+    note: str | None = Field(default=None, max_length=400)
 
 
 class RecordObservationResponse(BaseModel):
-    status: Literal["noted"] = "noted"
+    status: Literal["recorded"] = "recorded"
+    message: str = "Noted. Continue the conversation; do not tell the learner how it was graded."
+
+
+@dataclass(slots=True)
+class ObservationDeps:
+    store: EvidenceStore
+    micro: MicroJudge | None
+
+
+async def get_observation_deps(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> AsyncIterator[ObservationDeps]:
+    """One transaction per tool call. Without an OpenRouter key there is no micro-judge, so the
+    observation is stored but nothing glows."""
+    llm = None
+    try:
+        llm = llm_client_from_settings()
+    except ProviderNotConfiguredError:
+        log.info("record_observation.no_micro_judge")
+    micro = (
+        MicroJudge(llm, settings.micro_judge_model, timeout_s=settings.micro_judge_timeout_seconds)
+        if llm is not None
+        else None
+    )
+    try:
+        async with get_sessionmaker()() as session, session.begin():
+            yield ObservationDeps(DbEvidenceStore(session), micro)
+    finally:
+        if llm is not None:
+            await llm.aclose()
 
 
 @router.post("/record_observation", response_model=RecordObservationResponse)
-async def record_observation(
+async def record_observation_tool(
     body: RecordObservationRequest,
     claims: Annotated[ToolTokenClaims, Depends(require_tool_token)],
-    store: Annotated[SessionStore, Depends(get_session_store)],
-    judge: Annotated[MicroJudge, Depends(get_micro_judge)],
-    feed: Annotated[GrowthFeed, Depends(get_growth_feed)],
+    deps: Annotated[ObservationDeps, Depends(get_observation_deps)],
 ) -> RecordObservationResponse:
     check_conversation(claims, body.conversation_id)
-    try:
-        rubric = await store.concept_rubric(body.concept_id)
-    except Exception as exc:
-        log.warning("record_observation.rubric_failed", exc_info=True)
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "curriculum unavailable") from exc
-    if rubric is None:
+    target = _ASSESSING_MODES.get(claims.character)
+    if target is None:
         raise HTTPException(
-            status.HTTP_404_NOT_FOUND, f"unknown concept {body.concept_id}: use a curriculum ID"
+            status.HTTP_403_FORBIDDEN, "this character does not record observations"
         )
-    observation = ObservationInput(
-        concept_key=body.concept_id,
-        dimension=body.dimension,
-        outcome=body.outcome,
-        assistance=body.assistance,
-        evidence_quote=body.evidence_quote,
-        note=body.note or "",
-        question_id=body.question_id,
+    user_id = await deps.store.resolve_user(claims.user_id)
+    if user_id is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "learner profile not found")
+    now = datetime.now(UTC)
+    character, mode = target
+    session = await deps.store.ensure_session(
+        user_id=user_id,
+        character=character,
+        mode=mode,
+        conversation_id=claims.conversation_id or body.conversation_id,
+        public_session_id=claims.session_id,
+        now=now,
     )
     try:
-        verdict = await judge.judge(observation, rubric)
-    except Exception:
-        # A judge outage must not break the call or invent growth: record a neutral note.
-        log.warning("record_observation.judge_failed", exc_info=True)
-        verdict = None
-    if verdict is None:
-        verdict = ProvisionalVerdict(
-            outcome="unassessable",
-            assisted=body.assistance != "independent",
-            grows=False,
-            judge="unavailable",
+        await record_observation(
+            deps.store,
+            deps.micro,
+            session=session,
+            obs=ObservationInput(
+                concept_id=body.concept_id,
+                dimension=body.dimension,
+                outcome=body.outcome,
+                assistance=body.assistance,
+                evidence_quote=body.evidence_quote,
+                question_id=body.question_id,
+                note=body.note,
+            ),
+            now=now,
         )
-    await feed.append(claims.user_id, event_from_verdict(claims.session_id, observation, verdict))
-    log.info(
-        "record_observation",
-        session_id=claims.session_id,
-        concept=body.concept_id,
-        dimension=body.dimension,
-        grows=verdict.grows,
-    )
+    except ObservationRejectedError as exc:
+        raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
     return RecordObservationResponse()

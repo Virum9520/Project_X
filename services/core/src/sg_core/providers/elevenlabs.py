@@ -77,6 +77,10 @@ class ConversationDetails(BaseModel):
     status: str | None = None
     call_duration_secs: float | None = None
     metadata: dict[str, Any] = {}
+    # Raw provider transcript turns and the full body (C11 reconciles the transcript from here
+    # when a webhook arrives without one). Untrusted data.
+    transcript: list[dict[str, Any]] = []
+    raw: dict[str, Any] = {}
 
 
 class ElevenLabsClient:
@@ -421,6 +425,8 @@ class ElevenLabsClient:
             status=data.get("status"),
             call_duration_secs=metadata.get("call_duration_secs"),
             metadata=metadata,
+            transcript=[t for t in data.get("transcript") or [] if isinstance(t, dict)],
+            raw=data,
         )
 
     async def record_conversation_usage(

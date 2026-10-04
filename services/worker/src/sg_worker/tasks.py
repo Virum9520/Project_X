@@ -15,6 +15,7 @@ from sg_core.economics.budget import expire_stale
 from sg_core.knowledge import run_ingestion_job
 from sg_core.providers import object_store_from_settings
 from sg_core.settings import get_settings
+from sg_worker import post_call  # noqa: F401  (registers the post_call_transcription handler)
 from sg_worker.accountability import run_tick
 from sg_worker.client import get_hatchet
 from sg_worker.dispatch import DOCUMENT_INGEST_KEY, PROVIDER_EVENT_KEY

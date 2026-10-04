@@ -82,6 +82,7 @@ def create_app() -> FastAPI:
     app.include_router(garden_router)
     app.include_router(query_analytics_router)
     app.include_router(commitments_tool_router)
+    app.include_router(record_observation_router)
     app.include_router(accountability_router)
     app.include_router(soundscape_router)
     app.include_router(recap_router)

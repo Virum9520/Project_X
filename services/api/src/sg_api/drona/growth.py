@@ -25,7 +25,7 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from sg_api.drona.questions import ConceptRubric
 from sg_core.db import get_sessionmaker
@@ -41,6 +41,12 @@ log = get_logger(__name__)
 GrowthKind = Literal["provisional", "confirmed", "retracted", "noted"]
 Outcome = Literal["demonstrated", "partial", "not_demonstrated", "unassessable"]
 EVENT_PREFIX = "growth."
+# C11 writes these `session_events` rows from the tool route and the post-call pipeline.
+C11_KINDS: dict[str, GrowthKind] = {
+    "garden.provisional_growth": "provisional",
+    "garden.provisional_confirmed": "confirmed",
+    "garden.provisional_retracted": "retracted",
+}
 DIMENSION_PART = {
     "explanation": "roots",
     "application": "stem",
@@ -260,20 +266,32 @@ class DbGrowthFeed:
             async with get_sessionmaker()() as db:
                 found = (
                     await db.execute(
-                        select(SessionEvent.occurred_at, SessionEvent.payload)
+                        select(
+                            SessionEvent.occurred_at,
+                            SessionEvent.event_type,
+                            SessionEvent.session_id,
+                            SessionEvent.payload,
+                        )
                         .join(User, User.id == SessionEvent.user_id)
                         .where(
                             User.clerk_user_id == user_ref,
-                            SessionEvent.event_type.like(EVENT_PREFIX + "%"),
+                            or_(
+                                SessionEvent.event_type.like(EVENT_PREFIX + "%"),
+                                SessionEvent.event_type.in_(list(C11_KINDS)),
+                            ),
                             SessionEvent.occurred_at > floor,
                         )
                         .order_by(SessionEvent.occurred_at)
                         .limit(limit)
                     )
                 ).all()
-            rows = [
-                (str(_micros(at)), GrowthEvent.model_validate(payload)) for at, payload in found
-            ]
+            for at, event_type, sid, payload in found:
+                if event_type.startswith(EVENT_PREFIX):
+                    parsed: GrowthEvent | None = GrowthEvent.model_validate(payload)
+                else:
+                    parsed = growth_event_from_c11(event_type, sid, at, dict(payload or {}))
+                if parsed is not None:
+                    rows.append((str(_micros(at)), parsed))
         except Exception:
             log.warning("growth.read_failed", exc_info=True)
         rows += await self._fallback.after(user_ref, cursor, limit)
@@ -282,6 +300,35 @@ class DbGrowthFeed:
 
     async def latest_cursor(self, user_ref: str) -> str:
         return await self._fallback.latest_cursor(user_ref)
+
+
+def growth_event_from_c11(
+    event_type: str, session_id: uuid.UUID, occurred_at: datetime, payload: dict[str, object]
+) -> GrowthEvent | None:
+    """Translate a C11 evidence-pipeline event into the browser's `GrowthEvent`."""
+    kind = C11_KINDS.get(event_type)
+    concept = payload.get("concept")
+    if kind is None or not isinstance(concept, str):
+        return None
+    dimension = str(payload.get("dimension") or "")
+    outcome = str(payload.get("outcome") or "demonstrated")
+    return GrowthEvent(
+        id=uuid.uuid5(
+            session_id, f"{event_type}:{concept}:{dimension}:{occurred_at.isoformat()}"
+        ).hex,
+        kind=kind,
+        session_id=str(session_id),
+        concept_id=concept,
+        dimension=dimension,
+        part=DIMENSION_PART.get(dimension),
+        outcome=outcome
+        if outcome in ("demonstrated", "partial", "not_demonstrated", "unassessable")
+        else "demonstrated",
+        assisted=payload.get("assistance") not in (None, "independent"),
+        judge="evidence-pipeline",
+        reason=str(payload.get("reason") or ""),
+        occurred_at=occurred_at,
+    )
 
 
 def _uuid(value: str) -> uuid.UUID | None:
