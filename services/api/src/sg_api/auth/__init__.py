@@ -8,6 +8,7 @@ from sg_api.auth.deps import (
     current_session,
     record_audit,
     require_capability,
+    sync_user,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "current_session",
     "record_audit",
     "require_capability",
+    "sync_user",
 ]

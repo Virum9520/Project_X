@@ -25,6 +25,8 @@ RUN uv sync --frozen --no-dev --package "${SERVICE}" --no-install-workspace
 COPY alembic.ini ./
 # Read by `python -m sg_core.curriculum load` (resolved relative to the workspace root).
 COPY curriculum ./curriculum
+# Rules profiles read by `sg_core.rules.load_profile` (same root-relative resolution).
+COPY rules ./rules
 COPY services ./services
 RUN uv sync --frozen --no-dev --package "${SERVICE}" \
     && useradd --system --uid 10001 --no-create-home app

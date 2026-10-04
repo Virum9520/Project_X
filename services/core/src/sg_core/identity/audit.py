@@ -1,7 +1,7 @@
 """Audit records for privileged actions: actor, action, target, request ID, before/after state.
 
-`LogAuditSink` writes structured log lines. A database sink writing to `audit_log` replaces it once
-the C02 baseline lands; callers only depend on `AuditSink`.
+`LogAuditSink` writes structured log lines (tests, local without a database); `DbAuditSink`
+(`sg_core.identity.db`) writes `audit_log`. Callers only depend on `AuditSink`.
 """
 
 from dataclasses import asdict, dataclass, field
@@ -21,6 +21,8 @@ class AuditEvent:
     target: str | None = None
     before: dict[str, Any] | None = None
     after: dict[str, Any] | None = None
+    ip: str | None = None
+    user_agent: str | None = None
     occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
