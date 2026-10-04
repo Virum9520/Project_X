@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from sg_api.middleware import RequestContextMiddleware
 from sg_api.routers import health
+from sg_api.sessions.router import router as sessions_router
 from sg_core.logging import configure_logging
 from sg_core.settings import Environment, get_settings
 
@@ -28,6 +29,7 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestContextMiddleware)
     app.include_router(health.router)
+    app.include_router(sessions_router)
     return app
 
 
