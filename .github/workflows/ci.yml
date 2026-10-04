@@ -71,3 +71,41 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
+
+  # Builds the Railway images (no push) so Dockerfile breakage shows up before deploy.
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [sg_api, sg_worker, sg_mcp_gateway]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/Dockerfile
+          build-args: SERVICE=${{ matrix.service }}
+          tags: sg-image:ci
+          load: true
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+      - name: Boot check
+        run: |
+          if [ "${{ matrix.service }}" = "sg_worker" ]; then
+            # tasks.py connects to Hatchet at import time, so only check the image wiring here.
+            docker run --rm sg-image:ci sh -c 'test "$SERVICE" = sg_worker && python -c "import sg_worker.client"'
+            exit 0
+          fi
+          if [ "${{ matrix.service }}" = "sg_api" ]; then
+            # Railway's pre-deploy step runs migrations from this image.
+            docker run --rm -e ENVIRONMENT=test sg-image:ci alembic heads
+          fi
+          docker run -d --name svc -p 8000:8000 -e PORT=8000 -e ENVIRONMENT=test sg-image:ci
+          for i in $(seq 1 30); do
+            curl -fsS localhost:8000/healthz && exit 0
+            sleep 1
+          done
+          docker logs svc
+          exit 1

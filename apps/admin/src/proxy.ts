@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Optimistic gate only: the owner allowlist and MFA are enforced in `src/lib/owner.ts` and by the API.
-const isPublic = createRouteMatcher(["/sign-in(.*)"]);
+const isPublic = createRouteMatcher(["/healthz", "/sign-in(.*)"]);
 
 export default clerkMiddleware(
   async (auth, request) => {

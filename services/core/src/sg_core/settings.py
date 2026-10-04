@@ -9,7 +9,7 @@ from functools import lru_cache
 from typing import Annotated
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field, PostgresDsn, SecretStr, field_validator
+from pydantic import AliasChoices, Field, PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -30,12 +30,17 @@ class Settings(BaseSettings):
     environment: Environment = Environment.LOCAL
     service_name: str = "skill-garden"
     log_level: str = "INFO"
+    # Commit being served; Railway injects RAILWAY_GIT_COMMIT_SHA automatically.
+    git_sha: str | None = Field(
+        default=None, validation_alias=AliasChoices("GIT_SHA", "RAILWAY_GIT_COMMIT_SHA")
+    )
 
     # Data
     database_url: PostgresDsn = Field(
         default=PostgresDsn("postgresql+asyncpg://postgres:postgres@localhost:5432/skill_garden"),
     )
-    redis_url: str = "redis://localhost:6379/0"
+    # Optional: when unset, Redis-backed features stay off and /readyz skips the check.
+    redis_url: str | None = None
 
     # Object storage (S3-compatible: MinIO locally, Cloudflare R2 now, AWS S3 later)
     s3_endpoint_url: str | None = "http://localhost:9000"
@@ -71,11 +76,13 @@ class Settings(BaseSettings):
     # Browser origins allowed to send admin mutations (CSRF origin check).
     admin_origins: Annotated[list[str], NoDecode] = ["http://localhost:3001"]
 
-    # CORS
+    # CORS: exact origins (comma-separated), plus an optional regex for preview deployments,
+    # e.g. https://skill-garden-web-[a-z0-9-]+-myteam\.vercel\.app
     cors_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:3000",
         "http://localhost:3001",
     ]
+    cors_origin_regex: str | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod

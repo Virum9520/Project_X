@@ -19,7 +19,7 @@ done, and the real integration waits.
 | C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | done | `feat/c02-db-baseline` | Baseline `0001` is applied to the dedicated Skill Garden Tiger service. The old dev DB holds prototype tables, so point `DATABASE_URL` at the new service |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
-| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
+| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | done | `feat/c05-hosting` | Repo side done: image, Railway/Vercel config, probes, smoke script, runbook ([hosting.md](hosting.md)). Account provisioning follows the runbook |
 | C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | done | `feat/c06-elevenlabs-agents` | 8 agents, 15 tools, 14 agent tests, `sg-agents` CLI, ADRs 0001–0005. `POST /v1/sessions` uses Clerk auth (C01); session row not yet persisted (C02 tables exist) and the briefing is a stub until C09. **Follow-up (owner, needs `ELEVENLABS_API_KEY`):** `sg-agents voices design`/`create`, set dev `api_base_url` after C05, first `sg-agents sync`, commit registries, ADR live checks |
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C03, C04, C05, C07, C09, C13, C15.
+**Ready now** (dependencies met): C03, C04, C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -73,10 +73,18 @@ event name or SSE channel), record it here in the same PR.
 | `ElevenLabsClient` (conversation token, Voice Design) | C06 | `services/core/src/sg_core/providers/elevenlabs.py` | C03 extends it (usage ledger, budgets) |
 | Settings `ELEVENLABS_AGENT_IDS`, `AGENT_TOOL_TOKEN_SECRET`, `ELEVENLABS_BASE_URL` | C06 | `services/core/src/sg_core/settings.py` | `uv run sg-agents ids` prints the agent IDs JSON |
 | `sg-agents` CLI (build, sync, test, voices, ids) | C06 | `services/agentops`, `agents/README.md` | |
+| Python service image: `SERVICE` build arg (`sg_api`, `sg_worker`, `sg_mcp_gateway`) | C05 | `services/Dockerfile`, `services/docker-entrypoint.sh` | Arguments after the image name replace the default process (e.g. `alembic upgrade head`) |
+| Railway config as code | C05 | `infra/railway/*.json` | `api.json` runs `alembic upgrade head` as the pre-deploy step; the worker never migrates |
+| Redis client `get_redis()` / `ping()` | C05 | `services/core/src/sg_core/redis_client.py` | `REDIS_URL` is optional (`None` locally); `/readyz` checks Redis only when it is set |
+| Settings: `cors_origin_regex`, `git_sha`, optional `redis_url` | C05 | `services/core/src/sg_core/settings.py` | `git_sha` reads `GIT_SHA` or `RAILWAY_GIT_COMMIT_SHA` |
+| `GET /healthz` (liveness) and `GET /readyz` (database and Redis) | C05 | `services/api/src/sg_api/routers/health.py` | `/readyz` is the Railway deploy gate |
+| `GET /healthz` on web and admin | C05 | `apps/*/src/app/healthz/route.ts` | Public in each app's `proxy.ts`; returns the configured `API_URL` |
+| Deploy smoke test | C05 | `scripts/smoke.py`, `python -m sg_worker.smoke` | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).
 - 2026-10-04 · C06 · [#8](https://github.com/Virum9520/Project_X/pull/8) · ElevenLabs agents-as-code (8 agents, 15 tools, 14 tests, `sg-agents`), Voice Design prompts, `POST /v1/sessions` with signed tool tokens, spike ADRs 0001–0005. Voices and first sync pending the API key.
 - 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
 - 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.

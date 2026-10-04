@@ -1,0 +1,20 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "services/Dockerfile",
+    "watchPatterns": [
+      "services/core/**",
+      "services/worker/**",
+      "services/Dockerfile",
+      "services/docker-entrypoint.sh",
+      "pyproject.toml",
+      "uv.lock",
+      "infra/railway/worker.json"
+    ]
+  },
+  "deploy": {
+    "restartPolicyType": "ALWAYS",
+    "drainingSeconds": "30"
+  }
+}
