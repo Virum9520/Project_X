@@ -236,6 +236,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.8.1
         version: 9.8.1(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.186.1)
+      '@sg/audio':
+        specifier: workspace:*
+        version: link:../../packages/audio
       '@sg/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -285,6 +288,18 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/audio:
+    devDependencies:
+      '@sg/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(vite@8.3.2(@types/node@20.19.43)(jiti@2.7.0))
 
   packages/contracts:
     devDependencies:

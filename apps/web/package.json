@@ -14,6 +14,7 @@
     "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
+    "@sg/audio": "workspace:*",
     "@sg/contracts": "workspace:*",
     "@sg/three": "workspace:*",
     "@sg/ui": "workspace:*",

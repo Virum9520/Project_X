@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Owner CLI: generate the soundscape music and SFX. Arguments pass through, e.g.
+#   scripts/generate-audio plan
+#   scripts/generate-audio generate --dry-run
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec uv run --package sg_core python -m sg_core.soundscape "$@"
