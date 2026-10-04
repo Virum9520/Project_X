@@ -1,7 +1,8 @@
 /**
  * Deterministic mock learner for the Garden Dashboard. Concept keys and titles come from the real
  * `cs-core@v1` curriculum. Everything here is MOCK DATA: it is replaced by the analytics API
- * (C09/C10) behind `./data.ts`; nothing else imports this file.
+ * (C09/C10) behind `./data.ts`. The only other importer is the static GitHub Pages build
+ * (`pages-demo/overlay/src/lib/practice/dataset.ts`), which has no API.
  */
 import {
   DIMENSION_TO_PART,

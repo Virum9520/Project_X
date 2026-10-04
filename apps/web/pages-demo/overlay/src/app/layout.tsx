@@ -8,11 +8,14 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Skill Garden (static demo)",
+  title: "Skill Garden",
   description: "Grow real skills. Every leaf is earned.",
 };
 
-/** GitHub Pages build: no Clerk, no API. Everything runs on the sample learner. */
+/**
+ * GitHub Pages build: no sign-in and no API. The learner pages run in the browser on the sample
+ * learner plus whatever is practised here (see `src/lib/practice`).
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>

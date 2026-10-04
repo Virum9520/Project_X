@@ -1,0 +1,12 @@
+{
+  "//": "Type-checks the GitHub Pages overlay as the Pages build sees it: overlay files first, then src.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "paths": {
+      "@/*": ["./pages-demo/overlay/src/*", "./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "pages-demo/overlay/src/**/*.ts", "pages-demo/overlay/src/**/*.tsx"],
+  "exclude": ["node_modules"]
+}

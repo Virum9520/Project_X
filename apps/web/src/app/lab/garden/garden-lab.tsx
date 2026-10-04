@@ -118,7 +118,7 @@ export function GardenLab({ initialFocus }: { initialFocus: string | null }) {
 
       <nav
         aria-label="Garden zoom"
-        className="pointer-events-auto absolute left-4 top-4 flex flex-wrap items-center gap-1 rounded-full border border-white/10 bg-night/70 px-3 py-1.5 text-sm backdrop-blur"
+        className="pointer-events-auto absolute left-4 top-24 z-10 flex flex-wrap items-center gap-1 rounded-full border border-white/10 bg-night/70 px-3 py-1.5 text-sm backdrop-blur"
       >
         {trail.map((step, i) => (
           <span key={focusToString(step)} className="flex items-center gap-1">
@@ -138,9 +138,9 @@ export function GardenLab({ initialFocus }: { initialFocus: string | null }) {
         ))}
       </nav>
 
-      <div className="absolute right-4 top-4 flex flex-col items-end gap-2 text-xs">
+      <div className="absolute right-4 top-24 z-10 flex flex-col items-end gap-2 text-xs">
         <span className="rounded-full border border-bloom/40 bg-night/70 px-3 py-1 text-foreground/70 backdrop-blur">
-          Garden lab · mock data
+          Garden lab · growth simulator
         </span>
         <div className="flex gap-2">
           <button
@@ -194,7 +194,7 @@ export function GardenLab({ initialFocus }: { initialFocus: string | null }) {
         </label>
       </div>
 
-      <div className="absolute inset-x-4 bottom-4 mx-auto flex max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-night/70 px-4 py-3 text-sm backdrop-blur">
+      <div className="absolute inset-x-4 bottom-4 z-10 mx-auto flex max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-night/70 px-4 py-3 text-sm backdrop-blur">
         <button
           type="button"
           onClick={() => {

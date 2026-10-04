@@ -2,7 +2,7 @@
 
 import type { GardenDataset, FocusTarget } from "@sg/contracts";
 import { type RecapPayload, segmentAt } from "@sg/audio";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 
 import { generateRecap, shareRecap, unshareRecap } from "@/app/(app)/recap/actions";
 import { cutoffMs, plantsAt } from "@/lib/garden/derive";
@@ -38,9 +38,18 @@ function usePrefersReducedMotion() {
 export function RecapPlayer({
   dataset,
   initial,
+  canShare = true,
+  onNarrate,
+  extra,
 }: {
   dataset: GardenDataset;
   initial: RecapPayload | null;
+  /** Extra header controls, placed before the recap button. */
+  extra?: ReactNode;
+  /** False where private links cannot be created (no recap service). */
+  canShare?: boolean;
+  /** For text-only recaps: called with each segment's text as it plays, and null on pause. */
+  onNarrate?: (text: string | null) => void;
 }) {
   const [recap, setRecap] = useState(initial);
   const [message, setMessage] = useState<string | null>(null);
@@ -66,25 +75,28 @@ export function RecapPlayer({
             <p className="text-xs uppercase tracking-[0.3em] text-glow">Weekly recap</p>
             <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Your week, told by Sanjaya</h1>
           </div>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                setMessage(null);
-                const result = await generateRecap(Boolean(recap));
-                if (result.ok) setRecap(result.data);
-                else setMessage(result.message);
-              })
-            }
-            className="rounded-lg bg-glow/20 px-3 py-1.5 text-sm text-glow outline-none hover:bg-glow/30 focus-visible:ring-2 focus-visible:ring-glow disabled:opacity-50"
-          >
-            {pending
-              ? "Writing…"
-              : recap
-                ? "Rebuild this week's recap"
-                : "Create this week's recap"}
-          </button>
+          <div className="flex items-center gap-2">
+            {extra}
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  setMessage(null);
+                  const result = await generateRecap(Boolean(recap));
+                  if (result.ok) setRecap(result.data);
+                  else setMessage(result.message);
+                })
+              }
+              className="rounded-lg bg-glow/20 px-3 py-1.5 text-sm text-glow outline-none hover:bg-glow/30 focus-visible:ring-2 focus-visible:ring-glow disabled:opacity-50"
+            >
+              {pending
+                ? "Writing…"
+                : recap
+                  ? "Rebuild this week's recap"
+                  : "Create this week's recap"}
+            </button>
+          </div>
         </header>
         {message && (
           <p role="alert" className="rounded-xl bg-ember/15 px-4 py-2 text-sm text-ember">
@@ -97,6 +109,8 @@ export function RecapPlayer({
             plants={plants}
             dataset={dataset}
             cutoff={cutoff}
+            canShare={canShare}
+            onNarrate={onNarrate}
             sharePath={sharePath}
             onShare={() =>
               startTransition(async () => {
@@ -132,6 +146,8 @@ function Flythrough({
   plants,
   dataset,
   cutoff,
+  canShare,
+  onNarrate,
   sharePath,
   onShare,
   onUnshare,
@@ -140,6 +156,8 @@ function Flythrough({
   plants: ReturnType<typeof plantsAt>;
   dataset: GardenDataset;
   cutoff: number;
+  canShare: boolean;
+  onNarrate?: (text: string | null) => void;
   sharePath: string | null;
   onShare: () => void;
   onUnshare: () => void;
@@ -175,6 +193,12 @@ function Flythrough({
     [active],
   );
   const evidenceCount = recap.citations.length;
+
+  // Text-only recaps can be read aloud by the caller as each segment comes up.
+  useEffect(() => {
+    if (!onNarrate || !timerMode) return;
+    onNarrate(playing && active ? active.text : null);
+  }, [onNarrate, timerMode, playing, active]);
 
   return (
     <section className="flex flex-col gap-3" aria-label="Recap flythrough">
@@ -238,7 +262,7 @@ function Flythrough({
         <span className="text-xs text-foreground/50">
           {recap.week} · {evidenceCount} evidence {evidenceCount === 1 ? "citation" : "citations"}
           {recap.timing !== "aligned" && hasAudio ? " · camera timing approximate" : ""}
-          {!hasAudio ? " · text recap" : ""}
+          {!hasAudio ? (onNarrate ? " · read aloud by your browser" : " · text recap") : ""}
         </span>
       </div>
 
@@ -261,30 +285,32 @@ function Flythrough({
         ))}
       </ol>
 
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {recap.shared ? (
-          <>
-            <span className="text-foreground/70">
-              {sharePath ? `Private link: ${sharePath}` : "A private link is active."}
-            </span>
+      {canShare && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {recap.shared ? (
+            <>
+              <span className="text-foreground/70">
+                {sharePath ? `Private link: ${sharePath}` : "A private link is active."}
+              </span>
+              <button
+                type="button"
+                onClick={onUnshare}
+                className="rounded-lg border border-white/10 px-2.5 py-1 hover:border-white/25"
+              >
+                Turn link off
+              </button>
+            </>
+          ) : (
             <button
               type="button"
-              onClick={onUnshare}
+              onClick={onShare}
               className="rounded-lg border border-white/10 px-2.5 py-1 hover:border-white/25"
             >
-              Turn link off
+              Create private link
             </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={onShare}
-            className="rounded-lg border border-white/10 px-2.5 py-1 hover:border-white/25"
-          >
-            Create private link
-          </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

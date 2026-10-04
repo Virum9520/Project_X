@@ -1,11 +1,11 @@
 "use client";
 
 import { CHARACTER_META, CharacterAvatar } from "@/components/character/character-avatar";
-import { COACHES } from "@/components/character/coaches";
+import { COACH_BY_ID, COACHES } from "@/components/character/coaches";
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { DAY_MS } from "@/lib/garden/derive";
 import { type DashboardState, focusGrove } from "@/lib/garden/state";
@@ -22,7 +22,7 @@ import { StartingLevelsNotice } from "./starting-levels-notice";
 import { StatsOverview } from "./stats-overview";
 import { PlantDetail } from "./plant-detail";
 import { PlantsTable } from "./plants-table";
-import { PART_LABEL, cap, formatDateTime } from "./primitives";
+import { PART_LABEL, formatDateTime } from "./primitives";
 import { useGardenAudioState } from "../soundscape/audio-state";
 import { SoundControls } from "../soundscape/sound-controls";
 import { SoundscapeProvider } from "../soundscape/soundscape-provider";
@@ -44,7 +44,6 @@ export function GardenDashboard({
 }) {
   const { state, view, series, actions } = useGardenDashboard(dataset, initialState);
   const { focus, filters, scrubDate } = state;
-  const [notice, setNotice] = useState<string | null>(null);
   const router = useRouter();
   // Live provisional growth from a voice session (this tab or another) makes plants glow.
   const live = useLiveGrowth();
@@ -62,18 +61,11 @@ export function GardenDashboard({
   }, [actions]);
 
   const onPractise = (c: Character, plantKey: string) => {
-    if (c === "drona") {
-      router.push(`/session?concept=${encodeURIComponent(plantKey)}`);
-      return;
-    }
-    if (c === "arjuna") {
-      router.push(`/interview/technical?concept=${encodeURIComponent(plantKey)}`);
-      return;
-    }
-    const title = dataset.plants.find((p) => p.key === plantKey)?.title;
-    setNotice(
-      `Starting ${cap(c)} on ${title} arrives with that character's session (Drona and Arjuna are available now).`,
-    );
+    const concept = encodeURIComponent(plantKey);
+    if (c === "drona") router.push(`/session?concept=${concept}`);
+    else if (c === "arjuna") router.push(`/interview/technical?concept=${concept}`);
+    else if (c === "vidura") router.push(`/interview?mode=hr&concept=${concept}`);
+    else router.push(COACH_BY_ID[c].href);
   };
 
   const grove = focusGrove(focus, dataset);
@@ -135,8 +127,12 @@ export function GardenDashboard({
               </span>
             )}
             <span>
-              Updated {formatDateTime(dataset.freshness.projectionAt)} · rules{" "}
-              {dataset.freshness.rulesVersion} · {dataset.freshness.curriculum}
+              Updated {formatDateTime(dataset.freshness.projectionAt)} ·{" "}
+              {/* The API's rule versions read `rules@1+normal.1`; don't say "rules" twice. */}
+              {dataset.freshness.rulesVersion.startsWith("rules")
+                ? dataset.freshness.rulesVersion
+                : `rules ${dataset.freshness.rulesVersion}`}{" "}
+              · {dataset.freshness.curriculum}
             </span>
           </div>
         </header>
@@ -184,22 +180,6 @@ export function GardenDashboard({
             <p className="sr-only" role="status" aria-live="polite">
               Focused on {scopeLabel}.
             </p>
-            {notice && (
-              <p
-                role="status"
-                className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
-              >
-                <span>{notice}</span>
-                <button
-                  type="button"
-                  onClick={() => setNotice(null)}
-                  aria-label="Dismiss"
-                  className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
-                >
-                  ×
-                </button>
-              </p>
-            )}
           </div>
           <PracticeLinks />
         </div>

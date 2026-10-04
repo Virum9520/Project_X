@@ -1,6 +1,9 @@
-import { HomeView } from "@/components/app-pages/home-view";
-import { getSampleGardenDataset } from "@/lib/garden/data";
+import type { Metadata } from "next";
+
+import { HomeClient } from "@/components/practice/client-pages";
+
+export const metadata: Metadata = { title: "Home · Skill Garden" };
 
 export default function HomePage() {
-  return <HomeView name="Virum" dataset={getSampleGardenDataset()} isMock />;
+  return <HomeClient />;
 }

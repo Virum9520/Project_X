@@ -1,14 +1,19 @@
-name: Deploy static demo to GitHub Pages
+name: Deploy to GitHub Pages
 
-# Publishes a login-free, sample-data build of the web app (landing, Home, My garden, Past sessions,
-# Coaches) to https://<owner>.github.io/<repo>/. The real app (Clerk, API, voice) is not on Pages.
-# One-time setup: Settings -> Pages -> Source: GitHub Actions.
+# Publishes a login-free build of the web app to https://<owner>.github.io/<repo>/. There is no
+# server there: the coaches, the code runner (JavaScript, TypeScript and Python via Pyodide) and
+# the garden run in the browser, on content exported from the API's own modules. One job, so one
+# check per push. One-time setup: Settings -> Pages -> Source: GitHub Actions.
 on:
   push:
     branches: [main]
     paths:
       - "apps/web/**"
       - "packages/**"
+      - "curriculum/**"
+      - "services/api/src/sg_api/arjuna/**"
+      - "services/api/src/sg_api/drona/**"
+      - "services/api/src/sg_api/vidura/**"
       - "pnpm-lock.yaml"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -23,8 +28,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
+    name: Build and deploy
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     env:
       PAGES_DEMO: "1"
       PAGES_BASE_PATH: /${{ github.event.repository.name }}
@@ -36,8 +45,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: astral-sh/setup-uv@v6
       - run: pnpm install --frozen-lockfile
-      - name: Strip server-only routes (CI checkout only)
+      - name: Export practice content (questions, problem bank and tests, résumé lexicon)
+        run: uv run --no-project --with pyyaml python apps/web/scripts/export-practice-data.py
+      - name: Swap in the browser-only pages (CI checkout only)
         run: node apps/web/scripts/prepare-pages.mjs
       - run: pnpm --filter ./apps/web build
       - name: Add .nojekyll and a 404 page
@@ -47,13 +59,5 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

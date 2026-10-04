@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { NavLinks } from "./nav-links";
+import { NavLinks } from "@/components/nav-links";
 
 export function SproutMark({ className }: { className?: string }) {
   return (
@@ -13,11 +13,11 @@ export function SproutMark({ className }: { className?: string }) {
   );
 }
 
-/** Static-demo navigation: the signed-in sections, all on sample data. */
+/** Navigation for the GitHub Pages build: the learner sections, no sign-in. */
 export function SiteNav() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4">
-      <nav className="glass pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl py-2.5 pl-3 pr-2.5 shadow-[0_10px_40px_-12px_rgb(0_0_0/0.6)]">
+      <nav className="glass glass-nav pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl py-2.5 pl-3 pr-2.5 shadow-[0_10px_40px_-12px_rgb(0_0_0/0.6)]">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="grid size-9 place-items-center rounded-xl bg-night/70 text-foreground">
             <SproutMark className="size-6" />
@@ -27,9 +27,12 @@ export function SiteNav() {
           </span>
         </Link>
         <NavLinks />
-        <span className="rounded-full bg-ember/15 px-2.5 py-1 text-xs text-ember ring-1 ring-ember/40">
-          Static demo
-        </span>
+        <Link
+          href="/coaches"
+          className="hidden whitespace-nowrap rounded-xl bg-moss px-4 py-2 text-sm font-medium text-night transition hover:brightness-110 md:inline-block"
+        >
+          Start practising
+        </Link>
       </nav>
     </div>
   );

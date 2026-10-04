@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 
-import { GardenLab } from "@/app/lab/garden/garden-lab";
+import { LabClient } from "@/components/practice/client-pages";
 
 export const metadata: Metadata = {
   title: "Garden lab · Skill Garden",
-  description: "Simulated growth of the knowledge garden on mock data.",
+  description: "Watch a knowledge garden grow, revision by revision.",
 };
 
-// Static export cannot read search params on the server; deep links are not needed in the demo.
 export default function GardenLabPage() {
-  return <GardenLab initialFocus={null} />;
+  return <LabClient />;
 }

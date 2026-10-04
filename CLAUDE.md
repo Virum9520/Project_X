@@ -64,7 +64,8 @@ uv run --package sg_api uvicorn sg_api.main:app --reload --port 8000
 uv run --package sg_worker python -m sg_worker.main   # embedded Hatchet when no token is set
 uv run alembic upgrade head                     # apply migrations to DATABASE_URL
 
-# quality gates (CI runs the same checks)
+# quality gates (CI's single `checks` job runs these; migrations and Docker images run on
+# demand in the manual "Extended checks" workflow, .github/workflows/ci-extended.yml)
 pnpm lint && pnpm typecheck && pnpm build && pnpm format:check
 uv run ruff check services && uv run ruff format --check services
 uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src services/agentops/src

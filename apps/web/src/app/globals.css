@@ -158,6 +158,14 @@ html {
   border: 1px solid rgb(255 255 255 / 0.08);
 }
 
+/* The floating nav. Content scrolling under it often has its own backdrop blur, which the nav's
+   blur does not reach in Chromium, so a nearly opaque fill keeps that content from reading
+   through the links. */
+.glass-nav {
+  /* Percentages sum to 92%: the mix is 92% opaque. */
+  background: color-mix(in oklab, var(--dusk) 40%, var(--night) 52%);
+}
+
 /* Garden Dashboard: assisted evidence is hatched so it never reads as independent. */
 .hatch {
   background-image: repeating-linear-gradient(

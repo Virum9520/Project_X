@@ -1,0 +1,77 @@
+name: Extended checks
+
+# Slower checks that need services or Docker, run on demand (Actions -> Extended checks -> Run
+# workflow) before touching migrations or the service images.
+on:
+  workflow_dispatch:
+
+jobs:
+  migrations:
+    # Applies the Alembic chain to a real TimescaleDB + pgvector database, checks for
+    # model drift, proves downgrade works, and runs the database integration tests.
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb-ha:pg17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: skill_garden
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d skill_garden"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/skill_garden
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --all-packages --frozen
+      - run: uv run alembic upgrade head
+      - run: uv run alembic check
+      - run: uv run alembic downgrade base
+      - run: uv run alembic upgrade head
+      - run: uv run pytest -q services/core/tests/test_migrations_db.py services/core/tests/test_curriculum_db.py
+        env:
+          SG_DB_TESTS: "1"
+
+  # Builds the Railway images (no push) so Dockerfile breakage shows up before deploy.
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [sg_api, sg_worker, sg_mcp_gateway]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/Dockerfile
+          build-args: SERVICE=${{ matrix.service }}
+          tags: sg-image:ci
+          load: true
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+      - name: Boot check
+        run: |
+          if [ "${{ matrix.service }}" = "sg_worker" ]; then
+            # tasks.py connects to Hatchet at import time, so only check the image wiring here.
+            docker run --rm sg-image:ci sh -c 'test "$SERVICE" = sg_worker && python -c "import sg_worker.client"'
+            exit 0
+          fi
+          if [ "${{ matrix.service }}" = "sg_api" ]; then
+            # Railway's pre-deploy step runs migrations from this image.
+            docker run --rm -e ENVIRONMENT=test sg-image:ci alembic heads
+          fi
+          docker run -d --name svc -p 8000:8000 -e PORT=8000 -e ENVIRONMENT=test sg-image:ci
+          for i in $(seq 1 30); do
+            curl -fsS localhost:8000/healthz && exit 0
+            sleep 1
+          done
+          docker logs svc
+          exit 1

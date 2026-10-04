@@ -1,8 +1,9 @@
-import { GardenDashboard } from "@/components/garden/dashboard";
-import { getSampleGardenDataset } from "@/lib/garden/data";
-import { parseState } from "@/lib/garden/state";
+import type { Metadata } from "next";
+
+import { GardenClient } from "@/components/practice/client-pages";
+
+export const metadata: Metadata = { title: "My garden · Skill Garden" };
 
 export default function GardenPage() {
-  const dataset = getSampleGardenDataset();
-  return <GardenDashboard dataset={dataset} initialState={parseState({}, dataset)} isMock />;
+  return <GardenClient />;
 }

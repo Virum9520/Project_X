@@ -26,7 +26,7 @@ export function SproutMark({ className }: { className?: string }) {
 export function SiteNav() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4">
-      <nav className="glass pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl py-2.5 pl-3 pr-2.5 shadow-[0_10px_40px_-12px_rgb(0_0_0/0.6)]">
+      <nav className="glass glass-nav pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl py-2.5 pl-3 pr-2.5 shadow-[0_10px_40px_-12px_rgb(0_0_0/0.6)]">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="grid size-9 place-items-center rounded-xl bg-night/70 text-foreground">
             <SproutMark className="size-6" />

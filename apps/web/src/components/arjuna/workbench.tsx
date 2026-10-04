@@ -10,7 +10,7 @@ import type {
 import { RUNNABLE_LANGUAGES } from "@sg/contracts";
 import { loader } from "@monaco-editor/react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { describeRun } from "@/lib/arjuna/runs";
 
@@ -52,6 +52,10 @@ export interface WorkbenchProps {
   onLanguageChange: (language: RunnableLanguage) => void;
   onRunExamples: (code: string) => Promise<ExamplesOutcome>;
   onClose?: () => void;
+  /** Extra controls beside "Run examples" (for example a button that runs the full tests). */
+  actions?: ReactNode;
+  /** Replaces the default note under the buttons. */
+  note?: ReactNode;
 }
 
 /**
@@ -69,6 +73,8 @@ export function Workbench({
   onLanguageChange,
   onRunExamples,
   onClose,
+  actions,
+  note,
 }: WorkbenchProps) {
   const [code, setCode] = useState(initialCode);
   const [busy, setBusy] = useState(false);
@@ -183,8 +189,10 @@ export function Workbench({
         >
           {busy ? "Running…" : "Run examples"}
         </button>
+        {actions}
         <p className="text-xs text-foreground/60">
-          Practice only. Say “run the tests” when you are ready and Arjuna will run the full set.
+          {note ??
+            "Practice only. Say “run the tests” when you are ready and Arjuna will run the full set."}
         </p>
       </div>
 

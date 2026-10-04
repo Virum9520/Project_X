@@ -33,7 +33,14 @@ const card = "rounded-xl border border-white/10 bg-dusk/60 p-6";
 
 const errorMessage = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong.");
 
-export function ScheduleSettings({ defaultTz }: { defaultTz: string }) {
+export function ScheduleSettings({
+  defaultTz,
+  showPush = true,
+}: {
+  defaultTz: string;
+  /** False where calls can only ring in an open page (no push service). */
+  showPush?: boolean;
+}) {
   const [config, setConfig] = useState<AccountabilityConfig | null>(null);
   const [schedules, setSchedules] = useState<Schedule[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -68,7 +75,7 @@ export function ScheduleSettings({ defaultTz }: { defaultTz: string }) {
 
   return (
     <>
-      <PushCard config={config} />
+      {showPush && <PushCard config={config} />}
       <SchedulesCard config={config} schedules={schedules} defaultTz={defaultTz} onChange={load} />
     </>
   );

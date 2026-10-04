@@ -335,7 +335,17 @@ export function GardenScene({
         )}
       </Canvas>
       {showLabels && (
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+        // zIndex 0 makes a stacking context: the labels' depth-sorted z-indexes (up to ~10000)
+        // stay inside the scene instead of covering the page's nav and controls.
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            overflow: "hidden",
+          }}
+        >
           <SceneLabels
             registry={overlay}
             layout={layout}

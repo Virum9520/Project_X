@@ -72,7 +72,11 @@ export function HomeView({
           </p>
         </div>
         <Link
-          href={nextCoach.href}
+          href={
+            next && (next.character === "drona" || next.character === "arjuna")
+              ? { pathname: nextCoach.href, query: { concept: next.plantKey } }
+              : nextCoach.href
+          }
           className="rounded-xl bg-moss px-6 py-3 text-lg font-medium text-night outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-glow"
         >
           Begin
