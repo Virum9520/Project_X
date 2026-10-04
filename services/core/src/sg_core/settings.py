@@ -79,6 +79,12 @@ class Settings(BaseSettings):
     developer_monthly_budget_usd: Decimal = Decimal("25")
     owner_assistant_monthly_budget_usd: Decimal = Decimal("10")
 
+    # Owner console "Call now" (C21): where a developer test call may go, how often, how long.
+    # "web" = the web call channel; anything else must be a verified E.164 test number.
+    call_now_approved_targets: Annotated[list[str], NoDecode] = ["web"]
+    call_now_cooldown_seconds: int = 60
+    call_now_max_duration_seconds: int = 300
+
     # Auth (Clerk) — one application shared by the learner and admin apps
     # Frontend API URL, e.g. https://<slug>.clerk.accounts.dev; JWKS lives under it.
     clerk_issuer: str | None = None
@@ -126,6 +132,7 @@ class Settings(BaseSettings):
         "admin_origins",
         "cors_origins",
         "llm_fallback_models",
+        "call_now_approved_targets",
         mode="before",
     )
     @classmethod
