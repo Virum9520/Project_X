@@ -4,6 +4,9 @@ import type { Character } from "@sg/contracts";
 import type { LipSyncDriver } from "@sg/three/avatar";
 import { useEffect, useRef } from "react";
 
+// Set only for the GitHub Pages build, which is served from a sub-path.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export const CHARACTER_META: Record<Character, { name: string; role: string; ring: string }> = {
   drona: { name: "Drona", role: "Teacher", ring: "#ffcf70" },
   arjuna: { name: "Arjuna", role: "Technical interviewer", ring: "#4fd1a1" },
@@ -89,7 +92,7 @@ export function CharacterAvatar({
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- small static portraits */}
         <img
-          src={`/characters/${character}.png`}
+          src={`${BASE_PATH}/characters/${character}.png`}
           alt=""
           draggable={false}
           className="size-full object-cover"
