@@ -179,6 +179,8 @@ event name or SSE channel), record it here in the same PR.
 
 ## Log
 
+- 2026-10-04 · web/infra · [#32](https://github.com/Virum9520/Project_X/pull/32) + direct commits to `main` · Violet/gold theme, circular pulsing character portraits, 70/30 dashboard, signed-in Home / Past sessions / Coaches and nav (login lands on `/home`). **Krishna fix:** an unreachable object store (MinIO not running, no Docker) escaped as a 500 on the consent recording; storage errors are now a 502 `provider_unavailable`, and `OBJECT_STORE=local` (on-disk, local/test only, set in `.env`) lets dev run without MinIO: restart the API to pick it up. **GitHub Pages:** `.github/workflows/pages.yml` deploys a static, login-free sample-data demo (landing, Home, My garden, Past sessions, Coaches) built by `apps/web/scripts/prepare-pages.mjs` (CI only, deletes server routes) with the overlay in `apps/web/pages-demo/`; needs Settings -> Pages -> Source: GitHub Actions.
+
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
 - 2026-10-04 · C16 follow-up · [#25](https://github.com/Virum9520/Project_X/pull/25) · Résumé/JD upload UI on C08's API feeding the interview plan; TypeScript test harness.

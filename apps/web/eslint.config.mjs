@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Overlay copied over src/ only by the GitHub Pages build.
+    "pages-demo/**",
   ]),
 ]);
 
