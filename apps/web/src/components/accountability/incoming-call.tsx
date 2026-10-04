@@ -1,5 +1,6 @@
 "use client";
 
+import "@/lib/voice/quiet-livekit";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";

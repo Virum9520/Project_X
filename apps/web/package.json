@@ -25,6 +25,7 @@
     "@sg/three": "workspace:*",
     "@sg/ui": "workspace:*",
     "@vercel/otel": "^2.1.3",
+    "livekit-client": "2.22.3",
     "monaco-editor": "^0.57.0",
     "next": "16.3.8",
     "react": "19.2.8",

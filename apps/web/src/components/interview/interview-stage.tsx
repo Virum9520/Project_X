@@ -1,5 +1,6 @@
 "use client";
 
+import "@/lib/voice/quiet-livekit";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import type { GardenDataset, LiveGrowthEvent } from "@sg/contracts";
 import { fromAgentAlignment, useLipSync } from "@sg/three/avatar";
