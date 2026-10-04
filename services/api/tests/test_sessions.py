@@ -10,6 +10,7 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
 
 from sg_api.main import create_app
+from sg_api.sessions.briefing import StubBriefingProvider, get_briefing_provider
 from sg_api.sessions.router import get_elevenlabs
 from sg_api.sessions.tool_tokens import mint_tool_token, verify_tool_token
 from sg_core.providers.elevenlabs import ElevenLabsClient
@@ -45,6 +46,7 @@ def _app(settings: Settings, handler: Handler = _token_ok) -> AsyncClient:
 
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_elevenlabs] = fake_elevenlabs
+    app.dependency_overrides[get_briefing_provider] = StubBriefingProvider  # no database
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
 
