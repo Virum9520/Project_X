@@ -17,6 +17,7 @@ dependencies = [
   "boto3>=1.43.108",
   "e2b>=2.52.0",
   "pymupdf>=1.28.2",
+  "pywebpush>=2.5.0",
 ]
 
 [build-system]

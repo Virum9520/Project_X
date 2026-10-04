@@ -179,7 +179,10 @@ async def build_briefing(
     open_commitments = Section("Open commitments")
     for c in commitments:
         due_text = f", due {c.due_at:%Y-%m-%d}" if c.due_at else ""
-        open_commitments.lines.append(f'- "{sanitize(c.description, 200)}"{due_text}')
+        reported = f", last self-report: {c.reported_status}" if c.reported_status else ""
+        open_commitments.lines.append(
+            f'- "{sanitize(c.description, 200)}"{due_text} (commitment_id={c.id}{reported})'
+        )
     sections.append(open_commitments)
 
     # Ranked memories.

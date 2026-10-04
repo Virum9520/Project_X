@@ -86,6 +86,20 @@ class Settings(BaseSettings):
     call_now_approved_targets: Annotated[list[str], NoDecode] = ["web"]
     call_now_cooldown_seconds: int = 60
     call_now_max_duration_seconds: int = 300
+    # Bhima accountability calls (C18). The consent version learners must have accepted, the
+    # local-time quiet window (no calls), how long a web call rings before it is missed, how late
+    # the dispatcher may still start a call after an outage, and the per-minute budget estimate.
+    bhima_consent_version: str = "bhima-calls-v1"
+    bhima_quiet_start: str = "21:30"
+    bhima_quiet_end: str = "08:00"
+    bhima_ring_timeout_seconds: int = 45
+    bhima_late_grace_seconds: int = 20 * 60
+    bhima_max_concurrent_calls: int = 5
+    bhima_cost_per_minute_usd: Decimal = Decimal("0.12")
+    # Web Push (VAPID). Generate a key pair with `npx web-push generate-vapid-keys`.
+    vapid_public_key: str | None = None
+    vapid_private_key: SecretStr | None = None
+    vapid_subject: str = "mailto:owner@example.com"
 
     # Auth (Clerk) — one application shared by the learner and admin apps
     # Frontend API URL, e.g. https://<slug>.clerk.accounts.dev; JWKS lives under it.

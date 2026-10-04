@@ -4,14 +4,18 @@ import uuid
 from datetime import timedelta
 from typing import Any
 
-from hatchet_sdk import Context
+from hatchet_sdk import Context, EmptyModel
 from hatchet_sdk.runnables.workflow import BaseWorkflow
 from hatchet_sdk.types.idempotency import TTLBasedIdempotencyConfig
 from pydantic import BaseModel
 
+from sg_core.accountability import build_dispatcher, db_store
 from sg_core.db import get_sessionmaker
+from sg_core.economics.budget import expire_stale
 from sg_core.knowledge import run_ingestion_job
 from sg_core.providers import object_store_from_settings
+from sg_core.settings import get_settings
+from sg_worker.accountability import run_tick
 from sg_worker.client import get_hatchet
 from sg_worker.dispatch import DOCUMENT_INGEST_KEY, PROVIDER_EVENT_KEY
 from sg_worker.provider_events import process_provider_event
@@ -106,4 +110,35 @@ async def ingest_document(input: IngestDocumentInput, ctx: Context) -> IngestDoc
     )
 
 
-ALL_WORKFLOWS: list[BaseWorkflow[Any]] = [ping, process_event, ingest_document]
+class TickOutput(BaseModel):
+    created: int
+    dispatched: dict[str, int]
+    swept: dict[str, int]
+    expired_holds: int
+
+
+@hatchet.task(
+    name="accountability.tick",
+    on_crons=["* * * * *"],
+    execution_timeout=timedelta(seconds=55),
+    retries=0,  # the next minute's tick is the retry
+)
+async def accountability_tick(input: EmptyModel, ctx: Context) -> TickOutput:
+    """Every minute: create due Bhima call occurrences, dispatch them, time out unanswered rings.
+
+    Also expires stale budget holds (C03 leaves that to a periodic job).
+    """
+    settings = get_settings()
+    store = db_store()
+    tick = await run_tick(store, build_dispatcher(store, settings))
+    async with get_sessionmaker()() as session, session.begin():
+        expired = await expire_stale(session)
+    return TickOutput(
+        created=tick.created,
+        dispatched=tick.dispatched,
+        swept=tick.swept,
+        expired_holds=expired,
+    )
+
+
+ALL_WORKFLOWS: list[BaseWorkflow[Any]] = [ping, process_event, ingest_document, accountability_tick]

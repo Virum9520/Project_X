@@ -40,6 +40,12 @@ class Commitment(Base):
         str_enum(CompletionSource, "completion_source")
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # What the learner last said about it (done, partly_done, not_done, wants_to_change). Kept
+    # apart from `status`/`completion_source`: a report never becomes observed evidence.
+    reported_status: Mapped[str | None] = mapped_column(String(20))
+    reported_note: Mapped[str | None] = mapped_column(String(400))
+    reported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    concept_key: Mapped[str | None] = mapped_column(String(128))
     created_at: Mapped[datetime] = created_at()
     updated_at: Mapped[datetime] = updated_at()
 
@@ -125,6 +131,23 @@ class CallAttempt(Base):
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = created_at()
     updated_at: Mapped[datetime] = updated_at()
+
+
+class PushSubscription(Base):
+    """A browser Web Push subscription that `WebCallChannel` rings. Revocation keeps the row."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(256))
+    auth: Mapped[str] = mapped_column(String(128))
+    user_agent: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = created_at()
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class VoiceConsent(Base):

@@ -109,6 +109,9 @@ async def start_session(
         "target_role": briefing.target_role,
         "persona_tone": body.persona_tone,
         "local_time": _local_time(learner.timezone, now),
+        # Bhima's retention question (C18 overrides these on accepted calls); "none" skips it.
+        "retention_concept": "none",
+        "retention_concept_title": "none",
         "secret__sg_tool_token": tool_token,
     }
     log.info(

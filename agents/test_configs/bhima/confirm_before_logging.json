@@ -25,6 +25,7 @@
         "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
         "learner_name": "Alex",
         "local_time": "Tuesday 7:42 AM",
+        "retention_concept_title": "none",
         "secret__sg_tool_token": "test-token"
     },
     "name": "sg/bhima/confirm_before_logging",

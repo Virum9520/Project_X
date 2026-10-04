@@ -17,6 +17,10 @@
             "type": "llm"
         },
         {
+            "config": "test_configs/bhima/retention_no_grading.json",
+            "type": "llm"
+        },
+        {
             "config": "test_configs/drona/briefing_injection.json",
             "type": "llm"
         },
