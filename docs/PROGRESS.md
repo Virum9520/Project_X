@@ -16,7 +16,7 @@ done, and the real integration waits.
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
 | C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | done | `feat/c01-identity` | Owner allowlist + MFA enforced by the API and the console. Built against interfaces while C02 was in flight; **follow-up now that C02 tables exist**: DB-backed `GrantStore` (`admin_users`, `admin_role_grants`, `role_capabilities`; seed `capabilities` from `sg_core.identity.Capability`), `AuditSink` writing `audit_log`, and `users`/`profiles` upsert (onboarding answers live in Clerk `publicMetadata.onboarding` until then) |
-| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | in-progress | `feat/c02-db-baseline` | Baseline `0001` applied to the new Skill Garden Tiger service (the old dev DB holds prototype tables). Awaiting owner validation |
+| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | done | `feat/c02-db-baseline` | Baseline `0001` is applied to the dedicated Skill Garden Tiger service. The old dev DB holds prototype tables, so point `DATABASE_URL` at the new service |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C05, C06 (the token endpoint is unblocked now that C01 is done), C07, C13, C15. C03, C04 and C09 open once C02 is marked `done`; C21 then also needs C03.
+**Ready now** (dependencies met): C03, C04, C05, C06 (including the token endpoint, now that C01 is done), C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -70,4 +70,5 @@ event name or SSE channel), record it here in the same PR.
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
 - 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
+- 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.
