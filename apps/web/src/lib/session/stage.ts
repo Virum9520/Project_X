@@ -11,6 +11,8 @@ import type {
   HighlightPlantArgs,
   OpenEditorArgs,
   QuestionKind,
+  ScrubTimelineArgs,
+  SetFilterArgs,
   ShowDiagramArgs,
   ShowQuestionCardArgs,
 } from "@sg/contracts";
@@ -156,6 +158,10 @@ export interface StageToolDeps {
   hasConcept: (key: string) => boolean;
   /** The focus_plant handler bound to the garden state (resolves and applies the camera move). */
   focusPlant: (args: FocusPlantArgs) => string;
+  /** Optional dashboard handlers (`useGardenDashboard().clientTools`), so a voice agent can also
+   * filter the garden and scrub the timeline. Their results are plain sentences to speak. */
+  setFilter?: (args: SetFilterArgs) => string;
+  scrubTimeline?: (args: ScrubTimelineArgs) => string;
 }
 
 const text = (v: unknown, max: number) =>
@@ -226,6 +232,14 @@ export function createStageTools(deps: StageToolDeps) {
       dispatch({ type: "dismiss", what: "focus" });
       return message;
     },
+
+    set_filter: (args: Partial<SetFilterArgs> = {}) =>
+      deps.setFilter ? deps.setFilter(args ?? {}) : "Filtering is not available here.",
+
+    scrub_timeline: (args: Partial<ScrubTimelineArgs>) =>
+      deps.scrubTimeline
+        ? deps.scrubTimeline(args as ScrubTimelineArgs)
+        : "Time travel is not available here.",
   };
 }
 

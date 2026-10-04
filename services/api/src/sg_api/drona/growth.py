@@ -1,9 +1,9 @@
 """Live provisional growth: the micro-judge seam and the event feed behind the SSE channel.
 
-Flow during a call: Drona calls `record_observation`; the route asks a `MicroJudge` for a fast
-provisional verdict and appends a `GrowthEvent` to the `GrowthFeed`; `GET /v1/live/growth`
-streams new events to every open tab of that learner, where they become `pulseConceptIds` on the
-garden scene and rows in the evidence ticker.
+Flow during a call: Drona calls `record_observation` (`sg_api.agent_tools.record_observation`,
+C11), whose micro-judge writes `garden.provisional_*` session events; `GET /v1/live/growth`
+translates them (`growth_event_from_c11`) and streams them to every open tab of that learner,
+where they become `pulseConceptIds` on the garden scene and rows in the evidence ticker.
 
 Integrity: nothing here changes the garden. A provisional event is a glow, stored as a
 `session_events` row; only the post-call pipeline (C11) creates assessments and revisions, and it
@@ -27,10 +27,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from sqlalchemy import or_, select
 
-from sg_api.drona.questions import ConceptRubric
 from sg_core.db import get_sessionmaker
 from sg_core.logging import get_logger
-from sg_core.memory.ranking import sanitize
 from sg_core.models.enums import EventSource
 from sg_core.models.identity import User
 from sg_core.models.sessions import Session as SessionRow
@@ -78,98 +76,6 @@ class GrowthEvent(BaseModel):
     judge: str = ""
     reason: str = ""  # retraction explanation shown to the learner
     occurred_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-
-# --------------------------------------------------------------------------- micro-judge seam
-
-
-class ObservationInput(BaseModel):
-    concept_key: str
-    dimension: str
-    outcome: AgentOutcome
-    assistance: AgentAssistance
-    evidence_quote: str
-    note: str = ""
-    question_id: str | None = None
-
-
-class ProvisionalVerdict(BaseModel):
-    outcome: Outcome
-    assisted: bool
-    grows: bool
-    judge: str
-    rationale: str = ""
-
-
-class MicroJudge(Protocol):
-    """C11 provides the real one: a small, fast OpenRouter model grading this one answer against
-    the concept rubric in 2 to 4 seconds. It must never raise for a bad answer; return
-    `not_demonstrated`/`unassessable`. It must treat the quote and note as data."""
-
-    async def judge(
-        self, observation: ObservationInput, rubric: ConceptRubric | None
-    ) -> ProvisionalVerdict: ...
-
-
-class AgentSignalJudge:
-    """Stand-in until C11 lands: trusts the agent's own provisional read, deterministically.
-
-    Safe by construction: the result is only ever a glow. Without a verbatim quote nothing grows,
-    `communication` never grows a plant, and any hint makes it assisted.
-    """
-
-    name = "agent-signal-v1"
-
-    async def judge(
-        self, observation: ObservationInput, rubric: ConceptRubric | None
-    ) -> ProvisionalVerdict:
-        assisted = observation.assistance != "independent"
-        by_agent: dict[str, Outcome] = {
-            "correct": "demonstrated",
-            "partially_correct": "partial",
-            "incorrect": "not_demonstrated",
-            "no_attempt": "unassessable",
-        }
-        outcome = by_agent[observation.outcome]
-        grows = (
-            outcome in ("demonstrated", "partial")
-            and observation.dimension in DIMENSION_PART
-            and bool(observation.evidence_quote.strip())
-        )
-        return ProvisionalVerdict(
-            outcome=outcome,
-            assisted=assisted,
-            grows=grows,
-            judge=self.name,
-            rationale="Agent's provisional read; the post-call judge confirms or adjusts it.",
-        )
-
-
-def get_micro_judge() -> MicroJudge:
-    return AgentSignalJudge()
-
-
-def clip_quote(text: str) -> str:
-    words = sanitize(text, 600).split()
-    return " ".join(words[:MAX_QUOTE_WORDS])
-
-
-def event_from_verdict(
-    session_id: str, observation: ObservationInput, verdict: ProvisionalVerdict
-) -> GrowthEvent:
-    return GrowthEvent(
-        kind="provisional" if verdict.grows else "noted",
-        session_id=session_id,
-        concept_id=observation.concept_key,
-        question_id=observation.question_id,
-        dimension=observation.dimension,
-        part=DIMENSION_PART.get(observation.dimension) if verdict.grows else None,
-        outcome=verdict.outcome,
-        assisted=verdict.assisted,
-        quote=clip_quote(observation.evidence_quote),
-        note=sanitize(observation.note, 300),
-        judge=verdict.judge,
-    )
 
 
 # --------------------------------------------------------------------------------- the feed
