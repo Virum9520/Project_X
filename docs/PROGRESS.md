@@ -16,7 +16,7 @@ done, and the real integration waits.
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
 | C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | todo | | Owner allowlist comes from `ADMIN_OWNER_EMAILS` |
-| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | todo | | Most backend components wait on this |
+| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | in-progress | `feat/c02-db-baseline` | Baseline `0001` applied to the new Skill Garden Tiger service (the old dev DB holds prototype tables). Awaiting owner validation |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
@@ -53,9 +53,15 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| SQLAlchemy models for all 37 core tables (`Base`, `HYPERTABLES`, `EMBEDDING_DIM`=1536) | C02 | `services/core/src/sg_core/models/` | One module per domain: identity, curriculum, knowledge, sessions, evidence, memory, accountability, economics. Table semantics are owned by the component named in each module docstring |
+| Python domain enums (`Character`, `Dimension`, `PlantStatus`, `MemoryLayer`, `CallState`, …) | C02 | `services/core/src/sg_core/models/enums.py` | Stored as VARCHAR(40) + named CHECK `ck_<table>_<column>`. Adding a value needs a migration that recreates the CHECK. `Character`/`PlantStatus` mirror `packages/contracts` (a test enforces it) |
+| Alembic (async, URL from `get_settings()`) | C02 | `alembic.ini`, `services/core/migrations/` | Baseline revision `0001`. Run from the repo root |
+| Hypertables `session_events`, `usage_events` | C02 | migration `0001` | Partitioned on `occurred_at`, 7-day chunks, PK `(id, occurred_at)`. No FKs may point at them. `usage_events` dedupes on `(idempotency_key, occurred_at)` |
+| Vector columns `chunks.embedding`, `memories.embedding` | C02 | `vector(1536)`, HNSW cosine indexes | pgvector 0.8; vectorscale is available if diskann is needed later |
+| Schemas `analytics`, `learner_analytics` | C02 | migration `0001` | Empty; C14 (learner caggs) and C22 (owner views, Tiger MCP grants) fill them |
 | `POST /v1/sessions` (start voice session: conversation token, dynamic variables, tool token) | C06 | `services/api/src/sg_api/sessions/router.py` | Swap `current_learner` (C01), `get_briefing_provider` (C09); persist session + `conversation_id` (C02) |
 | Server-tool auth: `X-SG-Tool-Token`, `require_tool_token`, `check_conversation` | C06 | `services/api/src/sg_api/sessions/tool_tokens.py` | Every `/v1/agent-tools/*` route must use both |
-| Server-tool contracts `/v1/agent-tools/{get_briefing, record_observation, fetch_question, run_tests, log_commitment, report_commitment_progress, search_my_documents, query_my_analytics}` | C06 | `agents/tools/*.yaml` (request bodies) | Routes are built by the data owners: C09, C11/C12, C07/C12, C16, C18, C08, C14. `record_observation.dimension` adds `communication` (not yet in contracts `Dimension`) |
+| Server-tool contracts `/v1/agent-tools/{get_briefing, record_observation, fetch_question, run_tests, log_commitment, report_commitment_progress, search_my_documents, query_my_analytics}` | C06 | `agents/tools/*.yaml` (request bodies) | Routes are built by the data owners: C09, C11/C12, C07/C12, C16, C18, C08, C14. `record_observation.dimension` adds `communication`, which is not in `Dimension` (contracts or `sg_core.models.enums`): C10/C11 decide. Persist panel sessions as `character=vidura, mode=panel_interview` |
 | Client-tool contracts (`show_question_card`, `highlight_plant`, `open_editor`, `show_diagram`, `focus_plant`, `set_filter`, `scrub_timeline`) | C06 | `agents/tools/*.yaml` | Implemented in the browser by C12, C14, C16 |
 | Agent dynamic variables | C06 | `agents/dynamic_variables.yaml` | Set by `POST /v1/sessions`; a test enforces parity |
 | `ElevenLabsClient` (conversation token, Voice Design) | C06 | `services/core/src/sg_core/providers/elevenlabs.py` | C03 extends it (usage ledger, budgets) |
