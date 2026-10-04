@@ -36,6 +36,16 @@ export default async function AccountPage() {
       </section>
 
       <section className="rounded-xl border border-white/10 bg-dusk/60 p-6">
+        <h2 className="font-medium">Bhima check-in calls</h2>
+        <p className="mt-2 text-sm text-foreground/70">
+          Pick when Bhima rings you for a short accountability call.{" "}
+          <Link href="/settings/schedule" className="text-glow underline">
+            Call schedule
+          </Link>
+        </p>
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-dusk/60 p-6">
         <h2 className="font-medium">API connection</h2>
         {me.ok ? (
           <p className="mt-2 text-sm text-foreground/70">

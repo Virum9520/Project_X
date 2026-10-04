@@ -225,6 +225,20 @@ export interface FailedEvent {
   received_at: string;
 }
 
+export interface CalibrationSummary {
+  generated_at: string;
+  set_version: string;
+  synthetic: boolean;
+  notice: string;
+  judge_model: string;
+  items: number;
+  disagreements: number;
+  disagreement_rate: number | null;
+  severe_disagreements: number;
+  assistance_mismatches: number;
+  by_dimension: Record<string, number>;
+}
+
 export interface QualityReport {
   generated_at: string;
   assessments_by_status: Record<string, number>;
@@ -234,6 +248,7 @@ export interface QualityReport {
   resolved_disputes: number;
   disputes_upheld: number;
   disagreement_rate: number | null;
+  calibration: CalibrationSummary | null;
   provider_events_by_status: Record<string, number>;
   webhook_oldest_unprocessed_age_s: number | null;
   webhook_avg_latency_s_24h: number | null;

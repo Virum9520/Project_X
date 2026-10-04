@@ -1,0 +1,746 @@
+{
+ "set_version": "calibration-v1",
+ "synthetic": true,
+ "notice": "SYNTHETIC calibration data. These answers and labels were written by the engineering team to exercise the judge pipeline. They are not real learner answers and have not been reviewed by an independent human grader. Replace or extend with real, consented, double-labeled answers before treating the disagreement rate as a quality measure.",
+ "label_source": "synthetic-single-author",
+ "items": [
+  {
+   "id": "cal-001",
+   "concept": "dsa.big_o",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What does Big-O notation tell you about an algorithm?"
+    },
+    {
+     "role": "learner",
+     "text": "It describes how the running time or memory grows as the input size grows, so I drop constants and lower-order terms. O of 2n is just O of n."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-002",
+   "concept": "dsa.big_o",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What does Big-O notation tell you about an algorithm?"
+    },
+    {
+     "role": "learner",
+     "text": "Big-O is how fast the algorithm is. Like O of n is fast and O of n squared is slow."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-003",
+   "concept": "dsa.big_o",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Explain Big-O and how it differs from best and worst case."
+    },
+    {
+     "role": "learner",
+     "text": "It is an upper bound on growth rate as n gets large, ignoring constants. Worst case is a separate idea, you can give a Big-O for the best case too. I am not fully sure how space complexity fits in though."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-004",
+   "concept": "dsa.big_o",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is the complexity of a loop where i starts at n and is halved every iteration?"
+    },
+    {
+     "role": "learner",
+     "text": "That is log n, because i is cut in half each time so it takes about log base two of n steps to reach one."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-005",
+   "concept": "dsa.big_o",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is the complexity of two nested loops that each run from 1 to n?"
+    },
+    {
+     "role": "learner",
+     "text": "It is O of n squared since the inner loop runs n times for each of the n outer iterations."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-006",
+   "concept": "dsa.big_o",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is the complexity of a loop where i starts at n and is halved every iteration?"
+    },
+    {
+     "role": "learner",
+     "text": "I think it is O of n because it still goes through the numbers."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-007",
+   "concept": "dsa.binary_search",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does binary search work and why is it fast?"
+    },
+    {
+     "role": "learner",
+     "text": "It needs a sorted array. You compare the target with the middle element and throw away half of the range each step, so it takes log n comparisons."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-008",
+   "concept": "dsa.binary_search",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does binary search work and why is it fast?"
+    },
+    {
+     "role": "learner",
+     "text": "You go through the list and check each item until you find it, but faster somehow."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-009",
+   "concept": "dsa.binary_search",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does binary search work?"
+    },
+    {
+     "role": "learner",
+     "text": "You look at the middle and go left or right. I do not remember the exact requirement on the input."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-010",
+   "concept": "dsa.binary_search",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Write the loop to find the first index where nums[i] >= target in a sorted array."
+    },
+    {
+     "role": "learner",
+     "text": "I keep lo at zero and hi at n. While lo is less than hi, mid is lo plus hi minus lo over two, and if nums at mid is less than target I set lo to mid plus one, otherwise hi equals mid. At the end lo is the answer."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-011",
+   "concept": "dsa.binary_search",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Write the loop to find the first index where nums[i] >= target in a sorted array."
+    },
+    {
+     "role": "learner",
+     "text": "While lo is less than or equal to hi, check mid, and if it equals the target return it. Otherwise move lo or hi. That finds the first one I think."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-012",
+   "concept": "dsa.binary_search",
+   "dimension": "transfer",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How could you use binary search to find the smallest ship capacity that delivers packages within D days?"
+    },
+    {
+     "role": "learner",
+     "text": "Capacity is monotonic: if a capacity works, any bigger one works. So I binary search on the capacity between the max package and the total weight, and check feasibility greedily in linear time for each guess."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-013",
+   "concept": "dsa.binary_search",
+   "dimension": "transfer",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How could you use binary search to find the smallest ship capacity that delivers packages within D days?"
+    },
+    {
+     "role": "learner",
+     "text": "You cannot, binary search only works on sorted arrays and capacity is not an array."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-014",
+   "concept": "dsa.heaps",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is a binary heap and what does it guarantee?"
+    },
+    {
+     "role": "learner",
+     "text": "It is a complete binary tree stored in an array where each parent is smaller than or equal to its children for a min-heap. So the minimum is at the root, push and pop are log n, and peek is constant."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-015",
+   "concept": "dsa.heaps",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is a binary heap and what does it guarantee?"
+    },
+    {
+     "role": "learner",
+     "text": "A heap is where you store memory that you allocate, like the heap versus the stack."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-016",
+   "concept": "dsa.heaps",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How would you find the k largest elements in a stream of n numbers?"
+    },
+    {
+     "role": "learner",
+     "text": "Keep a min-heap of size k. For each number, if the heap has fewer than k push it, else if it beats the root pop and push. That is n log k time and k space."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-017",
+   "concept": "dsa.heaps",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How would you find the k largest elements in a stream of n numbers?"
+    },
+    {
+     "role": "learner",
+     "text": "Sort everything and take the last k. It is n log n."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-018",
+   "concept": "dsa.heaps",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is a binary heap and what does it guarantee?"
+    },
+    {
+     "role": "learner",
+     "text": "Hmm, I am not sure where to start."
+    },
+    {
+     "role": "agent",
+     "text": "Think about how the tree is shaped and what the invariant between a parent and its children is."
+    },
+    {
+     "role": "learner",
+     "text": "It is a tree where the smallest thing is at the top, and you can get it fast."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "assisted"
+  },
+  {
+   "id": "cal-019",
+   "concept": "dsa.amortized_analysis",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Why is appending to a dynamic array amortized O of 1?"
+    },
+    {
+     "role": "learner",
+     "text": "When the array is full we double the capacity and copy, which costs n, but that happens only after n cheap appends, so spread out the cost per append is constant. Growing by a fixed amount instead would make it linear amortized."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-020",
+   "concept": "dsa.amortized_analysis",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Why is appending to a dynamic array amortized O of 1?"
+    },
+    {
+     "role": "learner",
+     "text": "Because it is usually O of 1 on average over random inputs."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-021",
+   "concept": "dsa.hash_tables",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does a hash table give constant-time lookup?"
+    },
+    {
+     "role": "learner",
+     "text": "A hash function maps the key to a bucket index so I jump straight to it. Collisions are handled by chaining or open addressing, and the table is resized to keep the load factor low, so the expected time is constant but worst case is linear."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-022",
+   "concept": "dsa.hash_tables",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does a hash table give constant-time lookup?"
+    },
+    {
+     "role": "learner",
+     "text": "It is always O of 1 for everything, no matter what."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-023",
+   "concept": "dsa.hash_tables",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Given an array and a target, how do you find two numbers that sum to the target in linear time?"
+    },
+    {
+     "role": "learner",
+     "text": "I walk the array and store each value in a hash map. For each element I check whether target minus the element is already in the map. One pass, linear time and space."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-024",
+   "concept": "dsa.hash_tables",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Given an array and a target, how do you find two numbers that sum to the target in linear time?"
+    },
+    {
+     "role": "learner",
+     "text": "Hmm, I am not sure where to start."
+    },
+    {
+     "role": "agent",
+     "text": "Think about what you need to remember about earlier elements as you scan."
+    },
+    {
+     "role": "learner",
+     "text": "Use a map somehow to remember things."
+    }
+   ],
+   "human_outcome": "unassessable",
+   "human_assistance": "assisted"
+  },
+  {
+   "id": "cal-025",
+   "concept": "dsa.bfs",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "When would you use breadth first search and what does it guarantee?"
+    },
+    {
+     "role": "learner",
+     "text": "Use it on unweighted graphs, it explores level by level with a queue so the first time it reaches a node is along a shortest path in edges."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-026",
+   "concept": "dsa.bfs",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "When would you use breadth first search and what does it guarantee?"
+    },
+    {
+     "role": "learner",
+     "text": "It goes as deep as possible first and then backtracks."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-027",
+   "concept": "dsa.dynamic_programming",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Climbing stairs, one or two steps at a time, how many ways to reach step n?"
+    },
+    {
+     "role": "learner",
+     "text": "Ways to reach n is ways to reach n minus one plus ways to reach n minus two, base cases one and one. Iterate keeping two variables, so linear time and constant space."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-028",
+   "concept": "dsa.dynamic_programming",
+   "dimension": "application",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Climbing stairs, one or two steps at a time, how many ways to reach step n?"
+    },
+    {
+     "role": "learner",
+     "text": "I would try recursion with the two choices, but I did not think about repeated work."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-029",
+   "concept": "databases.indexes",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What does a database index do and what does it cost?"
+    },
+    {
+     "role": "learner",
+     "text": "A B-tree index lets the database find rows by the indexed column without scanning the whole table, turning a linear scan into a logarithmic lookup. It costs extra storage and slows writes since every insert or update must maintain it."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-030",
+   "concept": "databases.indexes",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What does a database index do and what does it cost?"
+    },
+    {
+     "role": "learner",
+     "text": "It makes everything faster, so you should index every column."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-031",
+   "concept": "databases.transactions_acid",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What do the ACID properties mean?"
+    },
+    {
+     "role": "learner",
+     "text": "Atomic means all or nothing, consistent means constraints hold before and after, isolation means concurrent transactions do not see each other's partial work, durable means committed data survives a crash."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-032",
+   "concept": "databases.transactions_acid",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What do the ACID properties mean?"
+    },
+    {
+     "role": "learner",
+     "text": "Atomic, consistent, isolated and durable. Those are the four letters."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-033",
+   "concept": "databases.transactions_acid",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What do the ACID properties mean?"
+    },
+    {
+     "role": "learner",
+     "text": "Hmm, I am not sure where to start."
+    },
+    {
+     "role": "agent",
+     "text": "Start with atomicity and durability, then think about what concurrent transactions are allowed to observe."
+    },
+    {
+     "role": "learner",
+     "text": "Atomic is all or nothing and durable means it is saved. The other two I would have to look up."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "assisted"
+  },
+  {
+   "id": "cal-034",
+   "concept": "networks.tcp",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does TCP provide reliable delivery?"
+    },
+    {
+     "role": "learner",
+     "text": "It uses sequence numbers and acknowledgements, retransmits on timeout or duplicate acks, and uses a window for flow control and congestion control so it does not overwhelm the receiver or the network."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-035",
+   "concept": "networks.tcp",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "How does TCP provide reliable delivery?"
+    },
+    {
+     "role": "learner",
+     "text": "TCP is reliable because it is the one that is used for the web."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-036",
+   "concept": "networks.dns",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What happens when you resolve www.example.com?"
+    },
+    {
+     "role": "learner",
+     "text": "The stub resolver asks a recursive resolver, which checks its cache and otherwise asks a root server, then the com TLD server, then the authoritative server for example.com, and caches the answer for its TTL."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-037",
+   "concept": "os.race_conditions",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is a race condition and how do you prevent it?"
+    },
+    {
+     "role": "learner",
+     "text": "It is when the result depends on the interleaving of threads touching shared state, like two threads doing counter plus plus. You prevent it with mutual exclusion such as a lock around the critical section, or atomic operations."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-038",
+   "concept": "os.race_conditions",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What is a race condition and how do you prevent it?"
+    },
+    {
+     "role": "learner",
+     "text": "It is when two threads are fast. You fix it by making the code faster."
+    }
+   ],
+   "human_outcome": "not_demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-039",
+   "concept": "os.deadlocks",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What are the conditions for deadlock?"
+    },
+    {
+     "role": "learner",
+     "text": "Mutual exclusion, hold and wait, no preemption and circular wait. Breaking any one prevents it, and a common fix is a global lock ordering to remove circular wait."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-040",
+   "concept": "os.deadlocks",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "What are the conditions for deadlock?"
+    },
+    {
+     "role": "learner",
+     "text": "Deadlock is when a program freezes. Two locks maybe."
+    }
+   ],
+   "human_outcome": "partial",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-041",
+   "concept": "os.virtual_memory",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Why do operating systems use virtual memory?"
+    },
+    {
+     "role": "learner",
+     "text": "Each process gets its own address space mapped to physical memory via page tables, which gives isolation, lets processes use more memory than is physically present through paging, and simplifies allocation."
+    }
+   ],
+   "human_outcome": "demonstrated",
+   "human_assistance": "independent"
+  },
+  {
+   "id": "cal-042",
+   "concept": "os.virtual_memory",
+   "dimension": "explanation",
+   "turns": [
+    {
+     "role": "agent",
+     "text": "Why do operating systems use virtual memory?"
+    },
+    {
+     "role": "learner",
+     "text": "Uh, I do not know."
+    }
+   ],
+   "human_outcome": "unassessable",
+   "human_assistance": "independent"
+  }
+ ]
+}

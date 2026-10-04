@@ -63,6 +63,18 @@ export function SiteNav() {
             }
           >
             <Link
+              href="/interview"
+              className="hidden rounded-xl px-3 py-2 text-foreground/80 transition hover:bg-white/5 hover:text-foreground sm:inline"
+            >
+              Interviews
+            </Link>
+            <Link
+              href="/interview/technical"
+              className="hidden rounded-xl px-3 py-2 text-foreground/80 transition hover:bg-white/5 hover:text-foreground md:inline"
+            >
+              Technical
+            </Link>
+            <Link
               href="/garden"
               className="rounded-xl bg-moss px-4 py-2 font-medium text-night transition hover:brightness-110"
             >
