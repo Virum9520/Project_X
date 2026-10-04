@@ -34,6 +34,7 @@ from sg_core.evidence.store import (
 )
 from sg_core.evidence.types import (
     AgentObservation,
+    CodeRun,
     ConceptInfo,
     MicroVerdict,
     PipelineResult,
@@ -49,6 +50,7 @@ __all__ = [
     "MICRO_JUDGE_VERSION",
     "AgentObservation",
     "ChatLLM",
+    "CodeRun",
     "ConceptInfo",
     "ConversationSource",
     "EvidenceStore",

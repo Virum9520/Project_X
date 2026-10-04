@@ -24,6 +24,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 
 from sg_core.economics.usage import UsageContext
+from sg_core.evidence.code_runs import CODE_RUN_JUDGE, code_digest, code_run_verdicts
 from sg_core.evidence.judge import Judge, JudgeRequest
 from sg_core.evidence.store import (
     EvidenceStore,
@@ -43,8 +44,10 @@ from sg_core.evidence.transcript import (
 )
 from sg_core.evidence.types import (
     AgentObservation,
+    CodeRun,
     ConceptInfo,
     PipelineResult,
+    Rejection,
     Transcript,
     Verdict,
 )
@@ -122,8 +125,15 @@ async def run_post_call(deps: PipelineDeps, data: Mapping[str, Any]) -> Pipeline
         raise SessionNotFoundError(f"no session is bound to conversation {conversation_id}")
 
     digest = transcript_hash(transcript)
+    # Arjuna's stored hidden-tests runs are evidence too: read them whatever the transcript says.
+    code_runs = await store.code_runs(session.id)
+    code_fingerprint = code_digest(code_runs)
     done = session.attributes.get("post_call") or {}
-    if done.get("transcript_hash") == digest and done.get("judged"):
+    if (
+        done.get("transcript_hash") == digest
+        and done.get("code_digest", "") == code_fingerprint
+        and done.get("judged")
+    ):
         return PipelineResult(status="unchanged", session_id=session.id)
 
     ended_at = (
@@ -141,53 +151,65 @@ async def run_post_call(deps: PipelineDeps, data: Mapping[str, Any]) -> Pipeline
         duration_seconds=int(transcript.duration_s) if transcript.duration_s is not None else None,
     )
 
-    if not transcript.learner_turns():
-        await _finish(store, session, digest, "empty_transcript", {}, now)
-        return PipelineResult(status="empty_transcript", session_id=session.id)
-
     catalog = await store.catalog()
-    observations = observations_in(transcript)
-    provisional = await store.provisional_memories(session.id)
+    code_verdicts = code_run_verdicts(code_runs, catalog)
+    code_concepts = {v.concept_key for v in code_verdicts}
+    extra = {"code_digest": code_fingerprint}
     retention_concept: str | None = None
     if session.character == Character.BHIMA.value:
         retention_concept = await store.retention_concept(session.user_id, conversation_id)
-    candidates = _candidates(
-        session, transcript, observations, provisional, retention_concept, catalog
+
+    if not transcript.learner_turns() and not code_verdicts:
+        await _finish(store, session, digest, "empty_transcript", extra, now)
+        await _retention_result(store, session, retention_concept, None, set(), None)
+        return PipelineResult(status="empty_transcript", session_id=session.id)
+
+    observations = observations_in(transcript)
+    provisional = await store.provisional_memories(session.id)
+    candidates = (
+        _candidates(session, transcript, observations, provisional, retention_concept, catalog)
+        if transcript.learner_turns()
+        else set()
     )
-    if not candidates:
-        await _finish(store, session, digest, "no_candidates", {}, now)
+    if not candidates and not code_verdicts:
+        await _finish(store, session, digest, "no_candidates", extra, now)
+        await _retention_result(store, session, retention_concept, None, set(), None)
         return PipelineResult(status="no_candidates", session_id=session.id)
 
-    raw = await deps.judge.judge(
-        JudgeRequest(
-            transcript=transcript,
-            concepts=[catalog[k] for k in sorted(candidates)],
-            usage=UsageContext(
-                cost_center=CostCenter.LEARNER,
-                component="evidence.judge",
-                user_id=session.user_id,
-                session_id=session.id,
-                idempotency_key=None,
-            ),
-            key_prefix=f"judge:{conversation_id}:{digest}",
-            dimension_rubrics=await store.dimension_rubrics(),
+    verdicts: list[Verdict] = []
+    rejected: list[Rejection] = []
+    if candidates:
+        raw = await deps.judge.judge(
+            JudgeRequest(
+                transcript=transcript,
+                concepts=[catalog[k] for k in sorted(candidates)],
+                usage=UsageContext(
+                    cost_center=CostCenter.LEARNER,
+                    component="evidence.judge",
+                    user_id=session.user_id,
+                    session_id=session.id,
+                    idempotency_key=None,
+                ),
+                key_prefix=f"judge:{conversation_id}:{digest}",
+                dimension_rubrics=await store.dimension_rubrics(),
+            )
         )
-    )
-    verdicts, rejected = validate_verdicts(
-        raw,
-        ValidationContext(
-            transcript=transcript,
-            catalog=catalog,
-            candidates=candidates,
-            character=session.character,
-            observations=observations,
-            hinted_concepts=await store.hinted_concepts(session.id),
-            retention_concept=retention_concept,
-        ),
-    )
+        verdicts, rejected = validate_verdicts(
+            raw,
+            ValidationContext(
+                transcript=transcript,
+                catalog=catalog,
+                candidates=candidates,
+                character=session.character,
+                observations=observations,
+                hinted_concepts=await store.hinted_concepts(session.id),
+                retention_concept=retention_concept,
+                code_run_concepts=code_concepts,
+            ),
+        )
 
     result = PipelineResult(status="judged", session_id=session.id, rejected=list(rejected))
-    saved = await _save(deps, session, transcript, verdicts, catalog, now)
+    saved = await _save(deps, session, transcript, [*verdicts, *code_verdicts], catalog, now)
     result.assessments = len(saved)
 
     garden, rev = await _apply_rules(deps, session, saved, catalog, now)
@@ -203,6 +225,7 @@ async def run_post_call(deps: PipelineDeps, data: Mapping[str, Any]) -> Pipeline
         store, session, provisional, saved, grew, garden
     )
     await _write_memories(store, session, saved, catalog, grew, reassess)
+    await _retention_result(store, session, retention_concept, saved, grew, garden)
 
     changed = sorted({c.concept_key for c in garden.changes}) if garden else []
     if rev is not None:
@@ -222,8 +245,10 @@ async def run_post_call(deps: PipelineDeps, data: Mapping[str, Any]) -> Pipeline
             "assessments": result.assessments,
             "rejected": [dataclasses.asdict(r) for r in rejected][:20],
             "judge_model": deps.judge.model,
+            "code_runs": len(code_runs),
             "confirmed": result.confirmed,
             "retracted": result.retracted,
+            **extra,
         },
         now,
     )
@@ -261,6 +286,9 @@ async def _save(
     saved: list[tuple[Verdict, SavedAssessment]] = []
     fallback = transcript.started_at or now
     for v in verdicts:
+        if v.code_run is not None:
+            saved.append((v, await _save_code_run(deps, session, v, v.code_run)))
+            continue
         evidence = tuple(
             NewEvidence(
                 concept_key=v.concept_key,
@@ -289,6 +317,105 @@ async def _save(
         )
         saved.append((v, await deps.store.save_assessment(session.user_id, session.id, item)))
     return saved
+
+
+async def _save_code_run(
+    deps: PipelineDeps, session: SessionRef, v: Verdict, run: CodeRun
+) -> SavedAssessment:
+    """Assess a stored code run. Its evidence row exists already; the dedupe key makes the
+    store return that row, so the assessment cites the real code snapshot and sandbox run."""
+    item = NewAssessment(
+        concept_key=v.concept_key,
+        dimension=v.dimension,
+        outcome=v.outcome,
+        assistance=v.assistance,
+        uncertainty=v.uncertainty,
+        rationale=v.rationale,
+        judge_model=CODE_RUN_JUDGE,
+        evidence=(
+            NewEvidence(
+                concept_key=v.concept_key,
+                dimension=v.dimension,
+                assistance=v.assistance,
+                kind="code_run",
+                quote=run.quote,
+                occurred_at=run.occurred_at,
+                dedupe_key=run.dedupe_key,
+                problem_family=run.problem_family,
+            ),
+        ),
+    )
+    return await deps.store.save_assessment(session.user_id, session.id, item)
+
+
+async def _retention_result(
+    store: EvidenceStore,
+    session: SessionRef,
+    retention_concept: str | None,
+    saved: list[tuple[Verdict, SavedAssessment]] | None,
+    grew: set[Any],
+    garden: RulesResult | None,
+) -> None:
+    """Close the loop on a Bhima retention question: record what became of the answer.
+
+    The answer itself is evidence only through the judge and the rules engine (above). This
+    writes a `retention_result` session memory so the learner's history and the next briefing
+    know whether the question was answered, how it was judged and whether it counted, and emits
+    `bhima.retention_judged`. It never changes the garden. A habit report is not an answer.
+    """
+    if session.character != Character.BHIMA.value or retention_concept is None:
+        return
+    pair = next(
+        (
+            (v, s)
+            for v, s in (saved or [])
+            if v.concept_key == retention_concept and v.dimension == "retention"
+        ),
+        None,
+    )
+    title = retention_concept
+    data: dict[str, Any] = {
+        "concept_key": retention_concept,
+        "source": "retention_call",
+        "conversation_id": session.conversation_id,
+    }
+    evidence_ids: list[Any] = []
+    if pair is None:
+        data.update(answered=False, outcome="no_answer", counted=False)
+        content = f"Bhima asked about {title}; there was no usable answer, so nothing changed."
+    else:
+        v, s = pair
+        counted = s.id in grew
+        skipped = {sk.assessment_id: sk.reason for sk in garden.skipped} if garden else {}
+        data.update(
+            answered=True,
+            outcome=v.outcome.value,
+            assistance=v.assistance.value,
+            counted=counted,
+            assessment_id=str(s.id),
+            skip_reason=None if counted else skipped.get(s.id),
+        )
+        evidence_ids = list(s.evidence_ids)
+        content = (
+            f"Bhima asked about {title}; the answer was judged {v.outcome.value} "
+            f"({v.assistance.value}) and {'counted toward' if counted else 'did not change'} "
+            "the garden."
+        )
+    await store.append_memory(
+        NewMemory(
+            user_id=session.user_id,
+            layer=MemoryLayer.SESSION,
+            kind="retention_result",
+            content=content,
+            source=MemorySource.EVIDENCE_PIPELINE,
+            source_character=Character.BHIMA,
+            source_session_id=session.id,
+            evidence_ids=evidence_ids,
+            status=MemoryStatus.ACCEPTED,
+            data=data,
+        )
+    )
+    await store.emit(session.id, session.user_id, "bhima.retention_judged", data)
 
 
 def _dedupe(conversation_id: str, turn: int, v: Verdict, quote: str) -> str:

@@ -45,6 +45,9 @@ class ValidationContext:
     # every concept in the session.
     hinted_concepts: Collection[str | None] = ()
     retention_concept: str | None = None
+    # Concepts whose `application` was decided by stored code runs (tests are stronger evidence
+    # than a spoken description of the solution): the judge may not also grade it.
+    code_run_concepts: Collection[str] = ()
 
 
 def _outcome(value: str) -> AssessmentOutcome | None:
@@ -116,6 +119,9 @@ def _validate_one(r: RawVerdict, ctx: ValidationContext, reject) -> Verdict | No
         return None
     if r.dimension not in JUDGED_DIMENSIONS:
         reject(r, "unknown_dimension")
+        return None
+    if r.dimension == Dimension.APPLICATION.value and r.concept_key in ctx.code_run_concepts:
+        reject(r, "code_run_decides_application")
         return None
     outcome = _outcome(r.outcome)
     if outcome is None:
