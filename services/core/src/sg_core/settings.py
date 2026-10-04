@@ -4,7 +4,6 @@ Every service reads configuration through `get_settings()`. Secrets are
 `SecretStr` so they never appear in logs or reprs.
 """
 
-import json
 from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated
@@ -59,12 +58,20 @@ class Settings(BaseSettings):
     hatchet_client_token: SecretStr | None = None
 
     # Auth (Clerk) — one application shared by the learner and admin apps
+    # Frontend API URL, e.g. https://<slug>.clerk.accounts.dev; JWKS lives under it.
     clerk_issuer: str | None = None
+    # Backend API key: used to read a user's verified email and MFA state.
+    clerk_secret_key: SecretStr | None = None
+    clerk_api_url: str = "https://api.clerk.com"
+    # Accepted `azp` claims (the origins of our own frontends). Empty means "same as CORS".
+    clerk_authorized_parties: Annotated[list[str], NoDecode] = []
     # Owner-console allowlist; checked server-side on every admin request.
     admin_owner_emails: Annotated[list[str], NoDecode] = []
+    # Browser origins allowed to send admin mutations (CSRF origin check).
+    admin_origins: Annotated[list[str], NoDecode] = ["http://localhost:3001"]
 
-    # CORS: comma-separated (or JSON list) exact origins, plus an optional regex for
-    # preview deployments, e.g. https://skill-garden-web-[a-z0-9-]+-myteam\.vercel\.app
+    # CORS: exact origins (comma-separated), plus an optional regex for preview deployments,
+    # e.g. https://skill-garden-web-[a-z0-9-]+-myteam\.vercel\.app
     cors_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:3000",
         "http://localhost:3001",
@@ -83,14 +90,23 @@ class Settings(BaseSettings):
             return [e.strip().lower() for e in value.split(",") if e.strip()]
         return value
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("clerk_authorized_parties", "admin_origins", "cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
-            if value.lstrip().startswith("["):
-                return json.loads(value)
             return [o.strip().rstrip("/") for o in value.split(",") if o.strip()]
         return value
+
+    @field_validator("clerk_issuer", mode="before")
+    @classmethod
+    def _strip_issuer(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().rstrip("/") or None
+        return value
+
+    @property
+    def authorized_parties(self) -> list[str]:
+        return self.clerk_authorized_parties or self.cors_origins
 
     @property
     def is_production(self) -> bool:

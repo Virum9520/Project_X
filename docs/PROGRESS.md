@@ -15,12 +15,12 @@ done, and the real integration waits.
 | ID | Component | Phase | Depends on | Status | Owner (branch) | Notes |
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
-| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | todo | | Owner allowlist comes from `ADMIN_OWNER_EMAILS` |
-| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | todo | | Most backend components wait on this |
+| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | done | `feat/c01-identity` | Owner allowlist + MFA enforced by the API and the console. Built against interfaces while C02 was in flight; **follow-up now that C02 tables exist**: DB-backed `GrantStore` (`admin_users`, `admin_role_grants`, `role_capabilities`; seed `capabilities` from `sg_core.identity.Capability`), `AuditSink` writing `audit_log`, and `users`/`profiles` upsert (onboarding answers live in Clerk `publicMetadata.onboarding` until then) |
+| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | done | `feat/c02-db-baseline` | Baseline `0001` is applied to the dedicated Skill Garden Tiger service. The old dev DB holds prototype tables, so point `DATABASE_URL` at the new service |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
-| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | in-review | `feat/c05-hosting` | Config, probes, smoke script and runbook ([hosting.md](hosting.md)) in the PR. The owner provisions accounts and tests manually before merging |
-| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | todo | | The token endpoint needs C01; the rest can start now |
+| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | done | `feat/c05-hosting` | Repo side done: image, Railway/Vercel config, probes, smoke script, runbook ([hosting.md](hosting.md)). Account provisioning follows the runbook |
+| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | claimed | `feat/c06-elevenlabs-agents` | The token endpoint needs C01; the rest can start now |
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
@@ -37,10 +37,10 @@ done, and the real integration waits.
 | C20 | Living soundscape (Music and SFX asset script, audio engine) and Sanjaya weekly recap | 11 | C03 (assets), C11 and C13 (recap) | todo | | The asset script can start once C03 is done |
 | C21 | Owner Console: 6 pages, Call now | 12 | C01, C03 | todo | | |
 | C22 | MCP gateway and owner assistant (ElevenLabs hosted MCP, Tiger MCP read-only) | 12 | C21 | todo | | |
-| C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | |
+| C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C02, C05, C06 (except the token endpoint), C07, C13, C15.
+**Ready now** (dependencies met): C03, C04, C06 (including the token endpoint, now that C01 is done), C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -53,16 +53,30 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| `GET /v1/me`, `GET /v1/admin/me` | C01 | `services/api/src/sg_api/routers/{me,admin}.py` | Bearer = Clerk session token. Admin routes need owner allowlist or grant, verified email, and a second factor in the session |
+| Auth dependencies | C01 | `services/api/src/sg_api/auth/` | `current_session`, `current_admin`, `require_capability(cap)`, `admin_origin_guard` (CSRF), `record_audit(...)`. Mount admin routers under `/v1/admin` so `AuditMiddleware` audits every mutation |
+| `sg_core.identity` | C01 | `services/core/src/sg_core/identity/` | `ClerkTokenVerifier` (JWKS), `ClerkUserDirectory`, `Capability`, `GrantStore`, `AuditSink`/`AuditEvent`; for the API and the MCP gateway |
+| Identity contracts | C01 | `packages/contracts/src/identity.ts` | `Capability`, `Me`, `AdminMe`, `OnboardingProfile`; mirror of the Python side |
+| Next auth helpers | C01 | `apps/web/src/lib/{session,api}.ts`, `apps/admin/src/lib/{owner,api}.ts` | `requireOnboardedLearner()`, `requireOwner()`, `apiGet()` (server-side, forwards the Clerk token). `src/proxy.ts` in each app is optimistic only |
+| Clerk appearance | C01 | `packages/ui/src/index.ts` (`clerkAppearance`) | |
+| SQLAlchemy models for all 37 core tables (`Base`, `HYPERTABLES`, `EMBEDDING_DIM`=1536) | C02 | `services/core/src/sg_core/models/` | One module per domain: identity, curriculum, knowledge, sessions, evidence, memory, accountability, economics. Table semantics are owned by the component named in each module docstring |
+| Python domain enums (`Character`, `Dimension`, `PlantStatus`, `MemoryLayer`, `CallState`, …) | C02 | `services/core/src/sg_core/models/enums.py` | Stored as VARCHAR(40) + named CHECK `ck_<table>_<column>`. Adding a value needs a migration that recreates the CHECK. `Character`/`PlantStatus` mirror `packages/contracts` (a test enforces it) |
+| Alembic (async, URL from `get_settings()`) | C02 | `alembic.ini`, `services/core/migrations/` | Baseline revision `0001`. Run from the repo root |
+| Hypertables `session_events`, `usage_events` | C02 | migration `0001` | Partitioned on `occurred_at`, 7-day chunks, PK `(id, occurred_at)`. No FKs may point at them. `usage_events` dedupes on `(idempotency_key, occurred_at)` |
+| Vector columns `chunks.embedding`, `memories.embedding` | C02 | `vector(1536)`, HNSW cosine indexes | pgvector 0.8; vectorscale is available if diskann is needed later |
+| Schemas `analytics`, `learner_analytics` | C02 | migration `0001` | Empty; C14 (learner caggs) and C22 (owner views, Tiger MCP grants) fill them |
 | Python service image: `SERVICE` build arg (`sg_api`, `sg_worker`, `sg_mcp_gateway`) | C05 | `services/Dockerfile`, `services/docker-entrypoint.sh` | Arguments after the image name replace the default process (e.g. `alembic upgrade head`) |
-| Railway config as code | C05 | `infra/railway/*.json` | C02: add `preDeployCommand` for migrations to `api.json` (see [hosting.md](hosting.md) §3.6) |
+| Railway config as code | C05 | `infra/railway/*.json` | `api.json` runs `alembic upgrade head` as the pre-deploy step; the worker never migrates |
 | Redis client `get_redis()` / `ping()` | C05 | `services/core/src/sg_core/redis_client.py` | `REDIS_URL` is optional (`None` locally); `/readyz` checks Redis only when it is set |
-| Settings: `cors_origins` (CSV or JSON), `cors_origin_regex`, `git_sha` | C05 | `services/core/src/sg_core/settings.py` | `git_sha` reads `GIT_SHA` or `RAILWAY_GIT_COMMIT_SHA` |
+| Settings: `cors_origin_regex`, `git_sha`, optional `redis_url` | C05 | `services/core/src/sg_core/settings.py` | `git_sha` reads `GIT_SHA` or `RAILWAY_GIT_COMMIT_SHA` |
 | `GET /healthz` (liveness) and `GET /readyz` (database and Redis) | C05 | `services/api/src/sg_api/routers/health.py` | `/readyz` is the Railway deploy gate |
-| `GET /healthz` on web and admin | C05 | `apps/*/src/app/healthz/route.ts` | C01: keep it public in `proxy.ts` |
-| `NEXT_PUBLIC_API_URL` | C05 | `apps/*/.env.example` | Base URL of the API for both Next apps |
+| `GET /healthz` on web and admin | C05 | `apps/*/src/app/healthz/route.ts` | Public in each app's `proxy.ts`; returns the configured `API_URL` |
 | Deploy smoke test | C05 | `scripts/smoke.py`, `python -m sg_worker.smoke` | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).
+- 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
+- 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.

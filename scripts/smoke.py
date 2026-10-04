@@ -98,12 +98,12 @@ def smoke_next(
         assert body["status"] == "ok", body
         assert_commit(body, commit)
         if api and body.get("apiUrl") and body["apiUrl"].rstrip("/") != api:
-            raise AssertionError(f"NEXT_PUBLIC_API_URL is {body['apiUrl']}, expected {api}")
+            raise AssertionError(f"API_URL is {body['apiUrl']}, expected {api}")
         return f"env={body['environment']} apiUrl={body.get('apiUrl')}"
 
     def home() -> str:
         response = client.get(base)
-        # 200 now; a redirect to sign-in is also healthy once auth (C01) lands.
+        # A redirect to sign-in (admin, protected pages) is healthy too.
         assert response.status_code in (200, 307, 308), f"GET / -> {response.status_code}"
         return f"status={response.status_code}"
 

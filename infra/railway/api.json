@@ -10,10 +10,12 @@
       "services/docker-entrypoint.sh",
       "pyproject.toml",
       "uv.lock",
+      "alembic.ini",
       "infra/railway/api.json"
     ]
   },
   "deploy": {
+    "preDeployCommand": ["alembic upgrade head"],
     "healthcheckPath": "/readyz",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

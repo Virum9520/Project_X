@@ -25,6 +25,38 @@ jobs:
         env:
           ENVIRONMENT: test
 
+  migrations:
+    # Applies the Alembic chain to a real TimescaleDB + pgvector database, checks for
+    # model drift, proves downgrade works, and runs the database integration tests.
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb-ha:pg17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: skill_garden
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d skill_garden"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/skill_garden
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --all-packages --frozen
+      - run: uv run alembic upgrade head
+      - run: uv run alembic check
+      - run: uv run alembic downgrade base
+      - run: uv run alembic upgrade head
+      - run: uv run pytest -q services/core/tests/test_migrations_db.py
+        env:
+          SG_DB_TESTS: "1"
+
   web:
     runs-on: ubuntu-latest
     steps:
@@ -65,6 +97,10 @@ jobs:
             # tasks.py connects to Hatchet at import time, so only check the image wiring here.
             docker run --rm sg-image:ci sh -c 'test "$SERVICE" = sg_worker && python -c "import sg_worker.client"'
             exit 0
+          fi
+          if [ "${{ matrix.service }}" = "sg_api" ]; then
+            # Railway's pre-deploy step runs migrations from this image.
+            docker run --rm -e ENVIRONMENT=test sg-image:ci alembic heads
           fi
           docker run -d --name svc -p 8000:8000 -e PORT=8000 -e ENVIRONMENT=test sg-image:ci
           for i in $(seq 1 30); do

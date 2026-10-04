@@ -3,8 +3,8 @@
 How the `dev` environment is wired, and how to set it up from scratch. Production AWS is C24.
 
 ```
-Vercel ── web   (apps/web)    ─┐
-       └─ admin (apps/admin)  ─┤ HTTPS + CORS
+Vercel ── web   (apps/web)    ─┐ server-side fetch (API_URL) with the
+       └─ admin (apps/admin)  ─┤ Clerk session token; browsers use CORS
                                ▼
 Railway ── api ───────────► Tiger Cloud (Postgres, TLS)
         ├─ worker ────────► Hatchet Cloud (gRPC, token)
@@ -68,7 +68,9 @@ Go to **Project Settings → Shared Variables** for the environment and add:
 | `S3_REGION` | `auto` |
 | `HATCHET_CLIENT_TOKEN` | From Hatchet Cloud |
 | `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `E2B_API_KEY` | As the providers are wired in (C03, C06). Empty is fine for now |
-| `CLERK_ISSUER`, `ADMIN_OWNER_EMAILS` | Once C01 lands |
+| `CLERK_ISSUER` | Clerk Frontend API URL, e.g. `https://<slug>.clerk.accounts.dev` |
+| `CLERK_SECRET_KEY` | Clerk secret key (same one the Next apps use) |
+| `ADMIN_OWNER_EMAILS` | Owner email(s), comma-separated |
 
 ### 3.3 `api` service
 1. Choose **+ Create → GitHub Repo → Project_X**, then rename the service to `api`.
@@ -83,10 +85,15 @@ Go to **Project Settings → Shared Variables** for the environment and add:
    - `SERVICE` = `sg_api`. It is read as a build arg and picks the package and process.
    - `SERVICE_NAME` = `api`
    - `REDIS_URL` = `${{Redis.REDIS_URL}}`, the private hostname
-   - `CORS_ORIGINS` = `https://<web-domain>,https://<admin-domain>`, filled in after step 4
-   - Optional, dev only: `CORS_ORIGIN_REGEX` = `https://skill-garden-(web|admin)-[a-z0-9-]+-<vercel-team-slug>\.vercel\.app`, to allow PR preview deployments
-5. Under **Settings → Networking**, choose **Generate Domain**. Use that URL as `NEXT_PUBLIC_API_URL` on Vercel.
-6. Deploy. Railway gates the release on `GET /readyz`, so a bad `DATABASE_URL` or `REDIS_URL`
+   - `CORS_ORIGINS` = `https://<web-domain>,https://<admin-domain>`, filled in after step 4.
+     Clerk tokens are only accepted from these origins too (unless `CLERK_AUTHORIZED_PARTIES` is set)
+   - `ADMIN_ORIGINS` = `https://<admin-domain>` (CSRF check for admin mutations)
+   - Optional, dev only: `CORS_ORIGIN_REGEX` = `https://skill-garden-(web|admin)-[a-z0-9-]+-<vercel-team-slug>\.vercel\.app`,
+     for browser calls from PR preview deployments. Sign-in on a preview also needs its exact origin
+     in `CLERK_AUTHORIZED_PARTIES`, which has no regex form, so test auth on production domains
+5. Under **Settings → Networking**, choose **Generate Domain**. Use that URL as `API_URL` on Vercel.
+6. Deploy. Each release first runs `alembic upgrade head` (the pre-deploy step in `api.json`), then
+   Railway gates traffic on `GET /readyz`. A failed migration or a bad `DATABASE_URL` or `REDIS_URL`
    fails the deploy instead of serving errors. Check that `/docs` loads; it is disabled only when `ENVIRONMENT=prod`.
 
 ### 3.4 `worker` service
@@ -101,13 +108,12 @@ Same steps as the worker, but use `/infra/railway/mcp-gateway.json` and set `SER
 If it should only be reachable from inside the project, also set `HOST` = `::` so it listens on the
 private network.
 
-### 3.6 Database migrations (when C02 lands)
-Add this to `infra/railway/api.json` under `deploy`, so migrations run once per release before
-traffic shifts. The worker must not also run them.
-```json
-"preDeployCommand": ["alembic upgrade head"]
-```
-Adjust the command to wherever C02 puts `alembic.ini`. The entrypoint runs any arguments as-is.
+### 3.6 Database migrations
+`infra/railway/api.json` runs `alembic upgrade head` as the pre-deploy step, once per API release and
+before traffic shifts. The image includes `alembic.ini` and `services/core/migrations`. The worker
+never migrates, so deploy the API first when a release contains a migration the worker needs.
+To run a migration by hand: `railway run --service api alembic upgrade head`, or locally
+`uv run alembic upgrade head` with the Tiger `DATABASE_URL`.
 
 ## 4. Vercel (web, admin)
 
@@ -127,9 +133,12 @@ Environment variables (Production and Preview):
 | Variable | Value | Why |
 |---|---|---|
 | `ENABLE_EXPERIMENTAL_COREPACK` | `1` | The repo pins `pnpm@12` through `packageManager`. Vercel's built-in pnpm stops at 10 |
-| `NEXT_PUBLIC_API_URL` | Railway API URL, no trailing slash | Inlined at build time, so redeploy after changing it |
+| `API_URL` | Railway API URL, no trailing slash | The apps call the API server-side with the user's Clerk token |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Inlined at build time, so redeploy after changing it |
+| `CLERK_SECRET_KEY` | Clerk secret key | |
+| `ADMIN_OWNER_EMAILS` (admin only) | Same value as on the API | Decides what the console renders; the API enforces it |
 
-Clerk keys get added here when C01 lands.
+In Clerk, add both production domains to the application's allowed origins and redirect URLs.
 
 Things to know:
 - **Preview deployments are behind Vercel Authentication** by default. Production domains are not.
@@ -155,8 +164,8 @@ It checks:
 - API `/healthz`, `/readyz` (database and Redis up) and the `X-Request-ID` header.
 - A CORS preflight from the web origin.
 - Web and admin `/healthz` and `/`.
-- That each tier reports the expected commit, and that each app's `NEXT_PUBLIC_API_URL` points at
-  the API you passed.
+- That each tier reports the expected commit, and that each app's `API_URL` points at the API you
+  passed. Admin `/` redirects to sign-in, which counts as healthy.
 
 Two optional add-ons:
 
@@ -172,7 +181,8 @@ HATCHET_CLIENT_TOKEN=... ENVIRONMENT=dev uv run --package sg_worker python -m sg
 - **Railway:** open the service's **Deployments** tab, then choose **⋯ → Rollback** on the last good deployment.
 - **Vercel:** open **Deployments**, choose **⋯ → Instant Rollback**. `NEXT_PUBLIC_*` values are part
   of each build, so a rollback also restores the old values.
-- Never roll back past a migration without a matching downgrade (C02).
+- Rolling back the API does not roll back the database. Migrations must stay backward compatible
+  with the previous release, or run `alembic downgrade <rev>` by hand first.
 
 ## 7. Troubleshooting
 
@@ -182,6 +192,8 @@ HATCHET_CLIENT_TOKEN=... ENVIRONMENT=dev uv run --package sg_worker python -m sg
 | `redis: false` | `REDIS_URL` doesn't reference `${{Redis.REDIS_URL}}`, or Redis is in a different environment |
 | Worker crash-loops with `HATCHET_CLIENT_TOKEN is required` | Token missing, or `ENVIRONMENT` is not `local` or `test` |
 | Vercel install fails with an unsupported pnpm version | `ENABLE_EXPERIMENTAL_COREPACK=1` is missing |
+| Railway deploy fails in the pre-deploy step | Migration error: read the deploy logs, fix forward with a new revision (never edit a merged one) |
+| Web or admin pages say "API unreachable" | `API_URL` missing or wrong on Vercel |
 | Vercel build can't find `@sg/ui` or `@sg/contracts` | "Include files outside the root directory" is off |
 | Browser shows a CORS error | Origin missing from `CORS_ORIGINS` (exact match, no trailing slash) or not matched by `CORS_ORIGIN_REGEX` |
 | Smoke test gets 401 on a Vercel preview | Vercel Authentication. Use the bypass secret or test production |

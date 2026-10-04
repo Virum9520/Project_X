@@ -20,6 +20,7 @@ COPY services/worker/pyproject.toml services/worker/
 COPY services/mcp_gateway/pyproject.toml services/mcp_gateway/
 RUN uv sync --frozen --no-dev --package "${SERVICE}" --no-install-workspace
 
+COPY alembic.ini ./
 COPY services ./services
 RUN uv sync --frozen --no-dev --package "${SERVICE}" \
     && useradd --system --uid 10001 --no-create-home app
