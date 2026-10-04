@@ -3,10 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-monaco.mjs",
-    "dev": "next dev --port 3000",
-    "prebuild": "node scripts/copy-monaco.mjs",
-    "build": "next build",
+    "dev": "node scripts/copy-monaco.mjs && next dev --port 3000",
+    "build": "node scripts/copy-monaco.mjs && next build",
     "start": "next start --port 3000",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",

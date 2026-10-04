@@ -15,7 +15,7 @@ import { useState } from "react";
 import { describeRun } from "@/lib/arjuna/runs";
 
 // Serve Monaco from /monaco (copied by scripts/copy-monaco.mjs), not the jsDelivr default.
-loader.config({ paths: { vs: "/monaco/vs" } });
+loader.config({ paths: { vs: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/monaco/vs` } });
 
 /** Monaco is large and browser-only: load it on demand, never on the server. */
 const MonacoEditor = dynamic(() => import("@monaco-editor/react").then((m) => m.default), {
