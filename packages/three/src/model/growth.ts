@@ -39,10 +39,18 @@ const WILT_BY_STATUS: Partial<Record<PlantSnapshot["status"], number>> = { due: 
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
 
+/** Unproven seedling growth per part for a self-rated starting level. Drawn as ghost growth. */
+const BASELINE_GROWTH: Record<1 | 2 | 3, Partial<Record<Dimension, number>>> = {
+  1: { explanation: 0.3 },
+  2: { explanation: 0.5, application: 0.4 },
+  3: { explanation: 0.7, application: 0.6, transfer: 0.3 },
+};
+
 function partGrowth(plant: PlantSnapshot, dimension: Dimension): PartGrowth {
   const score = plant.dimensions[dimension];
   const solid = clamp01(score.independent);
-  const confirmed = Math.max(solid, clamp01(score.assisted));
+  const seedling = plant.baselineLevel ? (BASELINE_GROWTH[plant.baselineLevel][dimension] ?? 0) : 0;
+  const confirmed = Math.max(solid, clamp01(score.assisted), seedling);
   const total = Math.max(confirmed, clamp01(plant.provisional?.[dimension] ?? 0));
   return { solid, confirmed, total };
 }

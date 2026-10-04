@@ -62,6 +62,8 @@ export interface PlantSnapshot {
   dimensions: Record<Dimension, DimensionScore>;
   /** Live, not-yet-confirmed growth from an in-progress session (SSE), per dimension in [0, 1]. */
   provisional?: Partial<Record<Dimension, number>>;
+  /** Starting level (1-3) from onboarding: drawn as unproven seedling growth, never as evidence. */
+  baselineLevel?: 1 | 2 | 3;
   /** Number of evidence items backing this plant's growth. */
   evidenceCount: number;
   /** ISO 8601 timestamps. */
