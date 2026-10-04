@@ -102,6 +102,7 @@ export function GardenSceneSlot(props: GardenSceneSlotProps) {
   // `null` on the server and during hydration, then the real answer: no effect, no mismatch.
   const webgl = useSyncExternalStore<boolean | null>(noSubscription, hasWebGL, () => null);
   const [flat, setFlat] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [selected, setSelected] = useState<EvidenceCardData | null>(null);
 
   const snapshot = useMemo(
@@ -167,6 +168,7 @@ export function GardenSceneSlot(props: GardenSceneSlotProps) {
           </div>
         ) : (
           <GardenScene
+            onReady={() => setSceneReady(true)}
             snapshot={snapshot}
             focus={sceneFocus}
             onFocusChange={changeFocus}
@@ -179,6 +181,15 @@ export function GardenSceneSlot(props: GardenSceneSlotProps) {
             keyboard="focus"
             aria-label={`Garden as of ${asOf.slice(0, 10)}: ${plants.length} concept plants in ${groves.length} groves. The table below is a text version.`}
           />
+        )}
+        {webgl && !sceneReady && (
+          <div
+            role="status"
+            className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-night/80 text-foreground/80"
+          >
+            <span className="size-8 animate-spin rounded-full border-2 border-glow/30 border-t-glow motion-reduce:animate-none" />
+            Growing the garden…
+          </div>
         )}
         {isTimeTravel && (
           <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-night/70 px-2.5 py-1 text-xs text-glow backdrop-blur">

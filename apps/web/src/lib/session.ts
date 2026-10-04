@@ -12,6 +12,14 @@ export async function requireLearner() {
   return user;
 }
 
+/**
+ * The signed-in learner, or null. For Server Actions: a redirect is not a valid action response
+ * (the browser reports "unexpected response"), so actions answer a signed-out caller themselves.
+ */
+export async function currentLearnerOrNull() {
+  return (await currentUser()) ?? null;
+}
+
 export function onboardingOf(user: { publicMetadata: Record<string, unknown> }) {
   return (user.publicMetadata.onboarding as OnboardingProfile | undefined) ?? null;
 }

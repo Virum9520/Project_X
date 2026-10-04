@@ -3,7 +3,7 @@
 import type { AskSanjayaAnswer, MemoryItem } from "@sg/contracts";
 
 import { apiSend } from "@/lib/api";
-import { requireOnboardedLearner } from "@/lib/session";
+import { currentLearnerOrNull } from "@/lib/session";
 
 /**
  * Server Actions behind the memory panel and Ask Sanjaya. Each re-verifies the session (Server
@@ -11,6 +11,8 @@ import { requireOnboardedLearner } from "@/lib/session";
  * that learner, so ids from the browser are never trusted on their own.
  */
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; message: string };
+
+const SIGNED_OUT = { ok: false, message: "Sign in to do that." } as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -25,7 +27,7 @@ export async function correctMemory(
   memoryId: string,
   content: string,
 ): Promise<ActionResult<MemoryItem>> {
-  await requireOnboardedLearner();
+  if (!(await currentLearnerOrNull())) return SIGNED_OUT;
   const text = content.trim();
   if (!UUID.test(memoryId) || !text) return { ok: false, message: "Nothing to save." };
   const result = await apiSend<MemoryItem>("POST", `/v1/garden/memories/${memoryId}/correct`, {
@@ -35,14 +37,14 @@ export async function correctMemory(
 }
 
 export async function deleteMemory(memoryId: string): Promise<ActionResult<null>> {
-  await requireOnboardedLearner();
+  if (!(await currentLearnerOrNull())) return SIGNED_OUT;
   if (!UUID.test(memoryId)) return { ok: false, message: "Unknown memory." };
   const result = await apiSend<void>("DELETE", `/v1/garden/memories/${memoryId}`);
   return result.ok ? { ok: true, data: null } : failure(result.status, result.detail);
 }
 
 export async function askSanjaya(question: string): Promise<ActionResult<AskSanjayaAnswer>> {
-  await requireOnboardedLearner();
+  if (!(await currentLearnerOrNull())) return SIGNED_OUT;
   const text = question.trim().slice(0, 500);
   if (!text) return { ok: false, message: "Ask a question first." };
   const result = await apiSend<AskSanjayaAnswer>("POST", "/v1/garden/ask", { question: text });

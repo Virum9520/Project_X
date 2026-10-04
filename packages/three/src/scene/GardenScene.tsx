@@ -1,7 +1,7 @@
 "use client";
 
 import type { GardenSnapshot, PlantPart } from "@sg/contracts";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   useCallback,
   useEffect,
@@ -69,6 +69,8 @@ export interface GardenSceneProps {
    * has focus; `off` disables it. Keys typed into inputs are always ignored.
    */
   keyboard?: "global" | "focus" | "off";
+  /** Called once, after the scene has drawn its first frames (shaders compiled, trees built). */
+  onReady?: () => void;
   className?: string;
   style?: CSSProperties;
   "aria-label"?: string;
@@ -108,6 +110,7 @@ export function GardenScene({
   showLabels = true,
   autoRotate = true,
   keyboard = "global",
+  onReady,
   className,
   style,
   "aria-label": ariaLabel = "Skill garden",
@@ -322,6 +325,7 @@ export function GardenScene({
         })}
         <Fireflies layout={layout} count={high ? 180 : 60} night={atmosphere.night} />
         <OverlayProjector registry={overlay} />
+        {onReady && <ReadySignal onReady={onReady} />}
         <CameraRig layout={layout} focus={focus} growthOf={growthOf} autoRotate={autoRotate} />
         {high && (
           <Effects
@@ -352,4 +356,14 @@ export function GardenScene({
       )}
     </div>
   );
+}
+
+/** Fires `onReady` once the canvas has rendered a few frames, i.e. the garden is really visible. */
+function ReadySignal({ onReady }: { onReady: () => void }) {
+  const frames = useRef(0);
+  useFrame(() => {
+    frames.current += 1;
+    if (frames.current === 12) onReady();
+  });
+  return null;
 }
