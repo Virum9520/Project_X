@@ -160,6 +160,26 @@ async def test_grants_follow_roles_and_revocation(sessions: Sessions) -> None:
     assert await grants.capabilities_for("user_nobody") == frozenset()
 
 
+async def test_sync_never_undeletes_a_soft_deleted_user(sessions: Sessions) -> None:
+    store = DbUserStore(sessions)
+    await store.sync(_clerk_user())
+    async with sessions() as session, session.begin():
+        await seed_identity_catalog(session)
+        user = await session.scalar(select(User).where(User.clerk_user_id == CLERK_ID))
+        assert user is not None
+        admin = AdminUser(user_id=user.id)
+        session.add(admin)
+        await session.flush()
+        session.add(AdminRoleGrant(admin_user_id=admin.id, role=AdminRole.ANALYST))
+        user.deleted_at = datetime.now(UTC)
+
+    await store.sync(_clerk_user(onboarding=ONBOARDING))  # e.g. their next admin request
+    async with sessions() as session:
+        user = await session.scalar(select(User).where(User.clerk_user_id == CLERK_ID))
+        assert user is not None and user.deleted_at is not None
+    assert await DbGrantStore(sessions).capabilities_for(CLERK_ID) == frozenset()
+
+
 async def test_audit_sink_writes_audit_log(sessions: Sessions) -> None:
     await DbUserStore(sessions).sync(_clerk_user())
     sink = DbAuditSink(sessions)

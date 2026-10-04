@@ -283,3 +283,8 @@ async def test_grant_store_failure_denies_with_503(app: FastAPI, client: AsyncCl
     assert response.status_code == 503
     # Owners never depend on the grant store.
     assert (await client.get("/v1/admin/me", headers=auth("user_owner"))).status_code == 200
+    # Learners' /v1/me degrades to no capabilities instead of failing.
+    response = await client.get("/v1/me", headers=auth("user_support"))
+    assert response.status_code == 200
+    assert response.json()["capabilities"] == []
+    assert response.json()["console_access"] is False

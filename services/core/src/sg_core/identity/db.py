@@ -144,7 +144,8 @@ class DbUserStore:
     """Mirrors a Clerk user into `users`, and onboarding answers into `profiles`.
 
     Clerk stays the source of truth. A user without a verified primary email is skipped (`users`
-    requires one). Unchanged data causes no write.
+    requires one). Unchanged data causes no write. A soft-deleted row is left untouched: sync never
+    un-deletes, so deletion keeps revoking grants.
     """
 
     def __init__(self, sessions: Sessions) -> None:
@@ -168,10 +169,12 @@ class DbUserStore:
                     )
                     .on_conflict_do_update(
                         index_elements=["clerk_user_id"],
-                        set_={"email": user.primary_email, "deleted_at": None},
+                        set_={"email": user.primary_email},
                     )
                     .returning(User.id)
                 )
+            elif row.deleted_at is not None:
+                return
             else:
                 user_id = row.id
                 if row.email != user.primary_email:
@@ -180,8 +183,6 @@ class DbUserStore:
                     row.display_name = user.display_name
                 if timezone and row.timezone != timezone:
                     row.timezone = timezone
-                if row.deleted_at is not None:
-                    row.deleted_at = None
             if onboarding is not None and user_id is not None:
                 await _upsert_profile(session, user_id, onboarding)
 
