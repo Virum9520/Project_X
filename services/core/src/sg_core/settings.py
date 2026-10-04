@@ -75,6 +75,14 @@ class Settings(BaseSettings):
     llm_default_model: str = "anthropic/claude-sonnet-4.5"
     llm_fallback_models: Annotated[list[str], NoDecode] = ["openai/gpt-4o-mini"]
     embedding_model: str = "text-embedding-3-small"
+    # Evidence pipeline (C11). The full post-call judge; the fast live micro-judge (a small,
+    # quick model, graded in a few seconds); and the micro-judge's time budget.
+    judge_model: str = "anthropic/claude-sonnet-4.5"
+    micro_judge_model: str = "openai/gpt-4o-mini"
+    micro_judge_timeout_seconds: float = 4.0
+    # Accounts graded under `rules/profile.demo.yaml` (compressed review clock). Demo and test
+    # accounts only; matched against `users.email` server-side, never from client input.
+    demo_account_emails: Annotated[list[str], NoDecode] = []
 
     # Monthly spend caps in USD, enforced by budget holds (sg_core.economics).
     learner_monthly_budget_usd: Decimal = Decimal("7.50")
@@ -136,7 +144,7 @@ class Settings(BaseSettings):
         # `CURRICULUM_DIR=` (as in .env.example) means "use the default", not Path(".").
         return None if isinstance(value, str) and not value.strip() else value
 
-    @field_validator("admin_owner_emails", mode="before")
+    @field_validator("admin_owner_emails", "demo_account_emails", mode="before")
     @classmethod
     def _split_emails(cls, value: object) -> object:
         if isinstance(value, str):
