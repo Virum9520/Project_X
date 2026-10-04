@@ -14,6 +14,12 @@ from sg_core.evidence.judge import (
     LLMJudge,
     MicroJudge,
 )
+from sg_core.evidence.observations import (
+    ObservationInput,
+    ObservationOutcome,
+    ObservationRejectedError,
+    record_observation,
+)
 from sg_core.evidence.pipeline import (
     ConversationSource,
     PipelineDeps,
@@ -53,6 +59,9 @@ __all__ = [
     "LLMJudge",
     "MicroJudge",
     "MicroVerdict",
+    "ObservationInput",
+    "ObservationOutcome",
+    "ObservationRejectedError",
     "PipelineDeps",
     "PipelineResult",
     "RawVerdict",
@@ -63,6 +72,7 @@ __all__ = [
     "Transcript",
     "ValidationContext",
     "Verdict",
+    "record_observation",
     "run_post_call",
     "validate_verdicts",
 ]
