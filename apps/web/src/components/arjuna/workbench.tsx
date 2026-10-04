@@ -139,8 +139,8 @@ export function Workbench({
 
       {!problem.tests_available && (
         <p role="status" className="rounded-xl bg-ember/10 px-3 py-2 text-sm text-ember">
-          Tests only run for Python and JavaScript. Switch the language to have Arjuna run them, or
-          talk the code through with him.
+          Tests only run for Python, JavaScript and TypeScript. Switch the language to have Arjuna
+          run them, or talk the code through with him.
         </p>
       )}
 
