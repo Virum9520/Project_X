@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@sg/contracts": "workspace:*",
+    "@sg/three": "workspace:*",
     "@sg/ui": "workspace:*",
     "next": "16.3.8",
     "react": "19.2.8",

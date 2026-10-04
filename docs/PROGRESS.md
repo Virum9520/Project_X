@@ -27,7 +27,7 @@ done, and the real integration waits.
 | C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | todo | | Pure Python, can start on mocks |
 | C11 | Evidence and judge pipeline: post-call workflow, micro-judge, validation, garden revisions | 5 | C03, C04, C09, C10 | todo | | |
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
-| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | todo | | Ready to start; uses mock garden state |
+| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | done | `feat/c13-3d-garden-scene` | Built on mock garden state; dev showcase at `/lab/garden`. C14 swaps the mock for the analytics API |
 | C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | todo | | USP. UI can start on mocks |
 | C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | todo | | Ready to start |
 | C16 | Arjuna technical interview: résumé and job description parsing, problem bank, Monaco, E2B tests, Scribe captions | 7 | C11, C12 | todo | | |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C01, C03, C04, C05, C06 (except the token endpoint), C07, C09, C13, C15.
+**Ready now** (dependencies met): C01, C03, C04, C05, C06 (except the token endpoint), C07, C09, C15. C14's UI can now start on the C13 scene and mocks.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -59,9 +59,15 @@ event name or SSE channel), record it here in the same PR.
 | Hypertables `session_events`, `usage_events` | C02 | migration `0001` | Partitioned on `occurred_at`, 7-day chunks, PK `(id, occurred_at)`. No FKs may point at them. `usage_events` dedupes on `(idempotency_key, occurred_at)` |
 | Vector columns `chunks.embedding`, `memories.embedding` | C02 | `vector(1536)`, HNSW cosine indexes | pgvector 0.8; vectorscale is available if diskann is needed later |
 | Schemas `analytics`, `learner_analytics` | C02 | migration `0001` | Empty; C14 (learner caggs) and C22 (owner views, Tiger MCP grants) fill them |
+| Garden snapshot read model (`GardenSnapshot`, `PlantSnapshot`, `DimensionScore`, `PrerequisiteEdge`, `PLANT_STATUSES`) | C13 | `packages/contracts/src/index.ts` | What the scene renders. C14's `/garden/*` API should serve this shape; every curriculum concept is listed, unassessed ones included. `PLANT_STATUSES` mirrors Python `PlantStatus` (test-enforced) |
+| Garden generator, growth mapping, semantic-zoom navigation | C13 | `@sg/three` (pure TS, server-safe) | `generateGardenLayout` (deterministic, placement ignores scores), `plantGrowth` (dimension → part; solid/assisted ghost/provisional), `GardenFocus` + `zoomOut`/`zoomIn`/`moveSibling`, URL form via `focusToString`/`focusFromString` (`grove:dsa`, `plant:dsa.graphs`, `part:dsa.graphs:roots`) |
+| `GardenScene` React component | C13 | `@sg/three/scene` (client-only) | Load with `next/dynamic(..., { ssr: false })` from a `'use client'` file. Props: `snapshot`, controlled `focus`/`onFocusChange`, `matchedConceptIds` (filter dimming), `pulseConceptIds` (live SSE glow), `evidence(conceptId, part)` + `onEvidenceSelect`, `timeOfDay`, `quality`, `keyboard` |
+| Mock garden data | C13 | `@sg/three` (`mockGardenSnapshot`, `mockGardenHistory`, `mockEvidence`, `withProvisionalGrowth`) | Seeded demo learner over 16 revisions with every status. Mock concept ids are illustrative; C07 owns the real curriculum |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
+
+- 2026-10-04 · C13 · PR_LINK · 3D garden scene in `packages/three`: deterministic garden generator, shader-grown concept plants (roots/stem/branches/blossoms, assisted ghost growth, live provisional glow, wilting), floating island with pond, grass, ez-tree elder trees, glowing prerequisite roots, day-night, bloom and depth of field, Garden → Grove → Plant → Part camera zoom with keyboard navigation and orbiting evidence cards, mock garden data, `/lab/garden` showcase.
 
 - 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.
