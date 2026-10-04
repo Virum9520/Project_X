@@ -1,6 +1,8 @@
 "use client";
 
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -18,6 +20,7 @@ import { MemoryPanel } from "./memory-panel";
 import { PlantDetail } from "./plant-detail";
 import { PlantsTable } from "./plants-table";
 import { PART_LABEL, cap, formatDateTime } from "./primitives";
+import { useGardenAudioState } from "../soundscape/audio-state";
 import { SoundControls } from "../soundscape/sound-controls";
 import { SoundscapeProvider } from "../soundscape/soundscape-provider";
 import { Timeline } from "./timeline";
@@ -106,10 +109,7 @@ export function GardenDashboard({
     [view.growthEvents],
   );
 
-  const audioState = useMemo(
-    () => ({ plants: view.plants.map((p) => ({ stage: p.stage, wilting: p.wilting })) }),
-    [view.plants],
-  );
+  const audioState = useGardenAudioState(view.plants);
 
   return (
     <SoundscapeProvider garden={audioState}>
@@ -137,6 +137,8 @@ export function GardenDashboard({
             </span>
           </div>
         </header>
+
+        <PracticeLinks />
 
         {state.scrubDate && (
           <div
@@ -281,6 +283,31 @@ export function GardenDashboard({
         />
       </main>
     </SoundscapeProvider>
+  );
+}
+
+const PRACTICE: { href: Route; label: string; hint: string }[] = [
+  { href: "/session", label: "Voice session", hint: "Drona, concept by concept" },
+  { href: "/interview", label: "HR and panel interview", hint: "Vidura and Arjuna" },
+  { href: "/interview/technical", label: "Technical interview", hint: "Arjuna, with code" },
+];
+
+/** Entry points to every practice mode, so the garden is one click from the next session. */
+function PracticeLinks() {
+  return (
+    <nav aria-label="Practice" className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="text-xs uppercase tracking-[0.2em] text-foreground/50">Practise</span>
+      {PRACTICE.map((p) => (
+        <Link
+          key={p.href}
+          href={p.href}
+          title={p.hint}
+          className="rounded-lg border border-white/10 px-3 py-1.5 text-foreground/80 outline-none hover:border-glow/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-glow"
+        >
+          {p.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
