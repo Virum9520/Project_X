@@ -86,3 +86,4 @@ export interface GardenSnapshot {
 }
 
 export * from "./identity";
+export * from "./garden";
