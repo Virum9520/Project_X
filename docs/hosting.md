@@ -68,6 +68,8 @@ Go to **Project Settings → Shared Variables** for the environment and add:
 | `S3_REGION` | `auto` |
 | `HATCHET_CLIENT_TOKEN` | From Hatchet Cloud |
 | `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `E2B_API_KEY` | As the providers are wired in (C03, C06). Empty is fine for now |
+| `ELEVENLABS_AGENT_IDS` | JSON from `uv run sg-agents ids` (after `sg-agents sync`) |
+| `AGENT_TOOL_TOKEN_SECRET` | Random secret: `python -c "import secrets;print(secrets.token_urlsafe(48))"` |
 | `CLERK_ISSUER` | Clerk Frontend API URL, e.g. `https://<slug>.clerk.accounts.dev` |
 | `CLERK_SECRET_KEY` | Clerk secret key (same one the Next apps use) |
 | `ADMIN_OWNER_EMAILS` | Owner email(s), comma-separated |

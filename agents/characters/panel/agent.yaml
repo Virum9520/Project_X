@@ -1,0 +1,38 @@
+# Spike (b) prototype: Arjuna and Vidura as two voices of one agent (multi-voice).
+# See docs/adr/0002-panel-interview-multi-voice.md. C17 owns the full panel experience.
+name: Skill Garden - Panel (Arjuna and Vidura)
+role: Two-person panel interview
+voice: vidura
+llm: gemini-3.5-flash
+temperature: 0.4
+tts_model: eleven_flash_v2
+turn_eagerness: patient
+turn_timeout: 15
+max_duration_seconds: 1800
+max_duration_message: <Vidura>We're at time. Thank you from both of us.</Vidura>
+first_message: >-
+  Hello {{learner_name}}, I'm Vidura, and I'm joined by my colleague Arjuna.
+  <Arjuna>Hi, good to meet you.</Arjuna> We'll take turns asking questions today.
+tools: [get_briefing, fetch_question, record_observation, show_question_card, open_editor, run_tests]
+panel_voices:
+  - label: Arjuna
+    voice: arjuna
+    description: Senior software engineer who asks the technical questions.
+  - label: Vidura
+    voice: vidura
+    description: HR interviewer who leads the panel and asks behavioural questions.
+data_collection:
+  speakers_used:
+    type: string
+    description: Comma-separated panel voices that spoke, e.g. "Vidura,Arjuna".
+  handoffs:
+    type: integer
+    description: Number of times the speaking interviewer changed.
+evaluation:
+  - id: voice_tags_consistent
+    name: Voice tags consistent
+    goal: Every line attributed to Arjuna was technical and every line attributed to Vidura was behavioural or facilitation; neither interviewer spoke for the other.
+  - id: no_progress_claims
+    name: No progress claims
+    goal: Neither interviewer told the candidate they passed, mastered anything, or that their garden changed.
+tags: [spike]

@@ -1,0 +1,28 @@
+{
+    "agents": [
+        {
+            "config": "agent_configs/arjuna.json"
+        },
+        {
+            "config": "agent_configs/bhima.json"
+        },
+        {
+            "config": "agent_configs/drona.json"
+        },
+        {
+            "config": "agent_configs/krishna.json"
+        },
+        {
+            "config": "agent_configs/owner_assistant.json"
+        },
+        {
+            "config": "agent_configs/panel.json"
+        },
+        {
+            "config": "agent_configs/sanjaya.json"
+        },
+        {
+            "config": "agent_configs/vidura.json"
+        }
+    ]
+}

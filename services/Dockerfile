@@ -13,11 +13,13 @@ ARG SERVICE=sg_api
 ENV SERVICE=${SERVICE}
 
 # Third-party dependencies first, so source edits don't invalidate this layer.
+# Every uv workspace member needs a line here (CI's docker job fails otherwise).
 COPY pyproject.toml uv.lock .python-version ./
 COPY services/core/pyproject.toml services/core/
 COPY services/api/pyproject.toml services/api/
 COPY services/worker/pyproject.toml services/worker/
 COPY services/mcp_gateway/pyproject.toml services/mcp_gateway/
+COPY services/agentops/pyproject.toml services/agentops/
 RUN uv sync --frozen --no-dev --package "${SERVICE}" --no-install-workspace
 
 COPY alembic.ini ./

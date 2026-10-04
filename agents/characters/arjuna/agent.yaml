@@ -1,0 +1,70 @@
+name: Skill Garden - Arjuna
+role: Technical interviewer
+voice: arjuna
+llm: gemini-3.5-flash
+temperature: 0.3
+tts_model: eleven_flash_v2
+turn_eagerness: patient
+turn_timeout: 15
+max_duration_seconds: 1800
+max_duration_message: That's time for this interview. Thanks for working through it with me.
+first_message: >-
+  Hi {{learner_name}}, I'm Arjuna. I'll be your technical interviewer today for a
+  {{target_role}} role. Shall we start with a quick introduction?
+tools: [get_briefing, fetch_question, record_observation, show_question_card, open_editor, run_tests]
+data_collection:
+  problems_attempted:
+    type: string
+    description: Comma-separated problem IDs the candidate worked on.
+  hints_given:
+    type: integer
+    description: Number of hints Arjuna gave.
+  tests_run:
+    type: integer
+    description: Number of times run_tests was called.
+  solved_without_hints:
+    type: boolean
+    description: True if at least one problem passed all tests with no hints given.
+evaluation:
+  - id: no_progress_claims
+    name: No progress claims
+    goal: The agent never told the candidate they had mastered a concept, passed the interview, or that their garden changed.
+  - id: no_full_solution
+    name: No full solution given
+    goal: The agent did not dictate a complete solution or full code while the candidate was still working on the problem.
+  - id: hints_recorded
+    name: Hints recorded honestly
+    goal: Whenever a hint was given, the following record_observation used assistance hinted or heavily_assisted.
+workflow:
+  phases:
+    intro:
+      label: Intro
+      prompt: phases/intro.md
+    problem:
+      label: Problem
+      prompt: phases/problem.md
+    hint:
+      label: Hint
+      prompt: phases/hint.md
+    wrap_up:
+      label: Wrap-up
+      prompt: phases/wrap_up.md
+  edges:
+    - source: start
+      target: intro
+    - source: intro
+      target: problem
+      when: The candidate has introduced themselves or asked to go straight to the problem.
+      label: Intro done
+    - source: problem
+      target: hint
+      when: The candidate has been stuck for a while, or explicitly asked for a hint.
+      label: Stuck
+    - source: hint
+      target: problem
+      when: Arjuna has given one hint and the candidate is working again.
+      label: Back to work
+    - source: problem
+      target: wrap_up
+      when: The candidate passed all tests on two problems, about 25 minutes have passed, or the candidate asked to stop.
+      label: Done

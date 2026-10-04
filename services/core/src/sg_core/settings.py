@@ -52,6 +52,12 @@ class Settings(BaseSettings):
     # Providers
     elevenlabs_api_key: SecretStr | None = None
     elevenlabs_webhook_secret: SecretStr | None = None
+    elevenlabs_base_url: str = "https://api.elevenlabs.io"
+    # Character key -> ElevenLabs agent ID (JSON). Print it with `uv run sg-agents ids`.
+    elevenlabs_agent_ids: dict[str, str] = {}
+    # Signs the session-scoped tokens that agents send to /v1/agent-tools/* (server tools).
+    agent_tool_token_secret: SecretStr | None = None
+    agent_tool_token_ttl_seconds: int = 3600
     openrouter_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     e2b_api_key: SecretStr | None = None

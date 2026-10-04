@@ -1,0 +1,29 @@
+{
+    "description": "Show a prepared diagram that illustrates a concept, such as a binary search trace or a TCP handshake. Use the diagram ID that fetch_question or search_my_documents returned.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "show_diagram",
+    "parameters": {
+        "description": "Arguments for show_diagram",
+        "properties": {
+            "caption": {
+                "description": "One-line caption, under 15 words.",
+                "type": "string"
+            },
+            "diagram_id": {
+                "description": "ID of a prepared diagram.",
+                "type": "string"
+            }
+        },
+        "required": [
+            "diagram_id"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

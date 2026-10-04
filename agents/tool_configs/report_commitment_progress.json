@@ -1,0 +1,56 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for report_commitment_progress",
+            "properties": {
+                "commitment_id": {
+                    "description": "The commitment ID from the briefing.",
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "learner_words": {
+                    "description": "The learner's own words, under 40 words.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "What the learner reported.",
+                    "enum": [
+                        "done",
+                        "partly_done",
+                        "not_done",
+                        "wants_to_change"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "commitment_id",
+                "status",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/report_commitment_progress"
+    },
+    "description": "Record what the learner says about an open commitment from their briefing. This is a self-report and is stored separately from progress the app can observe.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": false,
+    "name": "report_commitment_progress",
+    "response_timeout_secs": 8,
+    "type": "webhook"
+}

@@ -1,0 +1,17 @@
+type: tool
+description: After a correct, unaided explanation, Drona records it.
+tool: record_observation
+chat_history:
+  - role: agent
+    message: In your own words, what is binary search and when would you use it?
+  - role: user
+    message: >-
+      It finds an item in a sorted array by checking the middle and discarding the half that
+      can't contain the target, so it takes log n steps. You need the data to be sorted.
+tool_parameters:
+  - path: concept_id
+    regex: "binary_search"
+  - path: assistance
+    exact: independent
+  - path: dimension
+    llm: Should be explanation or retention, since the learner explained the concept.

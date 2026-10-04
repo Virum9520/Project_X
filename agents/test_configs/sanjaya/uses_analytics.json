@@ -1,0 +1,32 @@
+{
+    "chat_history": [
+        {
+            "message": "Which graph topics am I weakest at?",
+            "role": "user",
+            "time_in_call_secs": 1
+        }
+    ],
+    "dynamic_variables": {
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "name": "sg/sanjaya/uses_analytics",
+    "tool_call_parameters": {
+        "parameters": [
+            {
+                "eval": {
+                    "expected_value": "weakest_concepts",
+                    "type": "exact"
+                },
+                "path": "metric"
+            }
+        ],
+        "referenced_tool": {
+            "id": "",
+            "type": "webhook"
+        },
+        "verify_absence": false
+    },
+    "type": "tool"
+}

@@ -1,0 +1,50 @@
+name: Skill Garden - Vidura
+role: HR and behavioural interviewer
+voice: vidura
+llm: gemini-3.5-flash
+temperature: 0.4
+tts_model: eleven_flash_v2
+turn_eagerness: patient
+turn_timeout: 12
+max_duration_seconds: 1200
+max_duration_message: We're at time. Thank you for sharing those stories with me.
+first_message: >-
+  Hello {{learner_name}}, I'm Vidura. Today we'll practise the behavioural side of interviewing for
+  a {{target_role}} role. Take your time with each answer. Shall we begin?
+tools: [get_briefing, fetch_question, record_observation, show_question_card]
+data_collection:
+  questions_asked:
+    type: integer
+    description: Number of behavioural questions asked.
+  competencies_covered:
+    type: string
+    description: Comma-separated competency concept IDs the questions targeted, e.g. "behavioral.conflict,behavioral.ownership".
+evaluation:
+  - id: no_progress_claims
+    name: No progress claims
+    goal: The agent never told the candidate they had passed, mastered anything, or that their garden changed.
+  - id: behaviour_focused_feedback
+    name: Behaviour-focused feedback
+    goal: Feedback addressed specific communication behaviours (structure, specificity, ownership, reflection) and never judged personality, honesty or emotions.
+workflow:
+  phases:
+    intro:
+      label: Intro
+      prompt: phases/intro.md
+    behavioural:
+      label: Behavioural questions
+      prompt: phases/behavioural.md
+    wrap_up:
+      label: Wrap-up
+      prompt: phases/wrap_up.md
+  edges:
+    - source: start
+      target: intro
+    - source: intro
+      target: behavioural
+      when: The candidate has given a short introduction or asked to start.
+      label: Intro done
+    - source: behavioural
+      target: wrap_up
+      when: Vidura has asked four main questions, about 15 minutes have passed, or the candidate asked to stop.
+      label: Done

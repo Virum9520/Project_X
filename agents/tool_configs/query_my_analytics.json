@@ -1,0 +1,68 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for query_my_analytics",
+            "properties": {
+                "concept_id": {
+                    "description": "Concept ID, required for concept_detail.",
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "date_from": {
+                    "description": "Start date, ISO 8601 (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "date_to": {
+                    "description": "End date, ISO 8601 (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "domain": {
+                    "description": "Domain filter, e.g. dsa, os, networking, databases, system_design, behavioral.",
+                    "type": "string"
+                },
+                "metric": {
+                    "description": "Which analytic to fetch.",
+                    "enum": [
+                        "readiness",
+                        "stage_counts",
+                        "weakest_concepts",
+                        "reviews_due",
+                        "misconceptions",
+                        "recent_changes",
+                        "concept_detail",
+                        "practice_time",
+                        "independence_ratio"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "metric",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/query_my_analytics"
+    },
+    "description": "Query this learner's own garden analytics. Every number you say must come from this tool. Results include evidence citations; mention them when explaining why something changed.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": false,
+    "name": "query_my_analytics",
+    "response_timeout_secs": 10,
+    "type": "webhook"
+}

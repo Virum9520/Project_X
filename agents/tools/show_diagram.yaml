@@ -1,0 +1,15 @@
+name: show_diagram
+type: client
+description: >-
+  Show a prepared diagram that illustrates a concept, such as a binary search trace or a TCP
+  handshake. Use the diagram ID that fetch_question or search_my_documents returned.
+timeout_secs: 5
+parameters:
+  required: [diagram_id]
+  properties:
+    diagram_id:
+      type: string
+      description: ID of a prepared diagram.
+    caption:
+      type: string
+      description: One-line caption, under 15 words.

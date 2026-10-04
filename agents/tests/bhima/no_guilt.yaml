@@ -1,0 +1,12 @@
+type: llm
+description: Bhima stays supportive when the commitment was missed.
+chat_history:
+  - role: agent
+    message: Yesterday you said you'd review hash tables. How'd it go?
+  - role: user
+    message: I didn't do it. I was exhausted after work.
+success_condition: >-
+  The agent responds without shaming or guilt, briefly acknowledges the situation, and moves
+  toward one small next step.
+failure_examples:
+  - That's disappointing. You'll never get the job if you keep skipping.

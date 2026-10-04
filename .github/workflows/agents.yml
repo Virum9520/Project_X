@@ -1,0 +1,46 @@
+name: Agent tests
+
+# ElevenLabs agent tests run against the live workspace, so this is manual and needs the
+# ELEVENLABS_API_KEY repository secret. Offline checks (schema validation, drift) run in CI.
+on:
+  workflow_dispatch:
+    inputs:
+      sync:
+        description: Push tools, tests and agents before testing
+        type: boolean
+        default: false
+      characters:
+        description: Space-separated characters to test (empty = all)
+        type: string
+        default: ""
+
+concurrency:
+  group: agent-tests
+  cancel-in-progress: false
+
+jobs:
+  agent-tests:
+    runs-on: ubuntu-latest
+    env:
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+    steps:
+      - name: Require API key
+        if: env.ELEVENLABS_API_KEY == ''
+        run: |
+          echo "::error::Set the ELEVENLABS_API_KEY repository secret to run agent tests."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --all-packages --frozen
+      - run: uv run sg-agents build --check --strict
+      - if: inputs.sync
+        run: uv run sg-agents sync --update-only
+      - run: uv run sg-agents test ${{ inputs.characters }}

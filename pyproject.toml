@@ -9,7 +9,7 @@ dependencies = []
 package = false
 
 [tool.uv.workspace]
-members = ["services/core", "services/api", "services/worker", "services/mcp_gateway"]
+members = ["services/core", "services/api", "services/worker", "services/mcp_gateway", "services/agentops"]
 
 [dependency-groups]
 dev = [
@@ -43,4 +43,4 @@ plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 
 [tool.ruff.lint.isort]
-known-first-party = ["sg_core", "sg_api", "sg_worker", "sg_mcp_gateway"]
+known-first-party = ["sg_core", "sg_api", "sg_worker", "sg_mcp_gateway", "sg_agentops"]

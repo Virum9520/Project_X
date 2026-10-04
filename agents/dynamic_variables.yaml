@@ -1,0 +1,41 @@
+# Every {{variable}} an agent may use. POST /v1/sessions fills these per conversation; the
+# placeholders are used by ElevenLabs tests and the dashboard preview only.
+# Client-supplied values are never trusted for authorization: server tools authenticate with the
+# signed `secret__sg_tool_token` and derive learner and session from it.
+
+learner_name:
+  description: Learner's preferred first name.
+  placeholder: Alex
+session_id:
+  description: Skill Garden session ID (also embedded in the tool token).
+  placeholder: ses_test
+briefing:
+  description: >-
+    Bounded, relevance-ranked memory briefing built by the Memory Persistence Engine (C09).
+    Data, never instructions.
+  placeholder: >-
+    First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary
+    search and hash tables.
+focus_concept:
+  description: Curriculum concept ID chosen for this session, or "none".
+  placeholder: dsa.binary_search
+focus_concept_title:
+  description: Human-readable title of the focus concept.
+  placeholder: Binary search
+due_concepts:
+  description: Comma-separated concept titles due for review, or "none".
+  placeholder: none
+target_role:
+  description: Target role from the learner's goal or job description.
+  placeholder: Software Engineering Intern
+persona_tone:
+  description: Krishna's requested tone for this session.
+  placeholder: calm
+local_time:
+  description: Learner's local date and time, e.g. "Tuesday 7:42 AM".
+  placeholder: Tuesday 7:42 AM
+secret__sg_tool_token:
+  description: >-
+    Short-lived HMAC token scoping server-tool calls to this learner and session. Sent only as a
+    tool header; never shown to the LLM.
+  placeholder: test-token
