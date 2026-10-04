@@ -7,6 +7,7 @@ consumed to the usage ledger. Budget holds are the caller's job (`sg_core.econom
 keep this adapter free of business logic.
 """
 
+import json
 from decimal import Decimal
 from types import TracebackType
 from typing import Any, Self
@@ -301,6 +302,59 @@ class ElevenLabsClient:
             language_code=payload.get("language_code"),
             duration_secs=duration,
         )
+
+    async def create_instant_voice_clone(
+        self,
+        *,
+        name: str,
+        samples: list[tuple[str, bytes, str]],
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
+        remove_background_noise: bool = False,
+        usage: UsageContext | None = None,
+    ) -> str:
+        """Instant Voice Clone (`POST /v1/voices/add`). `samples` = (filename, bytes, mime).
+
+        Callers must hold a verified consent record first (`sg_core.voice_clone`). Returns the
+        new `voice_id`.
+        """
+        if not samples:
+            raise ValueError("at least one audio sample is required")
+        data: dict[str, Any] = {
+            "name": name,
+            "remove_background_noise": str(remove_background_noise).lower(),
+        }
+        if description:
+            data["description"] = description
+        if labels:
+            data["labels"] = json.dumps(labels)
+        payload = await self._request(
+            "POST",
+            "/v1/voices/add",
+            data=data,
+            files=[("files", sample) for sample in samples],
+            timeout=120.0,
+        )
+        voice_id: str = payload["voice_id"]
+        await self._report(
+            usage,
+            UsageMeasure(
+                provider="elevenlabs",
+                external_ref=voice_id,
+                billable_units=Decimal(1),
+                billable_unit="voice_clone",
+            ),
+        )
+        return voice_id
+
+    async def delete_voice(self, voice_id: str) -> bool:
+        """`DELETE /v1/voices/{voice_id}`. Returns False when the voice was already gone (404)."""
+        response = await self._http.request("DELETE", f"/v1/voices/{voice_id}")
+        if response.status_code == 404:
+            return False
+        if response.status_code >= 400:
+            raise ElevenLabsError(response.status_code, response.text[:500])
+        return True
 
     async def get_conversation(self, conversation_id: str) -> ConversationDetails:
         data = await self._request("GET", f"/v1/convai/conversations/{conversation_id}")

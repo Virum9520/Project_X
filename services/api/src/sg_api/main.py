@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from sg_api.agent_tools.get_briefing import router as get_briefing_router
 from sg_api.auth import build_identity
+from sg_api.future_self.router import router as future_self_router
 from sg_api.middleware import AuditMiddleware, RequestContextMiddleware
 from sg_api.routers import admin, health, me
 from sg_api.sessions.router import router as sessions_router
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(sessions_router)
     app.include_router(webhooks_router)
     app.include_router(get_briefing_router)
+    app.include_router(future_self_router)
     return app
 
 

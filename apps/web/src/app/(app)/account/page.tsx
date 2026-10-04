@@ -1,4 +1,5 @@
 import type { Me } from "@sg/contracts";
+import Link from "next/link";
 
 import { EXPERIENCE_LABELS, GOAL_LABELS } from "@/app/onboarding/options";
 import { apiGet } from "@/lib/api";
@@ -22,6 +23,16 @@ export default async function AccountPage() {
         <Field label="Experience" value={EXPERIENCE_LABELS[profile.experience]} />
         <Field label="Time zone" value={profile.timezone.replaceAll("_", " ")} />
         <Field label="Goals" value={profile.goals.map((g) => GOAL_LABELS[g]).join(", ")} />
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-dusk/60 p-6">
+        <h2 className="font-medium">Future-Self voice</h2>
+        <p className="mt-2 text-sm text-foreground/70">
+          Opt in to hear a daily message in your own voice, or delete your voice at any time.{" "}
+          <Link href="/future-self" className="text-glow underline">
+            Manage consent
+          </Link>
+        </p>
       </section>
 
       <section className="rounded-xl border border-white/10 bg-dusk/60 p-6">
