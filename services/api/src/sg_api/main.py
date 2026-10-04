@@ -26,6 +26,7 @@ from sg_api.recap.router import router as recap_router
 from sg_api.routers import admin, health, me
 from sg_api.sessions.router import router as sessions_router
 from sg_api.soundscape.router import router as soundscape_router
+from sg_api.vidura.delivery import router as vidura_delivery_router
 from sg_api.webhooks.router import router as webhooks_router
 from sg_core.db import get_sessionmaker
 from sg_core.identity.db import seed_identity_catalog_committed
@@ -89,6 +90,7 @@ def create_app() -> FastAPI:
     app.include_router(fetch_question_router)
     app.include_router(record_observation_router)
     app.include_router(drona_router)
+    app.include_router(vidura_delivery_router)
     return app
 
 
