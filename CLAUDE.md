@@ -44,6 +44,11 @@ worked by **one session at a time**. Keep that file current as you make progress
    - Before merging, rebase onto `main` and re-point `down_revision` at the current head, so there
      is never more than one head.
    - Never edit a migration that is already merged.
+   - Models live in `sg_core.models`; migrations live in `services/core/migrations`. Change the model,
+     run `uv run alembic revision --autogenerate -m "<what>"`, then review the file by hand.
+     `uv run alembic check` must report no drift.
+   - Hypertables (`session_events`, `usage_events`): every unique index must include `occurred_at`,
+     and no table may hold a foreign key to them.
 
 ## Workflow and git
 - Work on feature branches and merge to `main` through PRs (squash merge). CI must be green.
@@ -57,12 +62,14 @@ pnpm install && uv sync --all-packages          # install everything
 pnpm dev                                        # web :3000, admin :3001
 uv run --package sg_api uvicorn sg_api.main:app --reload --port 8000
 uv run --package sg_worker python -m sg_worker.main   # embedded Hatchet when no token is set
+uv run alembic upgrade head                     # apply migrations to DATABASE_URL
 
 # quality gates (CI runs the same checks)
 pnpm lint && pnpm typecheck && pnpm build && pnpm format:check
 uv run ruff check services && uv run ruff format --check services
 uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src
 uv run pytest -q
+SG_DB_TESTS=1 uv run pytest -q services/core/tests   # + DB integration tests (needs migrated DB)
 ```
 
 ## Environment facts
