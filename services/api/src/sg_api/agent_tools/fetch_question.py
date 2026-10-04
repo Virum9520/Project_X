@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
+from sg_api.arjuna.problems import get_problem, select_problem
 from sg_api.drona.questions import SERVED_KINDS, parse_exclusions, select_question
 from sg_api.drona.store import SessionStore, get_session_store
 from sg_api.sessions.tool_tokens import ToolTokenClaims, check_conversation, require_tool_token
@@ -40,6 +41,42 @@ class FetchQuestionResponse(BaseModel):
     note: str
 
 
+async def _coding_problem(
+    body: FetchQuestionRequest, claims: ToolTokenClaims, store: SessionStore
+) -> FetchQuestionResponse:
+    """Arjuna's coding problems come from the problem bank (`sg_api.arjuna.problems`)."""
+    if claims.character not in ("arjuna", "panel"):
+        raise HTTPException(422, "coding problems are given by Arjuna; ask a concept question")
+    excluded = parse_exclusions(body.exclude_question_ids)
+    seen_families = {p.family for pid in excluded if (p := get_problem(pid)) is not None}
+    concept_key = body.concept_id
+    if concept_key is None:
+        try:
+            concept_key = await store.session_focus(claims.user_id, claims.session_id)
+        except Exception:
+            log.warning("fetch_question.focus_failed", exc_info=True)
+    problem, matched = select_problem(
+        concept_key, difficulty=body.difficulty, exclude=excluded, exclude_families=seen_families
+    )
+    note = (
+        "Present it aloud briefly, call show_question_card with this question_id, then "
+        "open_editor with this problem_id. Get hints only with give_hint, never from memory."
+    )
+    if concept_key and not matched:
+        note += f" There is no problem for {concept_key} yet; this is a fundamentals problem."
+    if problem.id in excluded:
+        note += " Every matching problem was already used; this one repeats."
+    return FetchQuestionResponse(
+        question_id=problem.id,
+        kind="coding_problem",
+        concept_id=problem.concept_key,
+        title=problem.title,
+        prompt=problem.statement,
+        hints=[],
+        note=note,
+    )
+
+
 @router.post("/fetch_question", response_model=FetchQuestionResponse)
 async def fetch_question(
     body: FetchQuestionRequest,
@@ -47,11 +84,10 @@ async def fetch_question(
     store: Annotated[SessionStore, Depends(get_session_store)],
 ) -> FetchQuestionResponse:
     check_conversation(claims, body.conversation_id)
+    if body.kind == "coding_problem":
+        return await _coding_problem(body, claims, store)
     if body.kind not in SERVED_KINDS:
-        raise HTTPException(
-            422,
-            "coding problems are given by Arjuna; ask a concept question instead",
-        )
+        raise HTTPException(422, f"unsupported question kind {body.kind}")
     try:
         concept_key = body.concept_id or await store.session_focus(
             claims.user_id, claims.session_id

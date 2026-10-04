@@ -1,0 +1,11 @@
+type: tool
+description: Arjuna gets a hint through give_hint instead of inventing one.
+tool: give_hint
+chat_history:
+  - role: agent
+    message: Take your time with the meeting rooms problem. Walk me through your approach.
+  - role: user
+    message: I'm stuck. I don't know where to start. Can I get a hint?
+tool_parameters:
+  - path: problem_id
+    exact: p_meeting_rooms_2

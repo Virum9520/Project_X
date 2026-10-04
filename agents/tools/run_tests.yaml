@@ -2,10 +2,10 @@ name: run_tests
 type: webhook
 path: /v1/agent-tools/run_tests
 description: >-
-  Run the hidden test suite against the learner's latest code in the editor, inside the sandbox.
-  Call it when the learner says they are ready or asks to run tests. Returns passed and failed
-  counts and the first failing case. Never read hidden test inputs aloud unless the result marks
-  them as shareable.
+  Run the hidden test suite against the candidate's latest code in the editor, inside a sandbox.
+  The backend reads the code itself; you never pass it. Call it when the candidate says they are
+  ready or asks to run tests. Returns passed and failed counts and the first failing case. Never
+  read hidden test inputs aloud unless the result marks them as shareable.
 timeout_secs: 30
 force_pre_tool_speech: true
 parameters:

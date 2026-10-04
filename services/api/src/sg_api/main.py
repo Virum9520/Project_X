@@ -14,6 +14,8 @@ from sg_api.agent_tools.fetch_question import router as fetch_question_router
 from sg_api.agent_tools.get_briefing import router as get_briefing_router
 from sg_api.agent_tools.record_observation import router as record_observation_router
 from sg_api.agent_tools.search_my_documents import router as search_my_documents_router
+from sg_api.arjuna.router import router as arjuna_router
+from sg_api.arjuna.tools import router as arjuna_tools_router
 from sg_api.assistant.router import router as assistant_router
 from sg_api.auth import build_identity
 from sg_api.drona.router import router as drona_router
@@ -89,6 +91,8 @@ def create_app() -> FastAPI:
     app.include_router(fetch_question_router)
     app.include_router(record_observation_router)
     app.include_router(drona_router)
+    app.include_router(arjuna_router)
+    app.include_router(arjuna_tools_router)
     return app
 
 

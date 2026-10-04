@@ -11,7 +11,7 @@ max_duration_message: That's time for this interview. Thanks for working through
 first_message: >-
   Hi {{learner_name}}, I'm Arjuna. I'll be your technical interviewer today for a
   {{target_role}} role. Shall we start with a quick introduction?
-tools: [get_briefing, fetch_question, record_observation, show_question_card, open_editor, run_tests]
+tools: [get_briefing, fetch_question, record_observation, show_question_card, open_editor, run_tests, give_hint]
 data_collection:
   problems_attempted:
     type: string

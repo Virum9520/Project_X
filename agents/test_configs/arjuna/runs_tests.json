@@ -15,7 +15,9 @@
         "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
         "focus_concept": "dsa.binary_search",
         "focus_concept_title": "Binary search",
+        "interview_plan": "Target role: Software Engineering Intern. Source: résumé. Cover in this order: dsa.hash_tables, dsa.two_pointers.",
         "learner_name": "Alex",
+        "preferred_language": "python",
         "secret__sg_tool_token": "test-token",
         "target_role": "Software Engineering Intern"
     },

@@ -143,6 +143,9 @@ async def start_session(
         # Bhima's retention question (C18 overrides these on accepted calls); "none" skips it.
         "retention_concept": "none",
         "retention_concept_title": "none",
+        # Arjuna's plan and language (`POST /v1/arjuna/sessions` overrides these); "none" elsewhere.
+        "interview_plan": "none",
+        "preferred_language": "none",
         "secret__sg_tool_token": tool_token,
     }
     log.info(

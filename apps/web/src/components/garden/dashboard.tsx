@@ -60,9 +60,13 @@ export function GardenDashboard({
       router.push(`/session?concept=${encodeURIComponent(plantKey)}`);
       return;
     }
+    if (c === "arjuna") {
+      router.push(`/interview/technical?concept=${encodeURIComponent(plantKey)}`);
+      return;
+    }
     const title = dataset.plants.find((p) => p.key === plantKey)?.title;
     setNotice(
-      `Starting ${cap(c)} on ${title} arrives with that character's session (Drona is available now).`,
+      `Starting ${cap(c)} on ${title} arrives with that character's session (Drona and Arjuna are available now).`,
     );
   };
 

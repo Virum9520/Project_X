@@ -13,6 +13,10 @@
             "type": "webhook"
         },
         {
+            "config": "tool_configs/give_hint.json",
+            "type": "webhook"
+        },
+        {
             "config": "tool_configs/highlight_plant.json",
             "type": "client"
         },
