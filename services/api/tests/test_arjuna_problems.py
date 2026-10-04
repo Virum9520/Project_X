@@ -84,6 +84,8 @@ def test_starter_code_has_the_right_function_name() -> None:
     p = BY_ID["p_two_sum"]
     assert "def two_sum(nums, target):" in starter_code(p, "python")
     assert "function twoSum(nums, target)" in starter_code(p, "javascript")
+    ts = starter_code(p, "typescript")
+    assert "function twoSum(nums: any, target: any): any" in ts
     assert camel("length_of_longest_substring") == "lengthOfLongestSubstring"
 
 
@@ -115,7 +117,7 @@ def test_build_run_rejects_unsupported_and_oversized() -> None:
         build_run(p, "java", "class A {}")
     with pytest.raises(ValueError, match="too large"):
         build_run(p, "python", "x" * (MAX_CODE_BYTES + 1))
-    assert set(SUPPORTED_LANGUAGES) == {"python", "javascript"}
+    assert set(SUPPORTED_LANGUAGES) == {"python", "javascript", "typescript"}
 
 
 @pytest.mark.parametrize("problem_id", sorted(BY_ID))

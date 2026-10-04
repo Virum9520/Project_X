@@ -3,7 +3,7 @@
 
 Layout inside the sandbox working directory:
 
-    solution.py | solution.js    the learner's code (data: never imported by our code)
+    solution.py | .js | .ts      the learner's code (data: never imported by our code)
     harness.py  | harness.js     ours; reads `payload.json`, deletes it, then runs each case
 
 The harness (parent) holds the expected values; the learner's code runs in a child process per
@@ -112,7 +112,13 @@ const realWrite = process.stdout.write.bind(process.stdout);
 try {
   const payload = JSON.parse(fs.readFileSync(0, "utf8"));
   console.log = console.error;
-  const src = fs.readFileSync("solution.js", "utf8");
+  let src = fs.readFileSync(payload.solution_file, "utf8");
+  if (payload.typescript) {
+    // Types are stripped, not type-checked. Needs Node 22.13+ (erasable syntax only).
+    const strip = require("node:module").stripTypeScriptTypes;
+    if (typeof strip !== "function") throw new Error("TypeScript needs Node 22.13 or newer in the sandbox");
+    src = strip(src);
+  }
   const fn = new Function("require", "module", "exports", src + "\\n;return typeof " + payload.function +
     " === 'function' ? " + payload.function + " : undefined;")(require, { exports: {} }, {});
   if (typeof fn !== "function") {
@@ -147,7 +153,10 @@ const results = [];
 for (const c of payload.cases) {
   const entry = { i: c.i };
   const proc = spawnSync(process.execPath, ["--max-old-space-size=%(mem)d", "-e", CHILD], {
-    input: JSON.stringify({ function: payload.function, args: c.args }),
+    input: JSON.stringify({
+      function: payload.function, args: c.args,
+      solution_file: payload.solution_file, typescript: payload.typescript === true,
+    }),
     timeout: payload.time_limit * 1000,
     maxBuffer: 20 * 1024 * 1024,
     encoding: "utf8",
@@ -185,6 +194,12 @@ _LANGUAGES: dict[str, dict[str, str]] = {
         "harness": "harness.js",
         "command": "node harness.js",
     },
+    # Same Node harness; the child strips the type annotations before running.
+    "typescript": {
+        "solution": "solution.ts",
+        "harness": "harness.js",
+        "command": "node harness.js",
+    },
 }
 
 
@@ -211,6 +226,8 @@ def build_run(
     payload: dict[str, Any] = {
         "nonce": nonce,
         "function": problem.function if language == "python" else problem.js_function,
+        "solution_file": spec["solution"],
+        "typescript": language == "typescript",
         "time_limit": problem.time_limit_s,
         "cases": [{"i": c.index, "args": c.args, "expected": c.expected} for c in cases],
     }

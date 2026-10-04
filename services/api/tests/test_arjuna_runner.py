@@ -157,3 +157,44 @@ async def test_javascript_solutions_run_too() -> None:
 async def test_javascript_loop_times_out() -> None:
     report = await _run("function twoSum(a, b) { while (true) {} }", "javascript", limit=0.4)
     assert report.status == "timeout"
+
+
+TS_GOOD = """
+function twoSum(nums: number[], target: number): number[] {
+  const seen = new Map<number, number>();
+  for (let i = 0; i < nums.length; i++) {
+    const need: number = target - nums[i];
+    if (seen.has(need)) return [seen.get(need) as number, i];
+    seen.set(nums[i], i);
+  }
+  return [];
+}
+"""
+
+
+@pytest.mark.skipif(not node_available(), reason="node is not installed")
+async def test_typescript_solutions_run_with_types_stripped() -> None:
+    assert (await _run(TS_GOOD, "typescript")).ok
+    wrong = await _run(
+        "function twoSum(a: number[], b: number): number[] { return [0, 0]; }", "typescript"
+    )
+    assert wrong.first_failure is not None and wrong.first_failure.label == "example 1"
+    throws = await _run(
+        "function twoSum(a: number[], b: number): number[] { throw new RangeError('boom'); }",
+        "typescript",
+    )
+    assert throws.status == "error" and "RangeError: boom" in (throws.first_failure.detail or "")
+
+
+@pytest.mark.skipif(not node_available(), reason="node is not installed")
+async def test_typescript_syntax_error_is_reported_not_crashing() -> None:
+    report = await _run("function twoSum(a: number[ { return 1 }", "typescript")
+    assert report.status == "error"
+
+
+@pytest.mark.skipif(not node_available(), reason="node is not installed")
+async def test_typescript_loop_times_out() -> None:
+    report = await _run(
+        "function twoSum(a: any, b: any): any { while (true) {} }", "typescript", limit=0.4
+    )
+    assert report.status == "timeout"

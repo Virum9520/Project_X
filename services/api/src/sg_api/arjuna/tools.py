@@ -148,8 +148,8 @@ async def run_tests(
             summary=(
                 f"Tests only run for {', '.join(SUPPORTED_LANGUAGES)}, not {snapshot.language}."
             ),
-            note="Ask the candidate to switch the editor to Python or JavaScript, or review the "
-            "code aloud instead.",
+            note="Ask the candidate to switch the editor to Python, JavaScript or TypeScript, "
+            "or review the code aloud instead.",
         )
     if await store.count_runs(ctx, "tests") >= MAX_AGENT_RUNS:
         return RunTestsResponse(

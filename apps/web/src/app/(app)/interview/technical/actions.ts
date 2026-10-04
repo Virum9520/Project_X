@@ -11,6 +11,7 @@ import type {
 } from "@sg/contracts";
 
 import { apiGet, apiSend } from "@/lib/api";
+import { asRunnable } from "@/lib/arjuna/language";
 import { requireOnboardedLearner } from "@/lib/session";
 
 /**
@@ -49,7 +50,7 @@ export async function startArjunaSession(input: {
 }): Promise<ActionResult<ArjunaSessionStart>> {
   await requireOnboardedLearner();
   const result = await apiSend<ArjunaSessionStart>("POST", "/v1/arjuna/sessions", {
-    language: input.language === "javascript" ? "javascript" : "python",
+    language: asRunnable(input.language),
     focus_concept_id: input.concept && CONCEPT_KEY.test(input.concept) ? input.concept : undefined,
   });
   return result.ok ? result : failure(result.status, result.detail);
@@ -105,7 +106,7 @@ export async function runExamples(input: {
     `/v1/arjuna/sessions/${input.sessionId}/run-examples`,
     {
       problem_id: input.problemId,
-      language: input.language === "javascript" ? "javascript" : "python",
+      language: asRunnable(input.language),
       code: input.code,
     },
   );

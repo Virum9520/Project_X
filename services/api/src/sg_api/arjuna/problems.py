@@ -19,7 +19,7 @@ from functools import cache
 from heapq import heappop, heappush
 from typing import Any
 
-SUPPORTED_LANGUAGES: tuple[str, ...] = ("python", "javascript")
+SUPPORTED_LANGUAGES: tuple[str, ...] = ("python", "javascript", "typescript")
 MAX_HINT_LEVEL = 3
 
 
@@ -824,6 +824,14 @@ def cases_for(problem_id: str) -> tuple[TestCase, ...]:
 
 
 def starter_code(problem: Problem, language: str) -> str:
+    if language == "typescript":
+        typed = ", ".join(f"{name}: any" for name in problem.params)
+        return (
+            f"// {problem.title}\n"
+            f"function {problem.js_function}({typed}): any {{\n"
+            "  // Write your solution here.\n"
+            "}\n"
+        )
     if language == "javascript":
         args = ", ".join(problem.params)
         return (
