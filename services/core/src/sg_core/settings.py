@@ -4,6 +4,7 @@ Every service reads configuration through `get_settings()`. Secrets are
 `SecretStr` so they never appear in logs or reprs.
 """
 
+from decimal import Decimal
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
@@ -66,6 +67,17 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     e2b_api_key: SecretStr | None = None
     hatchet_client_token: SecretStr | None = None
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openai_base_url: str = "https://api.openai.com/v1"
+    # Default models (OpenRouter slugs / OpenAI embedding model); 1536 dims match the schema.
+    llm_default_model: str = "anthropic/claude-sonnet-4.5"
+    llm_fallback_models: Annotated[list[str], NoDecode] = ["openai/gpt-4o-mini"]
+    embedding_model: str = "text-embedding-3-small"
+
+    # Monthly spend caps in USD, enforced by budget holds (sg_core.economics).
+    learner_monthly_budget_usd: Decimal = Decimal("7.50")
+    developer_monthly_budget_usd: Decimal = Decimal("25")
+    owner_assistant_monthly_budget_usd: Decimal = Decimal("10")
 
     # Auth (Clerk) — one application shared by the learner and admin apps
     # Frontend API URL, e.g. https://<slug>.clerk.accounts.dev; JWKS lives under it.
@@ -106,7 +118,13 @@ class Settings(BaseSettings):
             return [e.strip().lower() for e in value.split(",") if e.strip()]
         return value
 
-    @field_validator("clerk_authorized_parties", "admin_origins", "cors_origins", mode="before")
+    @field_validator(
+        "clerk_authorized_parties",
+        "admin_origins",
+        "cors_origins",
+        "llm_fallback_models",
+        mode="before",
+    )
     @classmethod
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
