@@ -158,7 +158,7 @@ export function GardenSceneSlot(props: GardenSceneSlotProps) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="relative h-[26rem] overflow-hidden rounded-2xl border border-white/10 bg-night sm:h-[34rem]"
+        className="relative h-[70vh] min-h-[26rem] overflow-hidden rounded-2xl border border-white/10 bg-night sm:h-[80vh]"
         data-testid="garden-scene"
       >
         {webgl === null ? (

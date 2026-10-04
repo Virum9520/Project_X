@@ -111,7 +111,16 @@ export function plantsAt(
       bucket[e.dimension] = Math.min(1, (bucket[e.dimension] ?? 0) + e.weight * e.confidence);
     }
 
-    const stage = stageOf(independent, items.length > 0, count.independent > 0);
+    let stage = stageOf(independent, items.length > 0, count.independent > 0);
+    // A self-rated baseline plants a seedling where there is no evidence yet. It never raises
+    // scores, readiness or review dates: only demonstrated evidence grows a plant further.
+    if (
+      stage === "unassessed" &&
+      !evidenceLevelFilter &&
+      (dataset.baseline?.[meta.grove] ?? 0) > 0
+    ) {
+      stage = "sprouting";
+    }
     const interval = REVIEW_INTERVAL_DAYS[stage];
     const reviewBase = lastIndependentAt ?? lastEvidenceAt;
     const nextReviewMs = interval && reviewBase ? reviewBase + interval * DAY_MS : null;

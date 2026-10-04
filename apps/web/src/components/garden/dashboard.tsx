@@ -17,6 +17,8 @@ import { GardenSceneSlot } from "./garden-scene-slot";
 import { InsightsRail } from "./insights-rail";
 import { KpiRail } from "./kpi-rail";
 import { MemoryPanel } from "./memory-panel";
+import { StartingLevelsNotice } from "./starting-levels-notice";
+import { StatsOverview } from "./stats-overview";
 import { PlantDetail } from "./plant-detail";
 import { PlantsTable } from "./plants-table";
 import { PART_LABEL, cap, formatDateTime } from "./primitives";
@@ -113,13 +115,11 @@ export function GardenDashboard({
 
   return (
     <SoundscapeProvider garden={audioState}>
-      <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
+      <main className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
-            <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
-              Your garden, grown from evidence
-            </h1>
+            <p className="text-base uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
+            <h1 className="mt-1 text-4xl font-semibold sm:text-5xl">Your garden</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
             <SoundControls recentGrowthPlantKeys={recentGrowth} />
@@ -137,6 +137,8 @@ export function GardenDashboard({
             </span>
           </div>
         </header>
+
+        <StartingLevelsNotice dataset={dataset} />
 
         <PracticeLinks />
 
@@ -159,128 +161,142 @@ export function GardenDashboard({
           </div>
         )}
 
-        <FiltersBar
-          dataset={dataset}
-          filters={filters}
-          onChange={actions.setFilters}
-          onClear={actions.clearFilters}
-          matchedCount={view.matched.length}
-        />
-
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
-          <aside
-            aria-label={focusedPlant ? "Plant details" : "Key metrics"}
-            className="order-2 xl:order-1"
-          >
-            {focusedPlant ? (
-              <PlantDetail
-                dataset={dataset}
-                plant={focusedPlant}
-                part={focus.level === "part" ? focus.part : null}
-                evidence={view.evidence}
-                onFocus={actions.focusOn}
-                onPractise={onPractise}
-              />
-            ) : (
-              <KpiRail
-                dataset={dataset}
-                scopePlants={scopePlants}
-                focus={focus}
-                cutoff={view.cutoff}
-                streakDays={dataset.streakDays}
-                hoursThisWeek={view.hoursThisWeek}
-                onFocus={actions.focusOn}
-              />
-            )}
-          </aside>
-
-          <div className="order-1 flex min-w-0 flex-col gap-3 lg:col-span-2 xl:order-2 xl:col-span-1">
-            <Breadcrumb
-              focus={focus}
-              dataset={dataset}
-              onFocus={actions.focusOn}
-              onZoomOut={actions.zoomOut}
-            />
-            <GardenSceneSlot
-              groves={dataset.groves}
-              plants={view.plants}
-              focus={focus}
-              onFocusChange={actions.focusOn}
-              asOf={new Date(view.cutoff).toISOString()}
-              isTimeTravel={view.isPast}
-              recentGrowthPlantKeys={recentGrowth}
-              evidence={view.evidence}
-              prerequisites={dataset.prerequisites}
-              revision={revision}
-              ruleVersion={dataset.freshness.rulesVersion}
-            />
-            <p className="sr-only" role="status" aria-live="polite">
-              Focused on {scopeLabel}.
-            </p>
-            {notice && (
-              <p
-                role="status"
-                className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
-              >
-                <span>{notice}</span>
-                <button
-                  type="button"
-                  onClick={() => setNotice(null)}
-                  aria-label="Dismiss"
-                  className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
-                >
-                  ×
-                </button>
-              </p>
-            )}
-          </div>
-
-          <aside aria-label="Insights" className="order-3 flex flex-col gap-4">
-            <AskSanjaya dataset={dataset} live={!isMock} onFocus={actions.focusOn} />
-            <InsightsRail
-              dataset={dataset}
-              growthEvents={view.growthEvents}
-              evidence={view.evidence}
-              scopeKeys={scopeKeys}
-              scopeLabel={scopeLabel}
-              onFocus={actions.focusOn}
-              onPractise={onPractise}
-              cutoff={view.cutoff}
-            />
-          </aside>
-        </div>
-
-        <Timeline
-          series={series}
-          sessions={dataset.sessions}
-          scrubDate={scrubDate}
-          onScrub={actions.scrubTo}
-          rangeFrom={filters.dateFrom}
-          rangeTo={filters.dateTo}
-        />
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <EvidenceTimeline
+        <div className="flex min-w-0 flex-col gap-3">
+          <Breadcrumb
+            focus={focus}
             dataset={dataset}
-            growthEvents={view.growthEvents}
+            onFocus={actions.focusOn}
+            onZoomOut={actions.zoomOut}
+          />
+          <GardenSceneSlot
+            groves={dataset.groves}
+            plants={view.plants}
+            focus={focus}
+            onFocusChange={actions.focusOn}
+            asOf={new Date(view.cutoff).toISOString()}
+            isTimeTravel={view.isPast}
+            recentGrowthPlantKeys={recentGrowth}
             evidence={view.evidence}
-            scopeKeys={scopeKeys}
-            scopeLabel={scopeLabel}
+            prerequisites={dataset.prerequisites}
+            revision={revision}
+            ruleVersion={dataset.freshness.rulesVersion}
           />
-          <MemoryPanel
-            dataset={dataset}
-            cutoff={view.cutoff}
-            live={!isMock}
-            onFocusPlant={(key) => actions.focusOn({ level: "plant", plantKey: key })}
-          />
+          <p className="sr-only" role="status" aria-live="polite">
+            Focused on {scopeLabel}.
+          </p>
+          {notice && (
+            <p
+              role="status"
+              className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
+            >
+              <span>{notice}</span>
+              <button
+                type="button"
+                onClick={() => setNotice(null)}
+                aria-label="Dismiss"
+                className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
+              >
+                ×
+              </button>
+            </p>
+          )}
         </div>
 
-        <PlantsTable
+        {focusedPlant && (
+          <PlantDetail
+            dataset={dataset}
+            plant={focusedPlant}
+            part={focus.level === "part" ? focus.part : null}
+            evidence={view.evidence}
+            onFocus={actions.focusOn}
+            onPractise={onPractise}
+          />
+        )}
+
+        <StatsOverview
           dataset={dataset}
           plants={view.plants}
-          focus={focus}
-          onFocus={actions.focusOn}
+          streakDays={dataset.streakDays}
+          hoursThisWeek={view.hoursThisWeek}
         />
+
+        <details className="rounded-2xl border border-white/10 bg-dusk/40 p-4 sm:p-5">
+          <summary className="cursor-pointer select-none text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-glow">
+            Detailed analytics
+            <span className="ml-3 text-lg font-normal text-foreground/50">
+              filters, timeline, evidence, memory
+            </span>
+          </summary>
+          <div className="mt-5 flex flex-col gap-4">
+            <FiltersBar
+              dataset={dataset}
+              filters={filters}
+              onChange={actions.setFilters}
+              onClear={actions.clearFilters}
+              matchedCount={view.matched.length}
+            />
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <aside aria-label="Key metrics">
+                <KpiRail
+                  dataset={dataset}
+                  scopePlants={scopePlants}
+                  focus={focus}
+                  cutoff={view.cutoff}
+                  streakDays={dataset.streakDays}
+                  hoursThisWeek={view.hoursThisWeek}
+                  onFocus={actions.focusOn}
+                />
+              </aside>
+
+              <aside aria-label="Insights" className="flex flex-col gap-4">
+                <AskSanjaya dataset={dataset} live={!isMock} onFocus={actions.focusOn} />
+                <InsightsRail
+                  dataset={dataset}
+                  growthEvents={view.growthEvents}
+                  evidence={view.evidence}
+                  scopeKeys={scopeKeys}
+                  scopeLabel={scopeLabel}
+                  onFocus={actions.focusOn}
+                  onPractise={onPractise}
+                  cutoff={view.cutoff}
+                />
+              </aside>
+            </div>
+
+            <Timeline
+              series={series}
+              sessions={dataset.sessions}
+              scrubDate={scrubDate}
+              onScrub={actions.scrubTo}
+              rangeFrom={filters.dateFrom}
+              rangeTo={filters.dateTo}
+            />
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <EvidenceTimeline
+                dataset={dataset}
+                growthEvents={view.growthEvents}
+                evidence={view.evidence}
+                scopeKeys={scopeKeys}
+                scopeLabel={scopeLabel}
+              />
+              <MemoryPanel
+                dataset={dataset}
+                cutoff={view.cutoff}
+                live={!isMock}
+                onFocusPlant={(key) => actions.focusOn({ level: "plant", plantKey: key })}
+              />
+            </div>
+
+            <PlantsTable
+              dataset={dataset}
+              plants={view.plants}
+              focus={focus}
+              onFocus={actions.focusOn}
+            />
+          </div>
+        </details>
       </main>
     </SoundscapeProvider>
   );
@@ -295,14 +311,14 @@ const PRACTICE: { href: Route; label: string; hint: string }[] = [
 /** Entry points to every practice mode, so the garden is one click from the next session. */
 function PracticeLinks() {
   return (
-    <nav aria-label="Practice" className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-xs uppercase tracking-[0.2em] text-foreground/50">Practise</span>
+    <nav aria-label="Practice" className="flex flex-wrap items-center gap-3 text-lg">
+      <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Practise</span>
       {PRACTICE.map((p) => (
         <Link
           key={p.href}
           href={p.href}
           title={p.hint}
-          className="rounded-lg border border-white/10 px-3 py-1.5 text-foreground/80 outline-none hover:border-glow/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-glow"
+          className="rounded-xl border border-white/15 px-5 py-2.5 text-foreground/90 outline-none hover:border-glow/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-glow"
         >
           {p.label}
         </Link>

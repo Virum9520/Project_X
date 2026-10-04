@@ -56,10 +56,25 @@ export const LEARNER_GOALS = [
 ] as const;
 export type LearnerGoal = (typeof LEARNER_GOALS)[number];
 
+/** Self-rated starting level per topic area: 0 new, 1 know the basics, 2 comfortable, 3 strong. */
+export const STARTING_LEVEL_AREAS = [
+  "dsa",
+  "os",
+  "networks",
+  "databases",
+  "system_design",
+  "behavioral",
+] as const;
+export type StartingLevelArea = (typeof STARTING_LEVEL_AREAS)[number];
+export type StartingLevel = 0 | 1 | 2 | 3;
+export type StartingLevels = Record<StartingLevelArea, StartingLevel>;
+
 export interface OnboardingProfile {
   major: string;
   goals: LearnerGoal[];
   experience: ExperienceLevel;
   timezone: string;
+  /** Self-reported baseline. Seeds the garden's seedlings; only evidence makes plants grow. */
+  startingLevels?: StartingLevels;
   completedAt: string;
 }

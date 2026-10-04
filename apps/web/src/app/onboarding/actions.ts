@@ -3,6 +3,9 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import {
   EXPERIENCE_LEVELS,
+  STARTING_LEVEL_AREAS,
+  type StartingLevel,
+  type StartingLevels,
   LEARNER_GOALS,
   type ExperienceLevel,
   type LearnerGoal,
@@ -34,17 +37,25 @@ export async function completeOnboarding(
   }
   if (!isTimeZone(timezone)) return { error: "Pick a valid time zone." };
 
+  const startingLevels = Object.fromEntries(
+    STARTING_LEVEL_AREAS.map((area) => {
+      const n = Number(form.get(`level_${area}`));
+      return [area, (Number.isInteger(n) && n >= 0 && n <= 3 ? n : 0) as StartingLevel];
+    }),
+  ) as StartingLevels;
+
   const onboarding: OnboardingProfile = {
     major,
     goals: goals as LearnerGoal[],
     experience: experience as ExperienceLevel,
     timezone,
+    startingLevels,
     completedAt: new Date().toISOString(),
   };
   // publicMetadata is writable only with the secret key, so learners can't forge it client-side.
   const clerk = await clerkClient();
   await clerk.users.updateUserMetadata(user.id, { publicMetadata: { onboarding } });
-  redirect("/account");
+  redirect("/garden");
 }
 
 function isTimeZone(value: string) {

@@ -147,6 +147,8 @@ export interface GardenDataset {
   streakDays: number;
   /** Prerequisite edges between plant keys (`from` is a prerequisite of `to`), for the scene. */
   prerequisites?: PrerequisiteEdge[];
+  /** Self-rated starting level (0-3) per grove from onboarding. Not evidence: it only seeds seedlings. */
+  baseline?: Partial<Record<GroveId, 0 | 1 | 2 | 3>>;
 }
 
 // ─── Filters, zoom, and client tools ────────────────────────────────────────────────────────

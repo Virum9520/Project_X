@@ -1,3 +1,4 @@
+import type { GardenDataset } from "@sg/contracts";
 import type { Metadata } from "next";
 
 import { GardenDashboard } from "@/components/garden/dashboard";
@@ -9,15 +10,19 @@ export const metadata: Metadata = { title: "Garden · Skill Garden" };
 
 /** The learner's Garden Dashboard. Filters, zoom and time travel are carried in the query string. */
 export default async function GardenPage({ searchParams }: PageProps<"/garden">) {
-  await requireOnboardedLearner();
+  const { profile } = await requireOnboardedLearner();
   const [{ dataset, isMock, fallbackReason }, params] = await Promise.all([
     getGardenData(),
     searchParams,
   ]);
+  const withBaseline: GardenDataset = {
+    ...dataset,
+    baseline: profile.startingLevels ?? dataset.baseline,
+  };
   return (
     <GardenDashboard
-      dataset={dataset}
-      initialState={parseState(params, dataset)}
+      dataset={withBaseline}
+      initialState={parseState(params, withBaseline)}
       isMock={isMock}
       fallbackReason={fallbackReason}
     />
