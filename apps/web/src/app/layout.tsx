@@ -19,6 +19,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Skill Garden",
   description: "Grow real skills. Every leaf is earned.",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
