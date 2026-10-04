@@ -61,7 +61,7 @@ uv run --package sg_worker python -m sg_worker.main   # embedded Hatchet when no
 # quality gates (CI runs the same checks)
 pnpm lint && pnpm typecheck && pnpm build && pnpm format:check
 uv run ruff check services && uv run ruff format --check services
-uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src
+uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src services/agentops/src
 uv run pytest -q
 ```
 

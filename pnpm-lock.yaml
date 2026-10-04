@@ -166,6 +166,9 @@ importers:
 
   .:
     devDependencies:
+      '@elevenlabs/cli':
+        specifier: 1.4.0
+        version: 1.4.0
       prettier:
         specifier: ^3.9.9
         version: 3.9.9
@@ -360,6 +363,35 @@ packages:
   '@babel/types@7.29.8':
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
+
+  '@elevenlabs/cli-darwin-arm64@1.4.0':
+    resolution: {integrity: sha512-EGoykYk+tvH2/kB98/TEsvhw+bM6TiAiiCPDpeIjx/d+93fPWEk6xCkvBcoSAzGcC45q/0BI61HXaFcBGPBdRA==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@elevenlabs/cli-darwin-x64@1.4.0':
+    resolution: {integrity: sha512-Tl0tmQdR7tSmxYqs33lWBy/UdrdGrIMHbycT7jMkBckojtTfEoDHbDn7s3d4mIGUNBx+EcavUi9vG7tEDN7toQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@elevenlabs/cli-linux-arm64@1.4.0':
+    resolution: {integrity: sha512-1TUF/LHbpKglWTgWlnrr6bqRof/R4Qb5Rj85KBVCdbmZtA8jy7kHn7leImydabX/U1N4oxTzRqA6YNRQuz6P7w==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@elevenlabs/cli-linux-x64@1.4.0':
+    resolution: {integrity: sha512-oN+iyUZCJ622u46snklFNjPHch02mCnxHLW4VsQjDuVZjywIXIjf1qslWmpM6xszddwUBK7wN81x1xbfu09yoQ==}
+    cpu: [x64]
+    os: [linux]
+
+  '@elevenlabs/cli-win32-x64@1.4.0':
+    resolution: {integrity: sha512-I8hmPvHle2b5XFLejUo6N8eo0ZCkSq6DvFPoRbQvo+m1hytA77BImjBwynjUtD0sY/q0oof8PeDccYaJyGhb5w==}
+    cpu: [x64]
+    os: [win32]
+
+  '@elevenlabs/cli@1.4.0':
+    resolution: {integrity: sha512-U9vILt7uk0uEOuMmPHOsjMLn1x5uIj/BMzSjPBWuXncEYgtI+hhE33/NQnNE/t44bXfnVX3n7pgAb0E4mYX5oA==}
+    hasBin: true
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -2395,6 +2427,29 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@elevenlabs/cli-darwin-arm64@1.4.0':
+    optional: true
+
+  '@elevenlabs/cli-darwin-x64@1.4.0':
+    optional: true
+
+  '@elevenlabs/cli-linux-arm64@1.4.0':
+    optional: true
+
+  '@elevenlabs/cli-linux-x64@1.4.0':
+    optional: true
+
+  '@elevenlabs/cli-win32-x64@1.4.0':
+    optional: true
+
+  '@elevenlabs/cli@1.4.0':
+    optionalDependencies:
+      '@elevenlabs/cli-darwin-arm64': 1.4.0
+      '@elevenlabs/cli-darwin-x64': 1.4.0
+      '@elevenlabs/cli-linux-arm64': 1.4.0
+      '@elevenlabs/cli-linux-x64': 1.4.0
+      '@elevenlabs/cli-win32-x64': 1.4.0
 
   '@emnapi/core@1.10.0':
     dependencies:
