@@ -141,8 +141,6 @@ export function GardenDashboard({
           </div>
         </header>
 
-        <PracticeLinks />
-
         {state.scrubDate && (
           <div
             role="status"
@@ -162,45 +160,48 @@ export function GardenDashboard({
           </div>
         )}
 
-        <div className="flex min-w-0 flex-col gap-3">
-          <Breadcrumb
-            focus={focus}
-            dataset={dataset}
-            onFocus={actions.focusOn}
-            onZoomOut={actions.zoomOut}
-          />
-          <GardenSceneSlot
-            groves={dataset.groves}
-            plants={view.plants}
-            focus={focus}
-            onFocusChange={actions.focusOn}
-            asOf={new Date(view.cutoff).toISOString()}
-            isTimeTravel={view.isPast}
-            recentGrowthPlantKeys={recentGrowth}
-            evidence={view.evidence}
-            prerequisites={dataset.prerequisites}
-            revision={revision}
-            ruleVersion={dataset.freshness.rulesVersion}
-          />
-          <p className="sr-only" role="status" aria-live="polite">
-            Focused on {scopeLabel}.
-          </p>
-          {notice && (
-            <p
-              role="status"
-              className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
-            >
-              <span>{notice}</span>
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                aria-label="Dismiss"
-                className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
-              >
-                ×
-              </button>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+          <div className="flex min-w-0 flex-col gap-3">
+            <Breadcrumb
+              focus={focus}
+              dataset={dataset}
+              onFocus={actions.focusOn}
+              onZoomOut={actions.zoomOut}
+            />
+            <GardenSceneSlot
+              groves={dataset.groves}
+              plants={view.plants}
+              focus={focus}
+              onFocusChange={actions.focusOn}
+              asOf={new Date(view.cutoff).toISOString()}
+              isTimeTravel={view.isPast}
+              recentGrowthPlantKeys={recentGrowth}
+              evidence={view.evidence}
+              prerequisites={dataset.prerequisites}
+              revision={revision}
+              ruleVersion={dataset.freshness.rulesVersion}
+            />
+            <p className="sr-only" role="status" aria-live="polite">
+              Focused on {scopeLabel}.
             </p>
-          )}
+            {notice && (
+              <p
+                role="status"
+                className="flex items-start justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-foreground/80"
+              >
+                <span>{notice}</span>
+                <button
+                  type="button"
+                  onClick={() => setNotice(null)}
+                  aria-label="Dismiss"
+                  className="rounded px-1 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
+                >
+                  ×
+                </button>
+              </p>
+            )}
+          </div>
+          <PracticeLinks />
         </div>
 
         {focusedPlant && (
@@ -324,19 +325,38 @@ const PRACTICE: { href: Route; label: string; hint: string; character: Character
     hint: "Think aloud, with code",
     character: "arjuna",
   },
+  {
+    href: "/settings/schedule",
+    label: "Accountability calls",
+    hint: "Commitments and check-ins",
+    character: "bhima",
+  },
+  {
+    href: "/future-self",
+    label: "Future-self message",
+    hint: "Hear from the you to come",
+    character: "krishna",
+  },
+  {
+    href: "/recap",
+    label: "Weekly recap",
+    hint: "A narrated garden flythrough",
+    character: "sanjaya",
+  },
 ];
 
-/** Entry points to every practice mode: each guide's portrait breathes, and swells on hover. */
+/** Your guides: a column beside the garden. Each portrait breathes, and swells on hover. */
 function PracticeLinks() {
   return (
-    <nav aria-label="Practice" className="grid gap-3 sm:grid-cols-3">
+    <nav aria-label="Guides" className="flex min-w-0 flex-col gap-3">
+      <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Your guides</span>
       {PRACTICE.map((p) => {
         const meta = CHARACTER_META[p.character];
         return (
           <Link
             key={p.href}
             href={p.href}
-            className="glass group flex items-center gap-4 rounded-2xl p-3.5 outline-none transition hover:-translate-y-0.5 hover:border-glow/40 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-glow"
+            className="glass group flex items-center gap-4 rounded-2xl p-3 outline-none transition hover:-translate-y-0.5 hover:border-glow/40 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-glow"
           >
             <CharacterAvatar character={p.character} size={84} />
             <span className="min-w-0">
