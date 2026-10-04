@@ -242,6 +242,23 @@ class FailedEvent(BaseModel):
     received_at: datetime
 
 
+class CalibrationSummary(BaseModel):
+    """Latest judge run against the human-labeled calibration set (C23B)."""
+
+    generated_at: datetime
+    set_version: str
+    # True while the labels are written by the team, not independent human graders.
+    synthetic: bool
+    notice: str
+    judge_model: str
+    items: int
+    disagreements: int
+    disagreement_rate: float | None
+    severe_disagreements: int
+    assistance_mismatches: int
+    by_dimension: dict[str, int]  # disagreements per dimension
+
+
 class QualityReport(BaseModel):
     generated_at: datetime
     assessments_by_status: dict[str, int]
@@ -253,6 +270,7 @@ class QualityReport(BaseModel):
     # Upheld disputes / resolved disputes: the learner-visible proxy for judge error until the
     # human-labelled calibration set exists (C23). None while nothing is resolved.
     disagreement_rate: float | None
+    calibration: CalibrationSummary | None = None
     provider_events_by_status: dict[str, int]
     webhook_oldest_unprocessed_age_s: float | None
     webhook_avg_latency_s_24h: float | None
