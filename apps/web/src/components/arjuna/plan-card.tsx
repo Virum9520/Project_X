@@ -1,4 +1,5 @@
 import type { ArjunaPlan } from "@sg/contracts";
+import Link from "next/link";
 
 const title = (key: string) => key.split(".").pop()?.replaceAll("_", " ") ?? key;
 
@@ -22,7 +23,10 @@ export function PlanCard({ plan }: { plan: ArjunaPlan }) {
           : "No résumé or job description matched, so Arjuna will start with fundamentals."}{" "}
         {!plan.has_resume &&
           !plan.has_job_description &&
-          "Add a résumé or job description to tailor it."}
+          "Add a résumé or job description to tailor it. "}
+        <Link href="/interview/prepare" className="text-glow underline">
+          {plan.has_resume || plan.has_job_description ? "Change documents" : "Add documents"}
+        </Link>
       </p>
       <ol className="mt-3 flex flex-wrap gap-2" aria-label="Topics in order">
         {plan.probes.map((p, i) => (

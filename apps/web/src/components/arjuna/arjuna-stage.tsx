@@ -10,6 +10,7 @@ import type {
   ProblemView,
   RunnableLanguage,
 } from "@sg/contracts";
+import { RUNNABLE_LANGUAGES } from "@sg/contracts";
 import { fromAgentAlignment, useLipSync } from "@sg/three/avatar";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -26,6 +27,7 @@ import {
 import { AvatarSlot } from "@/components/session/avatar-slot";
 import { Captions, EvidenceTicker, QuestionCardView } from "@/components/session/stage-parts";
 import { createCodeSync, type CodeSync } from "@/lib/arjuna/code-sync";
+import { asRunnable, RUNNABLE_LABELS } from "@/lib/arjuna/language";
 import { latestRunFor, mergeRuns, pollCursor } from "@/lib/arjuna/runs";
 import { AlignmentClock } from "@/lib/session/alignment-clock";
 import { INITIAL_STAGE, createStageTools, stageReducer } from "@/lib/session/stage";
@@ -91,11 +93,11 @@ function Stage({ plan: initialPlan, initialConcept, vrmUrl }: ArjunaStageProps) 
       drafts.current.get(`${result.data.id}:${result.data.language}`) ?? result.data.starter_code,
     );
     setProblem(result.data);
-    setLanguage(result.data.language === "javascript" ? "javascript" : "python");
+    setLanguage(asRunnable(result.data.language));
     return `Editor opened with "${result.data.title}" in ${result.data.language}. ${
       result.data.tests_available
         ? "Tests can run."
-        : "Tests do not run for this language: ask the candidate to switch to Python or JavaScript."
+        : "Tests do not run for this language: ask the candidate to switch to Python, JavaScript or TypeScript."
     }`;
   }, []);
   const loadProblemRef = useRef(loadProblem);
@@ -343,7 +345,7 @@ function Stage({ plan: initialPlan, initialConcept, vrmUrl }: ArjunaStageProps) 
             <fieldset className="rounded-2xl border border-white/10 p-3">
               <legend className="px-1 text-xs text-foreground/60">Language for coding</legend>
               <div className="flex gap-4 text-sm">
-                {(["python", "javascript"] as const).map((l) => (
+                {RUNNABLE_LANGUAGES.map((l) => (
                   <label key={l} className="flex items-center gap-2">
                     <input
                       type="radio"
@@ -352,7 +354,7 @@ function Stage({ plan: initialPlan, initialConcept, vrmUrl }: ArjunaStageProps) 
                       checked={language === l}
                       onChange={() => setLanguage(l)}
                     />
-                    {l === "python" ? "Python" : "JavaScript"}
+                    {RUNNABLE_LABELS[l]}
                   </label>
                 ))}
               </div>
