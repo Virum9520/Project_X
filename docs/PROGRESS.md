@@ -174,14 +174,9 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
-<<<<<<< HEAD
-- 2026-10-04 · C16 follow-up · (PR awaiting approval) · Résumé/JD upload UI on C08's API feeding the interview plan; TypeScript test harness.
-- 2026-10-04 · C16 · [#24](https://github.com/Virum9520/Project_X/pull/24) (awaiting approval) · Arjuna technical interview: résumé/JD interview plan, 14-problem bank with hidden tests, E2B harness (Python, JavaScript), `run_tests`/`give_hint` tools with hint-aware `code_run` evidence, Monaco workbench with autosave and agent code updates, Scribe think-aloud captions, `/interview/technical`. No migration; sandbox, Scribe and voice not exercised live.
-- 2026-10-04 · C17 · (PR pending) · Vidura HR interview and Panel: `/interview` stage with tag-driven camera cuts and two lip-synced avatars, STAR behavioural bank with competency rotation, opt-in MediaPipe delivery aggregates (`POST /v1/sessions/{id}/delivery`), Panel prompt fallback, agent tests. No migration; unexercised live.
-=======
+- 2026-10-04 · C16 follow-up · [#25](https://github.com/Virum9520/Project_X/pull/25) · Résumé/JD upload UI on C08's API feeding the interview plan; TypeScript test harness.
 - 2026-10-04 · C16 · [#24](https://github.com/Virum9520/Project_X/pull/24) (merged) · Arjuna technical interview: résumé/JD interview plan, 14-problem bank with hidden tests, E2B harness (Python, JavaScript), `run_tests`/`give_hint` tools with hint-aware `code_run` evidence, Monaco workbench with autosave and agent code updates, Scribe think-aloud captions, `/interview/technical`. No migration; sandbox, Scribe and voice not exercised live.
 - 2026-10-04 · C17 · [#23](https://github.com/Virum9520/Project_X/pull/23) · Vidura HR interview and Panel: `/interview` stage with tag-driven camera cuts and two lip-synced avatars, STAR behavioural bank with competency rotation, opt-in MediaPipe delivery aggregates (`POST /v1/sessions/{id}/delivery`), Panel prompt fallback, agent tests. No migration; unexercised live.
->>>>>>> f5a23cf (docs: board rows C16/C17 done, drop C11 from C20 deps)
 - 2026-10-04 · C22 · (direct merge) · MCP gateway and owner assistant: MCP client, read-only tool allowlist with row/byte/time limits and per-call audit, OpenRouter tool-use loop with budget holds, owner-only `/v1/admin/assistant/*`, real Ask-the-assistant page, migration 0004 (`analytics.*` views and `sg_mcp_readonly`); mocked-provider tests, nothing exercised live
 - 2026-10-04 · C20 · (direct merge) · Living soundscape and Sanjaya recap: budget-held music/SFX asset script and manifest, `@sg/audio` engine in the dashboard, cited weekly recap with TTS-timestamp camera keyframes, private links, `/recap` page. No migration; unexercised live.
 - 2026-10-04 · C12 · (PR on `feat/c12-drona-loop-finish`) · Finish: dead stub micro-judge removed (C11's is live), `set_filter`/`scrub_timeline` wired into the stage with `focus_plant`, scene shows time travel. Live call still pending.
