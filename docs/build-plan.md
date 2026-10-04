@@ -405,7 +405,7 @@ This phase gets the most polish. See "USP: Garden Dashboard" above for the full 
    - SFX library for growth, bloom, wilt, ring and UI sounds.
    - Uploaded to S3 and versioned.
 2. Client audio engine: crossfade stems by garden health and time of day, with spatial SFX on plants and mute and volume controls.
-3. **Weekly Sanjaya recap** job:
+3. **Sanjaya recap** (on-demand, learner-triggered; no weekly cron):
    - Accepted assessments → narrative script with citations → TTS with timestamps.
    - **Camera keyframes timed to the moment each concept is spoken**, with Sanjaya on screen and lip-synced.
    - Playable cinematic flythrough, shareable as a private link.
