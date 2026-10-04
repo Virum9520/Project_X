@@ -35,6 +35,7 @@ Hackathon track: **AI — Actually Intelligent**. Product spec: [docs/architectu
 cp .env.example .env              # fill in DATABASE_URL and provider keys
 pnpm install
 uv sync --all-packages
+uv run alembic upgrade head       # create/upgrade the schema in DATABASE_URL
 
 pnpm dev                          # web on :3000, admin on :3001
 uv run --package sg_api uvicorn sg_api.main:app --reload --port 8000
