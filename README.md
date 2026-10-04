@@ -56,3 +56,4 @@ CI runs the same checks on every pull request (`.github/workflows/ci.yml`).
 
 Now: Vercel (`web`, `admin`) + Railway (`api`, `worker`, Redis) + Tiger Cloud + Hatchet Cloud +
 Cloudflare R2. Later: AWS ECS Fargate via Terraform. Python services share `services/Dockerfile`.
+Setup, environment variables, smoke test and rollback: [docs/hosting.md](docs/hosting.md).

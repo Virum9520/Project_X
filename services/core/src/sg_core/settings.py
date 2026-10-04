@@ -4,12 +4,13 @@ Every service reads configuration through `get_settings()`. Secrets are
 `SecretStr` so they never appear in logs or reprs.
 """
 
+import json
 from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field, PostgresDsn, SecretStr, field_validator
+from pydantic import AliasChoices, Field, PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -30,12 +31,17 @@ class Settings(BaseSettings):
     environment: Environment = Environment.LOCAL
     service_name: str = "skill-garden"
     log_level: str = "INFO"
+    # Commit being served; Railway injects RAILWAY_GIT_COMMIT_SHA automatically.
+    git_sha: str | None = Field(
+        default=None, validation_alias=AliasChoices("GIT_SHA", "RAILWAY_GIT_COMMIT_SHA")
+    )
 
     # Data
     database_url: PostgresDsn = Field(
         default=PostgresDsn("postgresql+asyncpg://postgres:postgres@localhost:5432/skill_garden"),
     )
-    redis_url: str = "redis://localhost:6379/0"
+    # Optional: when unset, Redis-backed features stay off and /readyz skips the check.
+    redis_url: str | None = None
 
     # Object storage (S3-compatible: MinIO locally, Cloudflare R2 now, AWS S3 later)
     s3_endpoint_url: str | None = "http://localhost:9000"
@@ -57,8 +63,13 @@ class Settings(BaseSettings):
     # Owner-console allowlist; checked server-side on every admin request.
     admin_owner_emails: Annotated[list[str], NoDecode] = []
 
-    # CORS
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+    # CORS: comma-separated (or JSON list) exact origins, plus an optional regex for
+    # preview deployments, e.g. https://skill-garden-web-[a-z0-9-]+-myteam\.vercel\.app
+    cors_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+    cors_origin_regex: str | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -70,6 +81,15 @@ class Settings(BaseSettings):
     def _split_emails(cls, value: object) -> object:
         if isinstance(value, str):
             return [e.strip().lower() for e in value.split(",") if e.strip()]
+        return value
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _split_origins(cls, value: object) -> object:
+        if isinstance(value, str):
+            if value.lstrip().startswith("["):
+                return json.loads(value)
+            return [o.strip().rstrip("/") for o in value.split(",") if o.strip()]
         return value
 
     @property

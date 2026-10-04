@@ -19,7 +19,7 @@ done, and the real integration waits.
 | C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | todo | | Most backend components wait on this |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
-| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
+| C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | in-review | `feat/c05-hosting` | Config, probes, smoke script and runbook ([hosting.md](hosting.md)) in the PR. The owner provisions accounts and tests manually before merging |
 | C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | todo | | The token endpoint needs C01; the rest can start now |
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
@@ -53,6 +53,14 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| Python service image: `SERVICE` build arg (`sg_api`, `sg_worker`, `sg_mcp_gateway`) | C05 | `services/Dockerfile`, `services/docker-entrypoint.sh` | Arguments after the image name replace the default process (e.g. `alembic upgrade head`) |
+| Railway config as code | C05 | `infra/railway/*.json` | C02: add `preDeployCommand` for migrations to `api.json` (see [hosting.md](hosting.md) §3.6) |
+| Redis client `get_redis()` / `ping()` | C05 | `services/core/src/sg_core/redis_client.py` | `REDIS_URL` is optional (`None` locally); `/readyz` checks Redis only when it is set |
+| Settings: `cors_origins` (CSV or JSON), `cors_origin_regex`, `git_sha` | C05 | `services/core/src/sg_core/settings.py` | `git_sha` reads `GIT_SHA` or `RAILWAY_GIT_COMMIT_SHA` |
+| `GET /healthz` (liveness) and `GET /readyz` (database and Redis) | C05 | `services/api/src/sg_api/routers/health.py` | `/readyz` is the Railway deploy gate |
+| `GET /healthz` on web and admin | C05 | `apps/*/src/app/healthz/route.ts` | C01: keep it public in `proxy.ts` |
+| `NEXT_PUBLIC_API_URL` | C05 | `apps/*/.env.example` | Base URL of the API for both Next apps |
+| Deploy smoke test | C05 | `scripts/smoke.py`, `python -m sg_worker.smoke` | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.

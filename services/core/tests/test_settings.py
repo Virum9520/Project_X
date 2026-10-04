@@ -27,3 +27,20 @@ def test_admin_owner_emails_parses_comma_separated(monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("ADMIN_OWNER_EMAILS", " Owner@Example.com, second@example.com ,")
     settings = Settings(_env_file=None)  # type: ignore[call-arg]
     assert settings.admin_owner_emails == ["owner@example.com", "second@example.com"]
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("https://a.example, https://b.example/ ,", ["https://a.example", "https://b.example"]),
+        ('["https://a.example"]', ["https://a.example"]),
+    ],
+)
+def test_cors_origins_accepts_csv_or_json(
+    monkeypatch: pytest.MonkeyPatch, raw: str, expected: list[str]
+) -> None:
+    from sg_core.settings import Settings
+
+    monkeypatch.setenv("CORS_ORIGINS", raw)
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert settings.cors_origins == expected

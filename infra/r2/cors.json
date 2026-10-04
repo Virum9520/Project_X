@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["http://localhost:3000", "https://REPLACE_WITH_WEB_DOMAIN"],
+        "methods": ["GET", "PUT", "HEAD"],
+        "headers": ["content-type", "content-md5", "x-amz-checksum-sha256"]
+      },
+      "exposeHeaders": ["ETag"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}
