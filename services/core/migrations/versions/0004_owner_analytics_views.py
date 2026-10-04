@@ -74,6 +74,7 @@ VIEWS: dict[str, str] = {
     "data_freshness": """
         SELECT 'usage_events' AS source, max(occurred_at) AS latest_at FROM public.usage_events
         UNION ALL SELECT 'cost_entries', max(created_at) FROM public.cost_entries
+          WHERE superseded_by_id IS NULL
         UNION ALL SELECT 'sessions', max(created_at) FROM public.sessions
         UNION ALL SELECT 'call_occurrences', max(updated_at) FROM public.call_occurrences
     """,
