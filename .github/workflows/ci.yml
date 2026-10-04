@@ -70,6 +70,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm build
 
   # Builds the Railway images (no push) so Dockerfile breakage shows up before deploy.

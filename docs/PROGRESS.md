@@ -27,7 +27,7 @@ done, and the real integration waits.
 | C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | done | `feat/c10-rules-engine` | Pure `sg_core.rules`, 158 tests (seeded property checks: determinism, order independence, idempotence, monotonic scores, assisted isolation). `communication` is decided: never grows a plant (see `rules/README.md`) |
 | C11 | Evidence and judge pipeline: post-call workflow, micro-judge, validation, garden revisions | 5 | C03, C04, C09, C10 | todo | | |
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
-| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | claimed | `feat/c13-3d-garden-scene` | Ready to start; uses mock garden state |
+| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | done | `feat/c13-3d-garden-scene` | Built on mock garden state; dev showcase at `/lab/garden`. C14 swaps the mock for the analytics API |
 | C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | todo | | USP. UI can start on mocks |
 | C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | todo | | Ready to start |
 | C16 | Arjuna technical interview: résumé and job description parsing, problem bank, Monaco, E2B tests, Scribe captions | 7 | C11, C12 | todo | | |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C08, C11, C13, C15, C18, C19, C21.
+**Ready now** (dependencies met): C08, C11, C14, C15, C18, C19, C21.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -94,6 +94,10 @@ event name or SSE channel), record it here in the same PR.
 | `POST /v1/agent-tools/get_briefing` | C09 | `services/api/src/sg_api/agent_tools/get_briefing.py` | `X-SG-Tool-Token` + `conversation_id`; `reason` steers retrieval. Returns `{briefing, focus_concept, due_concepts}`. Other tool routes can follow the same pattern in `sg_api/agent_tools/` |
 | `BriefingProvider.build(..., query_hint)`, `MemoryBriefingProvider` | C09 | `services/api/src/sg_api/sessions/briefing.py` | `get_briefing_provider()` now returns the memory-backed provider; falls back to the stub text if the learner has no `users` row yet or the database is down. `Learner.user_id` is the Clerk ID, mapped to `users.id` through `clerk_user_id` |
 | Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/` (`/app/curriculum` in the service image) |
+| Garden snapshot read model (`GardenSnapshot`, `PlantSnapshot`, `DimensionScore`, `PrerequisiteEdge`, `PLANT_STATUSES`) | C13 | `packages/contracts/src/index.ts` | What the scene renders. C14's `/garden/*` API should serve this shape; every curriculum concept is listed, unassessed ones included. `PLANT_STATUSES` mirrors Python `PlantStatus` (test-enforced) |
+| Garden generator, growth mapping, semantic-zoom navigation | C13 | `@sg/three` (pure TS, server-safe) | `generateGardenLayout` (deterministic, placement ignores scores), `plantGrowth` (dimension → part; solid/assisted ghost/provisional), `GardenFocus` + `zoomOut`/`zoomIn`/`moveSibling`, URL form via `focusToString`/`focusFromString` (`grove:dsa`, `plant:dsa.graphs`, `part:dsa.graphs:roots`) |
+| `GardenScene` React component | C13 | `@sg/three/scene` (client-only) | Load with `next/dynamic(..., { ssr: false })` from a `'use client'` file. Props: `snapshot`, controlled `focus`/`onFocusChange`, `matchedConceptIds` (filter dimming), `pulseConceptIds` (live SSE glow), `evidence(conceptId, part)` + `onEvidenceSelect`, `timeOfDay`, `quality`, `keyboard` |
+| Mock garden data | C13 | `@sg/three` (`mockGardenSnapshot`, `mockGardenHistory`, `mockEvidence`, `withProvisionalGrowth`) | Seeded demo learner over 16 revisions with every status. Mock concept ids are illustrative; C07 owns the real curriculum |
 | `POST /v1/webhooks/{provider}` | C04 | `services/api/src/sg_api/webhooks/router.py` | Public; the provider signature is the auth. 401 bad signature, 404 unknown provider, 202 stored (also for duplicates) |
 | `sg_core.webhooks`: `VerifierRegistry`, `WebhookVerifier`, `ElevenLabsVerifier`, `default_registry`, `ingest_webhook`, `mark_event` | C04 | `services/core/src/sg_core/webhooks/` | Add a provider by implementing `verify(headers, body)` + `parse(body)` (stable `event_id`) and registering it in `default_registry`. ElevenLabs event id = `<type>:<conversation_id>` |
 | Event handlers: `sg_worker.provider_events.handlers.register(provider, event_type)` | C04 | `services/worker/src/sg_worker/provider_events.py` | `async (session, ProviderEvent) -> None`; runs under a row lock, exactly-once-effective, writes commit with the status change. C11 registers `elevenlabs`/`post_call_transcription`. Unregistered types become `ignored`; failures become `failed` (see `list_dead_letters`) and are retried by Hatchet |
@@ -104,6 +108,7 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C13 · [#13](https://github.com/Virum9520/Project_X/pull/13) · 3D garden scene in `packages/three`: deterministic garden generator, shader-grown concept plants (roots/stem/branches/blossoms, assisted ghost growth, live provisional glow, wilting), floating island with pond, grass, ez-tree elder trees, glowing prerequisite roots, day-night, bloom and depth of field, Garden → Grove → Plant → Part camera zoom with keyboard navigation and orbiting evidence cards, mock garden data, `/lab/garden` showcase.
 - 2026-10-04 · C09 · [#19](https://github.com/Virum9520/Project_X/pull/19) · Memory Persistence Engine: append-only store with supersede/promote rules, ranked bounded briefing (pgvector similarity, recency, due-ness, visibility, data-not-instructions framing), garden/analytics projections with evidence citations, real `get_briefing` tool and session briefing.
 - 2026-10-04 · C10 · [#18](https://github.com/Virum9520/Project_X/pull/18) · Deterministic versioned rules engine `sg_core.rules` with normal and demo profiles; assisted/independent tracks, distinct problem families, citations, spaced-repetition DUE/WILTING overlay, replay and idempotence tests.
 - 2026-10-04 · C01 follow-up · [#17](https://github.com/Virum9520/Project_X/pull/17) · DB-backed grants, `audit_log` sink and users/profiles mirror (no migration); capability catalogue seeded idempotently.

@@ -52,6 +52,7 @@ def test_enums_match_the_typescript_contracts() -> None:
     assert [c.value for c in Character] == _ts_string_array("CHARACTERS")
     stages = _ts_string_array("PLANT_STAGES")
     assert [s.value for s in PlantStatus][: len(stages)] == stages
+    assert [s.value for s in PlantStatus] == [*stages, "due", "wilting"]  # PLANT_STATUSES
     assert {d.value for d in Dimension} == {
         "explanation",
         "application",
