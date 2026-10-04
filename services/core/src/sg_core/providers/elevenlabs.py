@@ -7,6 +7,7 @@ consumed to the usage ledger. Budget holds are the caller's job (`sg_core.econom
 keep this adapter free of business logic.
 """
 
+import base64
 import json
 from decimal import Decimal
 from types import TracebackType
@@ -48,6 +49,20 @@ class VoiceDesignResult(BaseModel):
 class AudioResult(BaseModel):
     audio: bytes
     media_type: str = "audio/mpeg"
+
+
+class CharacterAlignment(BaseModel):
+    """Per-character timing (seconds) for spoken text, as returned by `with-timestamps` TTS."""
+
+    characters: list[str]
+    start_times: list[float]
+    end_times: list[float]
+
+
+class TimedAudioResult(BaseModel):
+    audio: bytes
+    media_type: str = "audio/mpeg"
+    alignment: CharacterAlignment | None = None
 
 
 class Transcript(BaseModel):
@@ -207,6 +222,47 @@ class ElevenLabsClient:
             ),
         )
         return AudioResult(audio=response.content, media_type=_media_type(response))
+
+    async def text_to_speech_with_timestamps(
+        self,
+        voice_id: str,
+        text: str,
+        *,
+        model_id: str = "eleven_flash_v2_5",
+        output_format: str = "mp3_44100_128",
+        usage: UsageContext | None = None,
+    ) -> TimedAudioResult:
+        """Speech plus per-character alignment (C20 recap: camera keyframes follow the words).
+
+        Not exercised live; confirm the `/with-timestamps` response shape against the vendor docs.
+        """
+        data = await self._request(
+            "POST",
+            f"/v1/text-to-speech/{voice_id}/with-timestamps",
+            params={"output_format": output_format},
+            json={"text": text, "model_id": model_id},
+            timeout=180.0,
+        )
+        raw = data.get("alignment") or data.get("normalized_alignment")
+        alignment = (
+            CharacterAlignment(
+                characters=list(raw["characters"]),
+                start_times=[float(t) for t in raw["character_start_times_seconds"]],
+                end_times=[float(t) for t in raw["character_end_times_seconds"]],
+            )
+            if raw
+            else None
+        )
+        await self._report(
+            usage,
+            UsageMeasure(
+                provider="elevenlabs",
+                model=model_id,
+                billable_units=Decimal(len(text)),
+                billable_unit="tts_character",
+            ),
+        )
+        return TimedAudioResult(audio=base64.b64decode(data["audio_base64"]), alignment=alignment)
 
     async def generate_sound_effect(
         self,
