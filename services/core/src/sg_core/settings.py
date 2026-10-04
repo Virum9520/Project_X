@@ -81,6 +81,27 @@ class Settings(BaseSettings):
     developer_monthly_budget_usd: Decimal = Decimal("25")
     owner_assistant_monthly_budget_usd: Decimal = Decimal("10")
 
+    # Owner assistant and MCP gateway (C22). Upstream MCP servers are optional: a missing one
+    # yields an explicit partial answer. The ElevenLabs hosted MCP uses OAuth; the backend holds
+    # the access token the owner granted (never sent to the browser or the model). Tiger MCP is a
+    # sidecar (HTTP transport) connected as a dedicated read-only role limited to `analytics.*`.
+    elevenlabs_mcp_url: str | None = None
+    elevenlabs_mcp_access_token: SecretStr | None = None
+    tiger_mcp_url: str | None = None
+    tiger_mcp_token: SecretStr | None = None
+    tiger_mcp_service_id: str | None = None
+    # Model for the assistant (None = `llm_default_model`) and its per-question limits.
+    owner_assistant_model: str | None = None
+    owner_assistant_max_steps: int = 6  # model turns per question; also bounds tool calls
+    owner_assistant_max_tool_calls: int = 8
+    owner_assistant_max_rows: int = 200
+    owner_assistant_max_tool_bytes: int = 24_000
+    owner_assistant_tool_timeout_seconds: float = 20.0
+    owner_assistant_max_concurrent_queries: int = 2
+    owner_assistant_max_output_tokens: int = 1200
+    # Budget held before each model turn (settled at the real cost, released on failure).
+    owner_assistant_turn_hold_usd: Decimal = Decimal("0.15")
+
     # Owner console "Call now" (C21): where a developer test call may go, how often, how long.
     # "web" = the web call channel; anything else must be a verified E.164 test number.
     call_now_approved_targets: Annotated[list[str], NoDecode] = ["web"]

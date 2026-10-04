@@ -5,6 +5,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
   "sg_core",
   "sg_worker",
+  "sg_mcp_gateway",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.32",
   "alembic>=1.14",
@@ -22,3 +23,4 @@ packages = ["src/sg_api"]
 [tool.uv.sources]
 sg_core = { workspace = true }
 sg_worker = { workspace = true }
+sg_mcp_gateway = { workspace = true }

@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12, <3.14"
 
 [manifest]
@@ -1651,6 +1651,7 @@ dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-multipart" },
     { name = "sg-core" },
+    { name = "sg-mcp-gateway" },
     { name = "sg-worker" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1662,6 +1663,7 @@ requires-dist = [
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.9" },
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "sg-core", editable = "services/core" },
+    { name = "sg-mcp-gateway", editable = "services/mcp_gateway" },
     { name = "sg-worker", editable = "services/worker" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]

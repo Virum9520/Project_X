@@ -274,3 +274,54 @@ export interface AuditPage {
   items: AuditRow[];
   next_before: string | null;
 }
+
+/** Owner assistant (C22): `POST /v1/admin/assistant/ask`, `GET /v1/admin/assistant/status`. */
+export interface AssistantBasis {
+  date_range: string;
+  metrics: string[];
+  filters: string[];
+  freshness: string;
+  amounts: string;
+}
+
+export interface AssistantToolTrace {
+  tool: string;
+  provider: string | null;
+  ok: boolean;
+  rows: number | null;
+  truncated: boolean;
+  duration_ms: number;
+  error: string | null;
+}
+
+export interface AssistantTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface AssistantAnswer {
+  request_id: string;
+  answer: string;
+  basis: AssistantBasis | null;
+  hypotheses: string[];
+  partial: boolean;
+  unavailable_providers: Record<string, string>;
+  tools: AssistantToolTrace[];
+  warnings: string[];
+  cost_usd: number;
+  steps: number;
+  model: string | null;
+  stopped: string | null;
+  generated_at: string;
+}
+
+export interface AssistantStatus {
+  generated_at: string;
+  model: string;
+  model_configured: boolean;
+  read_only: true;
+  providers: Record<string, boolean>;
+  tools: string[];
+  limits: Record<string, number>;
+  budget: BudgetStatus | null;
+}
