@@ -6,8 +6,8 @@ const isPublic = createRouteMatcher([
   "/healthz",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  // Mock-data dashboard preview; the page itself 404s in production.
-  ...(process.env.NODE_ENV === "production" ? [] : ["/dev/garden"]),
+  // Dev-only component harnesses (the pages 404 in production).
+  ...(process.env.NODE_ENV === "production" ? [] : ["/dev", "/dev/(.*)"]),
 ]);
 
 export default clerkMiddleware(

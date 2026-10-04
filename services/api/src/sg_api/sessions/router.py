@@ -6,7 +6,6 @@ context and the server-tool token) and the session ID.
 
 Pending integrations (see docs/PROGRESS.md, C06 row):
 - C02: persist the session row (`sessions.el_conversation_id`, `agent_version`).
-- C09: the real briefing builder replaces `StubBriefingProvider`.
 - C03: budget reservation before minting a token.
 """
 

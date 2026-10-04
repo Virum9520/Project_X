@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.10",
+    "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
     "@sg/contracts": "workspace:*",
+    "@sg/three": "workspace:*",
     "@sg/ui": "workspace:*",
     "next": "16.3.8",
     "react": "19.2.8",

@@ -14,6 +14,8 @@ dependencies = [
   "pyjwt[crypto]>=2.9",
   "redis>=5.2",
   "pyyaml>=6.0",
+  "boto3>=1.43.108",
+  "e2b>=2.52.0",
 ]
 
 [build-system]
@@ -22,3 +24,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sg_core"]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs>=1.43.108",
+]
