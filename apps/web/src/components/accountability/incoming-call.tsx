@@ -5,6 +5,7 @@ import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { CharacterAvatar } from "@/components/character/character-avatar";
 import { useSoundscape } from "@/components/soundscape/soundscape-provider";
 import { accountability, ApiError } from "@/lib/accountability/client";
 import { formatClock, secondsUntil } from "@/lib/accountability/helpers";
@@ -286,14 +287,5 @@ function Screen({ attemptId }: { attemptId: string }) {
 }
 
 function Avatar({ pulsing }: { pulsing: boolean }) {
-  return (
-    <div className="relative grid size-36 place-items-center" aria-hidden>
-      {pulsing && (
-        <span className="absolute inset-0 animate-ping rounded-full bg-moss/30 motion-reduce:hidden" />
-      )}
-      <span className="relative grid size-32 place-items-center rounded-full border border-white/15 bg-dusk text-5xl font-semibold text-glow">
-        B
-      </span>
-    </div>
-  );
+  return <CharacterAvatar character="bhima" size={176} speaking={pulsing} />;
 }

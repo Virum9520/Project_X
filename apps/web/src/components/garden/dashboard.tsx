@@ -1,5 +1,6 @@
 "use client";
 
+import { CHARACTER_META, CharacterAvatar } from "@/components/character/character-avatar";
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
 import type { Route } from "next";
 import Link from "next/link";
@@ -119,7 +120,9 @@ export function GardenDashboard({
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-base uppercase tracking-[0.3em] text-glow">Garden dashboard</p>
-            <h1 className="mt-1 text-4xl font-semibold sm:text-5xl">Your garden</h1>
+            <h1 className="mt-1 bg-gradient-to-r from-foreground via-glow to-bloom bg-clip-text text-4xl font-semibold text-transparent sm:text-5xl">
+              Your garden
+            </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
             <SoundControls recentGrowthPlantKeys={recentGrowth} />
@@ -302,27 +305,56 @@ export function GardenDashboard({
   );
 }
 
-const PRACTICE: { href: Route; label: string; hint: string }[] = [
-  { href: "/session", label: "Voice session", hint: "Drona, concept by concept" },
-  { href: "/interview", label: "HR and panel interview", hint: "Vidura and Arjuna" },
-  { href: "/interview/technical", label: "Technical interview", hint: "Arjuna, with code" },
+const PRACTICE: { href: Route; label: string; hint: string; character: Character }[] = [
+  {
+    href: "/session",
+    label: "Voice session",
+    hint: "Concept by concept, out loud",
+    character: "drona",
+  },
+  {
+    href: "/interview",
+    label: "HR and panel interview",
+    hint: "Behavioural questions",
+    character: "vidura",
+  },
+  {
+    href: "/interview/technical",
+    label: "Technical interview",
+    hint: "Think aloud, with code",
+    character: "arjuna",
+  },
 ];
 
-/** Entry points to every practice mode, so the garden is one click from the next session. */
+/** Entry points to every practice mode: each guide's portrait breathes, and swells on hover. */
 function PracticeLinks() {
   return (
-    <nav aria-label="Practice" className="flex flex-wrap items-center gap-3 text-lg">
-      <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Practise</span>
-      {PRACTICE.map((p) => (
-        <Link
-          key={p.href}
-          href={p.href}
-          title={p.hint}
-          className="rounded-xl border border-white/15 px-5 py-2.5 text-foreground/90 outline-none hover:border-glow/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-glow"
-        >
-          {p.label}
-        </Link>
-      ))}
+    <nav aria-label="Practice" className="grid gap-3 sm:grid-cols-3">
+      {PRACTICE.map((p) => {
+        const meta = CHARACTER_META[p.character];
+        return (
+          <Link
+            key={p.href}
+            href={p.href}
+            className="glass group flex items-center gap-4 rounded-2xl p-3.5 outline-none transition hover:-translate-y-0.5 hover:border-glow/40 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-glow"
+          >
+            <CharacterAvatar character={p.character} size={84} />
+            <span className="min-w-0">
+              <span className="block text-xs uppercase tracking-[0.2em] text-foreground/50">
+                {meta.name} · {meta.role}
+              </span>
+              <span className="mt-0.5 block text-lg font-medium leading-tight">{p.label}</span>
+              <span className="block text-sm text-foreground/60">{p.hint}</span>
+            </span>
+            <span
+              aria-hidden
+              className="ml-auto text-xl text-glow transition group-hover:translate-x-1"
+            >
+              →
+            </span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

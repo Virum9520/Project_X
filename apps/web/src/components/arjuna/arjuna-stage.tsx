@@ -327,7 +327,7 @@ function Stage({ plan: initialPlan, initialConcept, vrmUrl }: ArjunaStageProps) 
             className="relative h-72 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-dusk to-night"
             data-testid="avatar-stage"
           >
-            <AvatarSlot driver={lipSync} vrmUrl={vrmUrl} />
+            <AvatarSlot driver={lipSync} vrmUrl={vrmUrl} character="arjuna" />
             <span
               className="absolute left-3 top-3 rounded-full bg-night/70 px-2.5 py-1 text-xs backdrop-blur"
               role="status"
