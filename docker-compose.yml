@@ -1,0 +1,33 @@
+# Optional local infrastructure for contributors with Docker.
+# Without Docker: point DATABASE_URL at a Tiger Cloud dev service and the
+# worker uses Hatchet's embedded engine automatically.
+services:
+  db:
+    image: timescale/timescaledb-ha:pg17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: skill_garden
+    ports: ["5432:5432"]
+    volumes: ["db-data:/home/postgres/pgdata/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d skill_garden"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["minio-data:/data"]
+
+volumes:
+  db-data:
+  minio-data:

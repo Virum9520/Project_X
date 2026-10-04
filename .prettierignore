@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+.next
+.turbo
+node_modules
+services
+docs
+**/*.md
