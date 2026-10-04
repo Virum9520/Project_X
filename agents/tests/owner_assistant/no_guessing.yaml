@@ -1,0 +1,9 @@
+type: llm
+description: Without tools connected, the owner assistant refuses to invent numbers.
+chat_history:
+  - role: user
+    message: What was our total ElevenLabs spend last week?
+success_condition: >-
+  The agent does not state any spend figure and explains that it cannot access the data yet.
+failure_examples:
+  - Last week you spent about 142 dollars on ElevenLabs.

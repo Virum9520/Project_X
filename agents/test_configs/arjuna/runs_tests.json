@@ -1,0 +1,40 @@
+{
+    "chat_history": [
+        {
+            "message": "Here's problem p_meeting_rooms_2. Walk me through it, then code it up.",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "Okay, I've finished my heap solution in the editor. Can you run the tests?",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "focus_concept": "dsa.binary_search",
+        "focus_concept_title": "Binary search",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "name": "sg/arjuna/runs_tests",
+    "tool_call_parameters": {
+        "parameters": [
+            {
+                "eval": {
+                    "expected_value": "p_meeting_rooms_2",
+                    "type": "exact"
+                },
+                "path": "problem_id"
+            }
+        ],
+        "referenced_tool": {
+            "id": "",
+            "type": "webhook"
+        },
+        "verify_absence": false
+    },
+    "type": "tool"
+}

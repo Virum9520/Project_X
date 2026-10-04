@@ -1,0 +1,45 @@
+# Generic outcome levels for each evidence dimension. Concept rubrics add the specific
+# criteria; these define what "demonstrated", "partial" and "not_demonstrated" mean.
+# Plant parts: explanation = roots, application = stem, transfer = branches, retention = blossoms.
+dimensions:
+  - dimension: explanation
+    description: Can the learner explain the concept accurately in their own words, including why it works and where it breaks?
+    levels:
+      demonstrated: Covers the concept's key criteria correctly and unprompted, gives the reasoning (not just the definition), and can answer a follow-up "why" without new errors.
+      partial: Correct core idea, but misses a key criterion, needs prompting to reach it, or contains a minor inaccuracy the learner does not catch.
+      not_demonstrated: Definition-only recall, a significant error or listed misconception, or no attempt.
+    evidence:
+      - Teach-back answers in which the learner explains the concept to Drona
+      - Answers to "why" and "what if" cross-questions
+      - Think-aloud narration while solving
+
+  - dimension: application
+    description: Can the learner use the concept to solve a concrete problem correctly?
+    levels:
+      demonstrated: Chooses the concept for a fitting problem, applies it correctly end to end (code that passes tests or a complete worked trace), and states the resulting complexity or outcome.
+      partial: Picks a suitable approach but the solution has a bug, gap or wrong complexity, or it needed a hint to finish.
+      not_demonstrated: Wrong approach, cannot make progress, or the solution does not work.
+    evidence:
+      - Code snapshots with sandbox test results
+      - Worked examples and hand traces narrated aloud
+      - Interview problem attempts with Arjuna
+
+  - dimension: transfer
+    description: Can the learner recognize and adapt the concept in an unfamiliar setting or a different problem family?
+    levels:
+      demonstrated: Spots that the concept applies to a new problem family or another domain without being told, and adapts it correctly, explaining what changes and what stays the same.
+      partial: Makes the connection only when prompted, or adapts it with notable gaps.
+      not_demonstrated: Does not see the connection even when prompted, or forces the concept where it does not fit.
+    evidence:
+      - Novel-context questions from a different problem family than earlier evidence
+      - Cross-domain questions (for example, a data structure inside a system design)
+
+  - dimension: retention
+    description: Does the understanding survive time? Assessed on spaced reviews only.
+    levels:
+      demonstrated: After the review interval, re-demonstrates the explanation or application criteria without a refresher.
+      partial: Recalls the core idea but needs a cue, or loses some criteria shown earlier.
+      not_demonstrated: Cannot reproduce what was demonstrated before.
+    evidence:
+      - Spaced-repetition questions on due concepts (Bhima calls, review sessions)
+      - Unprompted correct use in a later session

@@ -1,0 +1,56 @@
+{
+    "chat_history": [
+        {
+            "message": "In your own words, what is binary search and when would you use it?",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "It finds an item in a sorted array by checking the middle and discarding the half that can't contain the target, so it takes log n steps. You need the data to be sorted.",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "due_concepts": "none",
+        "focus_concept": "dsa.binary_search",
+        "focus_concept_title": "Binary search",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "name": "sg/drona/records_observation",
+    "tool_call_parameters": {
+        "parameters": [
+            {
+                "eval": {
+                    "pattern": "binary_search",
+                    "type": "regex"
+                },
+                "path": "concept_id"
+            },
+            {
+                "eval": {
+                    "expected_value": "independent",
+                    "type": "exact"
+                },
+                "path": "assistance"
+            },
+            {
+                "eval": {
+                    "description": "Should be explanation or retention, since the learner explained the concept.",
+                    "type": "llm"
+                },
+                "path": "dimension"
+            }
+        ],
+        "referenced_tool": {
+            "id": "",
+            "type": "webhook"
+        },
+        "verify_absence": false
+    },
+    "type": "tool"
+}

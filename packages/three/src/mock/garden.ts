@@ -77,7 +77,7 @@ const GROVES: { id: string; label: string; concepts: [string, string][] }[] = [
     ],
   },
   {
-    id: "system-design",
+    id: "system_design",
     label: "System Design",
     concepts: [
       ["scalability", "Scalability Basics"],
@@ -127,22 +127,22 @@ const EDGES: [string, string][] = [
   ["databases.sql-joins", "databases.indexing"],
   ["databases.relational", "databases.transactions"],
   ["databases.indexing", "databases.nosql"],
-  ["system-design.scalability", "system-design.caching"],
-  ["system-design.scalability", "system-design.sharding"],
-  ["system-design.scalability", "system-design.queues"],
-  ["system-design.sharding", "system-design.consistency"],
-  ["system-design.caching", "system-design.rate-limiting"],
+  ["system_design.scalability", "system_design.caching"],
+  ["system_design.scalability", "system_design.sharding"],
+  ["system_design.scalability", "system_design.queues"],
+  ["system_design.sharding", "system_design.consistency"],
+  ["system_design.caching", "system_design.rate-limiting"],
   ["behavioral.star", "behavioral.ownership"],
   ["behavioral.star", "behavioral.conflict"],
   ["behavioral.star", "behavioral.failure"],
   ["behavioral.ownership", "behavioral.leadership"],
   // Cross-domain roots.
-  ["dsa.hashing", "system-design.caching"],
+  ["dsa.hashing", "system_design.caching"],
   ["dsa.trees", "databases.indexing"],
-  ["dsa.stacks-queues", "system-design.queues"],
+  ["dsa.stacks-queues", "system_design.queues"],
   ["os.synchronization", "databases.transactions"],
-  ["networks.load-balancing", "system-design.scalability"],
-  ["databases.transactions", "system-design.consistency"],
+  ["networks.load-balancing", "system_design.scalability"],
+  ["databases.transactions", "system_design.consistency"],
 ];
 
 export const MOCK_REVISIONS = 16;

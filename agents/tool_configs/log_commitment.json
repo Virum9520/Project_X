@@ -1,0 +1,55 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for log_commitment",
+            "properties": {
+                "concept_id": {
+                    "description": "Related curriculum concept ID, if any.",
+                    "type": "string"
+                },
+                "confirmed_by_learner": {
+                    "description": "True only if the learner explicitly confirmed the commitment as read back.",
+                    "type": "boolean"
+                },
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The commitment in the learner's words, specific and measurable.",
+                    "type": "string"
+                },
+                "due_local": {
+                    "description": "When it is due in the learner's local time, ISO 8601 without offset, e.g. 2026-10-05T21:00.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "due_local",
+                "confirmed_by_learner",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/log_commitment"
+    },
+    "description": "Save one specific commitment the learner has explicitly agreed to, such as \"solve two graph problems by 9 PM\". Only call it after you have read the commitment back and the learner has said yes. Use it for the learner's own promises, not your suggestions.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": false,
+    "name": "log_commitment",
+    "response_timeout_secs": 8,
+    "type": "webhook"
+}

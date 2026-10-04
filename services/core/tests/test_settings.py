@@ -27,3 +27,21 @@ def test_admin_owner_emails_parses_comma_separated(monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("ADMIN_OWNER_EMAILS", " Owner@Example.com, second@example.com ,")
     settings = Settings(_env_file=None)  # type: ignore[call-arg]
     assert settings.admin_owner_emails == ["owner@example.com", "second@example.com"]
+
+
+def test_origins_and_issuer_are_normalized(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sg_core.settings import Settings
+
+    monkeypatch.setenv("CORS_ORIGINS", "http://localhost:3000/, https://app.example.com")
+    monkeypatch.setenv("CLERK_ISSUER", " https://x.clerk.accounts.dev/ ")
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert settings.cors_origins == ["http://localhost:3000", "https://app.example.com"]
+    assert settings.authorized_parties == settings.cors_origins
+    assert settings.clerk_issuer == "https://x.clerk.accounts.dev"
+
+
+def test_empty_curriculum_dir_means_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sg_core.settings import Settings
+
+    monkeypatch.setenv("CURRICULUM_DIR", "")
+    assert Settings(_env_file=None).curriculum_dir is None  # type: ignore[call-arg]

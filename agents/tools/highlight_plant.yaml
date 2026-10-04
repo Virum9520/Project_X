@@ -1,0 +1,16 @@
+name: highlight_plant
+type: client
+description: >-
+  Make a concept's plant glow in the garden view so the learner can see what you are talking
+  about. Visual only; it does not change progress.
+timeout_secs: 5
+parameters:
+  required: [concept_id]
+  properties:
+    concept_id:
+      type: string
+      description: Concept ID of the plant.
+    part:
+      type: string
+      description: Which part of the plant to emphasise.
+      enum: [whole, roots, stem, branches, blossoms]

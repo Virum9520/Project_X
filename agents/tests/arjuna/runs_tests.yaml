@@ -1,0 +1,11 @@
+type: tool
+description: Arjuna runs the tests when the candidate is ready.
+tool: run_tests
+chat_history:
+  - role: agent
+    message: Here's problem p_meeting_rooms_2. Walk me through it, then code it up.
+  - role: user
+    message: Okay, I've finished my heap solution in the editor. Can you run the tests?
+tool_parameters:
+  - path: problem_id
+    exact: p_meeting_rooms_2

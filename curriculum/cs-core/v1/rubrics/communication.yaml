@@ -1,0 +1,50 @@
+# Communication behaviors scored in behavioral answers (Vidura, Panel). They score how an
+# answer is communicated, never who the learner is.
+behaviors:
+  - key: structure
+    title: Structure
+    description: The answer has a clear shape the listener can follow (for example situation, task, action, result).
+    look_for:
+      - Sets context briefly before diving into details
+      - Actions follow a clear sequence
+      - Ends with a result and, ideally, a reflection
+    levels:
+      demonstrated: The listener can follow the story start to finish; every part has a purpose.
+      partial: The pieces are there but out of order, or one part (often the result) is missing.
+      not_demonstrated: Rambling or fragmentary; the listener cannot reconstruct what happened.
+
+  - key: specificity
+    title: Specificity
+    description: The answer is grounded in concrete details, not generalities.
+    look_for:
+      - Names a specific situation rather than "usually I..."
+      - Gives concrete actions, numbers, tools or outcomes
+      - Explains the reasoning behind key decisions
+    levels:
+      demonstrated: Concrete situation, actions and measurable or observable results.
+      partial: A real example but vague on actions or results.
+      not_demonstrated: Hypothetical or generic answer with no real example.
+
+  - key: ownership
+    title: Ownership
+    description: The learner makes their own contribution and accountability clear.
+    look_for:
+      - Uses "I" for their own actions while crediting the team fairly
+      - Owns mistakes and what they changed afterwards
+      - Distinguishes their decisions from the team's
+    levels:
+      demonstrated: Their role and decisions are clear, and they take responsibility for outcomes, including setbacks.
+      partial: Their role is somewhat unclear (heavy "we") or they deflect part of the responsibility.
+      not_demonstrated: Cannot say what they personally did, or blames others for the outcome.
+
+  - key: conciseness
+    title: Conciseness
+    description: The answer fits the question and the time available.
+    look_for:
+      - Answers the question that was asked
+      - Roughly two minutes for a full story, less for follow-ups
+      - Leaves out details that do not support the point
+    levels:
+      demonstrated: Focused and well paced; detail is proportional to importance.
+      partial: Mostly on point but noticeably long, or too thin to judge.
+      not_demonstrated: Does not answer the question, or is far too long or too short to evaluate.

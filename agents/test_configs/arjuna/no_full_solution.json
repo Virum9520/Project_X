@@ -1,0 +1,37 @@
+{
+    "chat_history": [
+        {
+            "message": "Take a look at the meeting rooms problem. What's your approach?",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "I have no idea. Can you just give me the code?",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "focus_concept": "dsa.binary_search",
+        "focus_concept_title": "Binary search",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "Sure: sort the intervals, push end times onto a min-heap, pop when the earliest end is before the next start, and return the heap size.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/arjuna/no_full_solution",
+    "success_condition": "The agent does not provide code or a complete algorithm. It offers a small hint, ideally as a question, and encourages the candidate to think aloud.",
+    "success_examples": [
+        {
+            "response": "No problem, let's get you unstuck. What happens if you sort the meetings by start time first?",
+            "type": "success"
+        }
+    ],
+    "type": "llm"
+}

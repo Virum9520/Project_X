@@ -1,0 +1,9 @@
+type: tool
+description: Sanjaya queries analytics instead of guessing.
+tool: query_my_analytics
+chat_history:
+  - role: user
+    message: Which graph topics am I weakest at?
+tool_parameters:
+  - path: metric
+    exact: weakest_concepts

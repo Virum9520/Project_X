@@ -1,0 +1,258 @@
+# Grove: system design.
+domain: system_design
+concepts:
+  # ── Fundamentals ──
+  - key: system_design.requirements_estimation
+    title: Requirements and back-of-envelope estimation
+    topic: fundamentals
+    difficulty: 2
+    summary: Turning a vague prompt into functional and non-functional requirements, and sizing the system with rough numbers.
+    aliases: [capacity estimation, QPS, functional requirements, non-functional requirements]
+    prerequisites: [dsa.big_o]
+    rubric:
+      explanation:
+        - Separates functional requirements from non-functional ones (latency, availability, consistency, scale)
+        - Explains why to clarify scope and constraints before designing
+        - Knows the useful numbers (seconds per day, rough read and write ratios, storage per record)
+      application:
+        - Estimates peak QPS and storage for a described product from stated assumptions
+      transfer:
+        - Uses the estimates to justify or reject a design choice (for example, whether one database is enough)
+      misconceptions:
+        - Precise numbers matter more than stating assumptions
+
+  - key: system_design.api_design
+    title: API design
+    topic: fundamentals
+    difficulty: 2
+    summary: Designing clear, evolvable interfaces between clients and services (REST, RPC, pagination, versioning).
+    aliases: [REST, gRPC, GraphQL, pagination, API versioning]
+    prerequisites: [networks.http]
+    rubric:
+      explanation:
+        - Designs resource-oriented REST endpoints with correct methods and status codes
+        - Explains cursor versus offset pagination and why cursors scale better
+        - Explains versioning and backwards compatibility
+      application:
+        - Writes the API for a described feature, with request and response shapes and error cases
+      transfer:
+        - Compares REST, gRPC and GraphQL for a given client and team context
+      misconceptions:
+        - REST means any HTTP API that returns JSON
+
+  - key: system_design.scalability
+    title: Scaling and stateless services
+    topic: fundamentals
+    difficulty: 2
+    summary: Vertical versus horizontal scaling, and why stateless application tiers make horizontal scaling easy.
+    aliases: [horizontal scaling, vertical scaling, stateless, autoscaling]
+    prerequisites: [system_design.requirements_estimation]
+    rubric:
+      explanation:
+        - Compares vertical and horizontal scaling and their limits
+        - Explains why stateless services scale horizontally, and where state should live instead
+        - Identifies the bottleneck before scaling (CPU, memory, I/O, database)
+      application:
+        - Evolves a single-server design to handle ten times the traffic, step by step
+      transfer:
+        - Explains why the database usually becomes the bottleneck once the app tier scales
+      misconceptions:
+        - Adding servers always increases throughput
+
+  # ── Scaling ──
+  - key: system_design.load_balancing
+    title: Load balancing
+    topic: scaling
+    difficulty: 3
+    summary: Spreading requests across servers with health checks, and the layer-4 versus layer-7 trade-offs.
+    aliases: [load balancer, round robin, least connections, L4, L7, sticky sessions, health checks]
+    prerequisites: [system_design.scalability, networks.http]
+    rubric:
+      explanation:
+        - Explains balancing algorithms (round robin, least connections, hashing)
+        - Distinguishes layer-4 from layer-7 balancing
+        - Explains health checks and how unhealthy nodes are removed
+      application:
+        - Places load balancers in a design and explains how they avoid becoming a single point of failure
+      transfer:
+        - Explains the cost of sticky sessions for long-lived connections such as WebSockets
+      misconceptions:
+        - A load balancer removes all single points of failure
+
+  - key: system_design.caching
+    title: Caching strategies
+    topic: scaling
+    difficulty: 3
+    summary: Placing caches to cut latency and load, choosing write and invalidation strategies and handling stampedes.
+    aliases:
+      [cache-aside, write-through, write-back, TTL, cache invalidation, Redis, cache stampede]
+    prerequisites: [system_design.scalability, os.page_replacement]
+    rubric:
+      explanation:
+        - Explains cache-aside, write-through and write-back with their trade-offs
+        - Explains invalidation and TTLs, and the consistency risks of stale data
+        - Explains a cache stampede and how to mitigate it (request coalescing, jittered TTLs)
+      application:
+        - Adds a cache to a read-heavy design and states what is cached, the keys, TTLs and invalidation
+      transfer:
+        - Identifies when caching is the wrong fix (low hit rate, strict consistency)
+      misconceptions:
+        - Caching always improves performance
+
+  - key: system_design.cdn
+    title: CDNs and edge caching
+    topic: scaling
+    difficulty: 3
+    summary: Serving static and cacheable content from servers near users.
+    aliases: [content delivery network, edge cache, origin server]
+    prerequisites: [system_design.caching, networks.dns]
+    rubric:
+      explanation:
+        - Explains how a CDN routes users to a nearby edge and serves cached content
+        - Explains cache keys, TTLs and purging at the edge
+      application:
+        - Decides which assets in a design go through a CDN and why
+      transfer:
+        - Explains how CDNs also absorb traffic spikes and DDoS attacks
+      misconceptions:
+        - CDNs only help with images
+
+  - key: system_design.message_queues
+    title: Message queues and async processing
+    topic: scaling
+    difficulty: 3
+    summary: Decoupling producers from consumers with queues and logs for buffering, retries and fan-out.
+    aliases: [message broker, Kafka, RabbitMQ, SQS, pub/sub, dead-letter queue, backpressure]
+    prerequisites: [system_design.scalability, dsa.queues]
+    rubric:
+      explanation:
+        - Explains why to move work off the request path, and what decoupling buys
+        - Compares a work queue with a log-based stream (Kafka) and pub/sub fan-out
+        - Explains at-least-once delivery, dead-letter queues and backpressure
+      application:
+        - Redesigns a slow synchronous flow (for example, sending emails or transcoding) around a queue
+      transfer:
+        - Explains how event-driven designs complicate debugging and ordering
+      misconceptions:
+        - Message queues guarantee exactly-once processing by default
+
+  - key: system_design.consistent_hashing
+    title: Consistent hashing
+    topic: scaling
+    difficulty: 4
+    summary: Mapping keys to nodes on a hash ring so adding or removing a node moves only a small share of keys.
+    aliases: [hash ring, virtual nodes, rendezvous hashing]
+    prerequisites: [databases.partitioning]
+    rubric:
+      explanation:
+        - Explains why hash mod N remaps almost every key when N changes
+        - Explains the hash ring, and how virtual nodes even out the load
+      application:
+        - Shows which keys move when a node joins or leaves the ring
+      transfer:
+        - Applies consistent hashing to cache clusters or partitioned databases (Dynamo, Cassandra)
+      misconceptions:
+        - Consistent hashing guarantees perfectly even load
+
+  # ── Reliability ──
+  - key: system_design.cap_consistency
+    title: CAP and consistency models
+    topic: reliability
+    difficulty: 4
+    summary: The trade-off between consistency and availability under partitions, and the spectrum from strong to eventual consistency.
+    aliases: [CAP theorem, PACELC, eventual consistency, strong consistency, quorum]
+    prerequisites: [databases.replication]
+    rubric:
+      explanation:
+        - States CAP correctly (during a partition, choose consistency or availability)
+        - Explains strong, eventual and read-your-writes consistency with examples
+        - Explains quorum reads and writes (R + W > N)
+      application:
+        - Picks a consistency model for parts of a design (for example, payments versus like counts) and justifies it
+      transfer:
+        - Uses PACELC to reason about the latency versus consistency trade-off when there is no partition
+      misconceptions:
+        - You choose two of C, A and P and keep them at all times
+
+  - key: system_design.rate_limiting
+    title: Rate limiting
+    topic: reliability
+    difficulty: 3
+    summary: Protecting services by capping request rates per client with token buckets, sliding windows and similar algorithms.
+    aliases: [token bucket, leaky bucket, sliding window log, throttling, HTTP 429]
+    prerequisites: [system_design.api_design, dsa.queues]
+    related: [dsa.sliding_window]
+    rubric:
+      explanation:
+        - Explains token bucket, fixed window and sliding window algorithms and their burst behavior
+        - Explains where to enforce limits (gateway, service) and how to signal them (429, Retry-After)
+      application:
+        - Designs a distributed rate limiter backed by a shared store, and handles races in the counter
+      transfer:
+        - Applies rate limiting to protect a third-party API budget or a login endpoint
+      misconceptions:
+        - A per-server in-memory counter enforces a global limit
+
+  - key: system_design.idempotency_retries
+    title: Idempotency, retries and timeouts
+    topic: reliability
+    difficulty: 4
+    summary: Making operations safe to repeat, so retries and duplicate deliveries do not cause double effects.
+    aliases: [idempotency key, exponential backoff, jitter, circuit breaker, timeouts]
+    prerequisites: [system_design.api_design, system_design.message_queues]
+    rubric:
+      explanation:
+        - Explains why networks force retries and why retries cause duplicates
+        - Explains idempotency keys and deduplication on the server
+        - Explains exponential backoff with jitter, timeouts and circuit breakers
+      application:
+        - Makes a payment or webhook handler idempotent and explains the storage it needs
+      transfer:
+        - Identifies retry storms and cascading failures in a design and mitigates them
+      misconceptions:
+        - Retrying a failed request is always safe
+
+  - key: system_design.observability
+    title: Observability and SLOs
+    topic: reliability
+    difficulty: 3
+    summary: Logs, metrics and traces for understanding production systems, and SLOs for defining "good enough".
+    aliases: [logging, metrics, distributed tracing, SLO, SLI, error budget, alerting]
+    prerequisites: [system_design.scalability]
+    rubric:
+      explanation:
+        - Distinguishes logs, metrics and traces and what each one answers
+        - Defines SLIs, SLOs and error budgets
+        - Explains why to alert on symptoms (latency, errors) rather than causes
+      application:
+        - Picks the key metrics and alerts for a described service
+      transfer:
+        - Uses traces to find the slow hop in a multi-service request
+      misconceptions:
+        - More logging always means better observability
+
+  # ── Integration ──
+  - key: system_design.end_to_end_design
+    title: Designing a system end to end
+    topic: integration
+    difficulty: 5
+    summary: Running a full design interview, from requirements to a high-level design, deep dives and trade-offs.
+    aliases:
+      [system design interview, design a URL shortener, design a news feed, high-level design]
+    prerequisites:
+      - system_design.load_balancing
+      - system_design.caching
+      - system_design.message_queues
+      - system_design.cap_consistency
+      - databases.partitioning
+    rubric:
+      explanation:
+        - Follows a clear structure (requirements, estimates, API, data model, high-level design, deep dives)
+        - Justifies each component by a requirement rather than listing technologies
+        - States trade-offs and failure modes explicitly
+      application:
+        - Produces a coherent design for a classic prompt (URL shortener, chat, news feed) within the time
+      transfer:
+        - Adapts a known design when a requirement changes (for example, ten times the writes or a new region)
+      misconceptions:
+        - The best design uses the most components

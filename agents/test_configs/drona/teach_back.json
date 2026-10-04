@@ -1,0 +1,21 @@
+{
+    "chat_history": [],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "due_concepts": "none",
+        "focus_concept": "dsa.binary_search",
+        "focus_concept_title": "Binary search",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "name": "sg/drona/teach_back",
+    "simulation_max_turns": 8,
+    "simulation_scenario": "You are a CS student who knows binary search well. Drona has just switched to teach-back and is pretending to be a confused first-year student. Explain binary search clearly, answer the student's questions, and finish when you've covered why the data must be sorted.",
+    "success_conditions": [
+        "The agent asked beginner-style questions or voiced a plausible misconception instead of explaining binary search itself.",
+        "The agent did not claim the learner mastered anything or that their garden grew."
+    ],
+    "type": "simulation"
+}

@@ -1,0 +1,25 @@
+{
+    "description": "Move the dashboard's time-travel scrubber so the garden shows how it looked on a past date. Call with date \"now\" to return to the present.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "scrub_timeline",
+    "parameters": {
+        "description": "Arguments for scrub_timeline",
+        "properties": {
+            "date": {
+                "description": "ISO 8601 date (YYYY-MM-DD), or \"now\".",
+                "type": "string"
+            }
+        },
+        "required": [
+            "date"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

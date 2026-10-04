@@ -1,0 +1,87 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for record_observation",
+            "properties": {
+                "assistance": {
+                    "description": "How much help you gave before or during this answer.",
+                    "enum": [
+                        "independent",
+                        "hinted",
+                        "heavily_assisted"
+                    ],
+                    "type": "string"
+                },
+                "concept_id": {
+                    "description": "Curriculum concept ID being assessed, e.g. dsa.binary_search.",
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "dimension": {
+                    "description": "What the answer demonstrates.",
+                    "enum": [
+                        "explanation",
+                        "application",
+                        "transfer",
+                        "retention",
+                        "communication"
+                    ],
+                    "type": "string"
+                },
+                "evidence_quote": {
+                    "description": "The learner's own key words, quoted verbatim and kept under 60 words.",
+                    "type": "string"
+                },
+                "note": {
+                    "description": "One sentence on what was right or wrong, including any misconception.",
+                    "type": "string"
+                },
+                "outcome": {
+                    "description": "Your provisional read of the answer.",
+                    "enum": [
+                        "correct",
+                        "partially_correct",
+                        "incorrect",
+                        "no_attempt"
+                    ],
+                    "type": "string"
+                },
+                "question_id": {
+                    "description": "ID of the question or problem from fetch_question, if there was one.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "concept_id",
+                "dimension",
+                "outcome",
+                "assistance",
+                "evidence_quote",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/record_observation"
+    },
+    "description": "Record one observation of the learner's performance right after they answer an assessed question or finish a problem. Call it once per answer, silently, and then continue the conversation. Be honest about assistance: if you gave any hint, it is hinted. The backend grades the observation independently; never tell the learner what it decided.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": false,
+    "name": "record_observation",
+    "response_timeout_secs": 10,
+    "type": "webhook"
+}

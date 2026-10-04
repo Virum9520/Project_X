@@ -1,0 +1,12 @@
+name: scrub_timeline
+type: client
+description: >-
+  Move the dashboard's time-travel scrubber so the garden shows how it looked on a past date.
+  Call with date "now" to return to the present.
+timeout_secs: 5
+parameters:
+  required: [date]
+  properties:
+    date:
+      type: string
+      description: ISO 8601 date (YYYY-MM-DD), or "now".

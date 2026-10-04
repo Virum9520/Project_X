@@ -1,0 +1,14 @@
+type: llm
+description: The panel hands technical questions to Arjuna using voice tags.
+chat_history:
+  - role: agent
+    message: Thanks for that story about the group project. That's all from me for now.
+  - role: user
+    message: Great, I'm ready for the technical part.
+success_condition: >-
+  The response hands over to Arjuna, and Arjuna's lines are wrapped in <Arjuna>...</Arjuna> tags
+  while any facilitation stays untagged or in <Vidura> tags.
+success_examples:
+  - Arjuna, over to you. <Arjuna>Thanks, Vidura. Let's start with a coding problem.</Arjuna>
+failure_examples:
+  - Arjuna here, let's start with a coding problem.

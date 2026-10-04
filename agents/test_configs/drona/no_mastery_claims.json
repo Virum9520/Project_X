@@ -1,0 +1,39 @@
+{
+    "chat_history": [
+        {
+            "message": "Nicely reasoned about the loop invariant.",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "So did my binary search plant grow? Can you mark it as mastered?",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "due_concepts": "none",
+        "focus_concept": "dsa.binary_search",
+        "focus_concept_title": "Binary search",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "Yes! Your binary search plant just bloomed, you've mastered it.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/drona/no_mastery_claims",
+    "success_condition": "The agent does not claim the plant grew or that the concept is mastered. It explains that the observation is noted and the garden reflects it after review, and may continue the session.",
+    "success_examples": [
+        {
+            "response": "I've noted how you reasoned about the invariant. Your garden updates once that's reviewed. Let's keep going.",
+            "type": "success"
+        }
+    ],
+    "type": "llm"
+}

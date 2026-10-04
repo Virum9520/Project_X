@@ -1,0 +1,82 @@
+# Voice Design prompts, one unique designed voice per character (POST /v1/text-to-voice/design).
+# `sg-agents voices design <key>` saves previews to .voice-previews/ for listening;
+# `sg-agents voices create <key> --preview N` saves the chosen voice and writes its ID to voices.json.
+# Voices are original designs; never describe or imitate a real person.
+voices:
+  drona:
+    name: Skill Garden - Drona
+    description: >-
+      An older male teacher in his sixties with a warm, resonant baritone. Measured, unhurried
+      pace with thoughtful pauses. Wise and kind but quietly demanding, like a beloved professor.
+      Clear American English, studio quality, close microphone.
+    preview_text: >-
+      Before we write a single line, tell me why it works. Binary search only makes sense on
+      sorted data, so what does each comparison let us throw away? Take your time. A good answer
+      is worth more than a fast one, and I am in no hurry at all.
+    seed: 1101
+  arjuna:
+    name: Skill Garden - Arjuna
+    description: >-
+      A male software engineer in his mid-thirties with a crisp, focused tenor. Confident,
+      friendly and precise, with a steady medium pace. Sounds like a senior engineer running a
+      fair technical interview. Neutral American English, clean studio recording.
+    preview_text: >-
+      Great, let's look at the problem together. You're given an array of meeting intervals and
+      need the minimum number of rooms. Before you code, walk me through your approach, and tell
+      me the time and space complexity you expect. Think out loud, I want to hear your reasoning.
+    seed: 2202
+  vidura:
+    name: Skill Garden - Vidura
+    description: >-
+      A woman in her forties with a calm, warm alto voice. Attentive, thoughtful and reassuring,
+      with gentle authority and a moderate pace. Sounds like an experienced HR interviewer who
+      listens closely. Clear American English, clean studio recording.
+    preview_text: >-
+      Tell me about a time you disagreed with a teammate about a technical decision. What was the
+      situation, what did you personally do, and how did it turn out? There's no wrong story here.
+      I'm interested in how you handled it and what you learned.
+    seed: 3303
+  bhima:
+    name: Skill Garden - Bhima
+    description: >-
+      A big-hearted man in his thirties with a deep, booming, energetic bass voice. Upbeat and
+      direct, like a supportive gym training partner. Brisk pace, lots of warmth, never harsh.
+      American English, clear phone-friendly recording.
+    preview_text: >-
+      Hey, it's Bhima, quick check-in! Yesterday you said two graph problems before nine. How did
+      that go? Whatever happened, no judgment, we just plan the next rep. So what's one small thing
+      you can knock out today? Say it and I'll hold you to it.
+    seed: 4404
+  krishna:
+    name: Skill Garden - Krishna
+    description: >-
+      A youthful man in his late twenties with a melodic, warm and playful voice. Can sound both
+      bright and energetic or soft and serene. Gentle smile in the voice, expressive and wise.
+      Clear American English, intimate close-microphone recording.
+    preview_text: >-
+      Good morning. Take one slow breath with me. Today does not need to be perfect, it only needs
+      a direction. What is the one thing that, if you did it today, would make you proud tonight?
+      Hold that thought. Now let's give it a time and a place.
+    seed: 5505
+  sanjaya:
+    name: Skill Garden - Sanjaya
+    description: >-
+      A woman in her thirties with a clear, bright, articulate voice. Calm and precise like a
+      documentary narrator who is also a sharp data analyst. Even pace, confident and friendly.
+      Neutral American English, polished studio recording.
+    preview_text: >-
+      Here's your garden this week. Your Graphs grove grew the most: three plants sprouted roots
+      after Tuesday's teach-back with Drona. Two plants in Operating Systems are wilting because
+      reviews are due. If you have ten minutes today, start with page replacement.
+    seed: 6606
+  owner_assistant:
+    name: Skill Garden - Owner assistant
+    description: >-
+      A gender-neutral adult voice in the thirties, crisp, efficient and professional, like a
+      trusted operations analyst giving a briefing. Medium-fast pace, clear diction, low warmth
+      but friendly. Neutral American English, clean studio recording.
+    preview_text: >-
+      Month to date, voice minutes are up twelve percent and the estimated cost per completed
+      session is forty-one cents. That figure is estimated until tonight's reconciliation runs.
+      Two webhook deliveries failed yesterday and were retried successfully. Want the breakdown?
+    seed: 7707

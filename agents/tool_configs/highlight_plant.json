@@ -1,0 +1,36 @@
+{
+    "description": "Make a concept's plant glow in the garden view so the learner can see what you are talking about. Visual only; it does not change progress.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "highlight_plant",
+    "parameters": {
+        "description": "Arguments for highlight_plant",
+        "properties": {
+            "concept_id": {
+                "description": "Concept ID of the plant.",
+                "type": "string"
+            },
+            "part": {
+                "description": "Which part of the plant to emphasise.",
+                "enum": [
+                    "whole",
+                    "roots",
+                    "stem",
+                    "branches",
+                    "blossoms"
+                ],
+                "type": "string"
+            }
+        },
+        "required": [
+            "concept_id"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

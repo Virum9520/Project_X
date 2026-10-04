@@ -1,0 +1,41 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for run_tests",
+            "properties": {
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "problem_id": {
+                    "description": "The problem ID returned by fetch_question.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "problem_id",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/run_tests"
+    },
+    "description": "Run the hidden test suite against the learner's latest code in the editor, inside the sandbox. Call it when the learner says they are ready or asks to run tests. Returns passed and failed counts and the first failing case. Never read hidden test inputs aloud unless the result marks them as shareable.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": true,
+    "name": "run_tests",
+    "response_timeout_secs": 30,
+    "type": "webhook"
+}

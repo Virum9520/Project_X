@@ -2,7 +2,15 @@
 **/.next
 **/.venv
 **/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/tests
 .git
 .env
+.env.*
 apps
 packages
+docs
+infra
+scripts

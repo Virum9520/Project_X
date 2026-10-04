@@ -1,0 +1,17 @@
+type: tool
+description: Bhima logs a commitment only after explicit confirmation.
+tool: log_commitment
+chat_history:
+  - role: agent
+    message: So what's one thing you can get done today?
+  - role: user
+    message: I'll do two graph problems by 9 PM tonight.
+  - role: agent
+    message: So, two graph problems by 9 PM tonight. Locking that in?
+  - role: user
+    message: Yes, lock it in.
+tool_parameters:
+  - path: confirmed_by_learner
+    exact: "true"
+  - path: description
+    llm: Mentions two graph problems.

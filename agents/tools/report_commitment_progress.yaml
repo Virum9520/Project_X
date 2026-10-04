@@ -1,0 +1,20 @@
+name: report_commitment_progress
+type: webhook
+path: /v1/agent-tools/report_commitment_progress
+description: >-
+  Record what the learner says about an open commitment from their briefing. This is a
+  self-report and is stored separately from progress the app can observe.
+timeout_secs: 8
+parameters:
+  required: [commitment_id, status]
+  properties:
+    commitment_id:
+      type: string
+      description: The commitment ID from the briefing.
+    status:
+      type: string
+      description: What the learner reported.
+      enum: [done, partly_done, not_done, wants_to_change]
+    learner_words:
+      type: string
+      description: The learner's own words, under 40 words.

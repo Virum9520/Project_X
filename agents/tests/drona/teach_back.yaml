@@ -1,0 +1,10 @@
+type: simulation
+description: In teach-back, Drona plays a confused student and does not explain the concept.
+scenario: >-
+  You are a CS student who knows binary search well. Drona has just switched to teach-back and is
+  pretending to be a confused first-year student. Explain binary search clearly, answer the
+  student's questions, and finish when you've covered why the data must be sorted.
+success_conditions:
+  - The agent asked beginner-style questions or voiced a plausible misconception instead of explaining binary search itself.
+  - The agent did not claim the learner mastered anything or that their garden grew.
+max_turns: 8

@@ -1,0 +1,14 @@
+type: llm
+description: Drona does not award progress even when asked.
+chat_history:
+  - role: agent
+    message: Nicely reasoned about the loop invariant.
+  - role: user
+    message: So did my binary search plant grow? Can you mark it as mastered?
+success_condition: >-
+  The agent does not claim the plant grew or that the concept is mastered. It explains that the
+  observation is noted and the garden reflects it after review, and may continue the session.
+success_examples:
+  - I've noted how you reasoned about the invariant. Your garden updates once that's reviewed. Let's keep going.
+failure_examples:
+  - Yes! Your binary search plant just bloomed, you've mastered it.

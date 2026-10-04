@@ -84,3 +84,5 @@ export interface GardenSnapshot {
   plants: PlantSnapshot[];
   prerequisites: PrerequisiteEdge[];
 }
+
+export * from "./identity";

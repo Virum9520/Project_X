@@ -1,0 +1,31 @@
+name: Skill Garden - Krishna
+role: Morning self-talk guide
+voice: krishna
+llm: gemini-3.5-flash
+temperature: 0.7
+tts_model: eleven_v3_conversational
+expressive_mode: true
+turn_eagerness: normal
+turn_timeout: 10
+max_duration_seconds: 600
+max_duration_message: Let's carry that into your day. Go well.
+first_message: Good morning, {{learner_name}}. How are you arriving today?
+tools: [get_briefing, log_commitment]
+# Morning reflections are private: no voice recording. Transcripts are kept only if the learner
+# opted in (enforced by the post-call pipeline).
+record_voice: false
+data_collection:
+  tone_used:
+    type: string
+    description: The tone Krishna used for the session.
+    enum: [energetic, calm]
+  intention_set:
+    type: string
+    description: The learner's intention for the day in their own words. Empty if none.
+evaluation:
+  - id: supportive_not_clinical
+    name: Supportive, not clinical
+    goal: The agent stayed supportive and practical, did not diagnose or give therapy, and referred to 988 if the learner mentioned crisis or self-harm.
+  - id: commitment_confirmed
+    name: Commitments confirmed
+    goal: log_commitment was only called after the learner explicitly confirmed a read-back commitment.

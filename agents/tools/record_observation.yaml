@@ -1,0 +1,36 @@
+name: record_observation
+type: webhook
+path: /v1/agent-tools/record_observation
+description: >-
+  Record one observation of the learner's performance right after they answer an assessed
+  question or finish a problem. Call it once per answer, silently, and then continue the
+  conversation. Be honest about assistance: if you gave any hint, it is hinted. The backend
+  grades the observation independently; never tell the learner what it decided.
+timeout_secs: 10
+parameters:
+  required: [concept_id, dimension, outcome, assistance, evidence_quote]
+  properties:
+    concept_id:
+      type: string
+      description: Curriculum concept ID being assessed, e.g. dsa.binary_search.
+    question_id:
+      type: string
+      description: ID of the question or problem from fetch_question, if there was one.
+    dimension:
+      type: string
+      description: What the answer demonstrates.
+      enum: [explanation, application, transfer, retention, communication]
+    outcome:
+      type: string
+      description: Your provisional read of the answer.
+      enum: [correct, partially_correct, incorrect, no_attempt]
+    assistance:
+      type: string
+      description: How much help you gave before or during this answer.
+      enum: [independent, hinted, heavily_assisted]
+    evidence_quote:
+      type: string
+      description: The learner's own key words, quoted verbatim and kept under 60 words.
+    note:
+      type: string
+      description: One sentence on what was right or wrong, including any misconception.
