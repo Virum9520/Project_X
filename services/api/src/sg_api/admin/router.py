@@ -18,6 +18,7 @@ from sg_api.admin.schemas import (
     TEST_PROFILES,
     AgentRow,
     AuditPage,
+    CalibrationSummary,
     CallNowOptions,
     CallNowRequest,
     CallNowResult,
@@ -34,6 +35,7 @@ from sg_api.admin.schemas import (
 from sg_api.admin.util import mask_phone
 from sg_api.auth import AdminPrincipal, admin_origin_guard, record_audit, require_capability
 from sg_core.economics.budget import monthly_limit_usd
+from sg_core.evidence.calibration import load_report
 from sg_core.identity import Capability
 from sg_core.logging import get_logger
 from sg_core.models.enums import CostCenter
@@ -181,7 +183,23 @@ async def call_now(
 # ── Quality, operations, system ──
 @router.get("/quality", response_model=QualityReport, dependencies=[_need(Capability.QUALITY_READ)])
 async def quality(store: StoreDep) -> QualityReport:
-    return await store.quality(datetime.now(UTC))
+    report = await store.quality(datetime.now(UTC))
+    return report.model_copy(update={"calibration": _calibration_summary()})
+
+
+def _calibration_summary() -> CalibrationSummary | None:
+    """Latest saved calibration run (`python -m sg_core.evidence.calibration`), if any."""
+    raw = load_report()
+    if raw is None:
+        return None
+    try:
+        return CalibrationSummary(
+            **{k: raw[k] for k in CalibrationSummary.model_fields if k != "by_dimension"},
+            by_dimension={d: v["disagreements"] for d, v in raw["by_dimension"].items()},
+        )
+    except (KeyError, TypeError, ValueError):
+        log.warning("admin.calibration_report_unreadable")
+        return None
 
 
 @router.get("/system", response_model=SystemStatus, dependencies=[_need(Capability.QUALITY_READ)])

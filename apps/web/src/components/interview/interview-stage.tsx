@@ -3,19 +3,22 @@
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import type { GardenDataset, LiveGrowthEvent } from "@sg/contracts";
 import { fromAgentAlignment, useLipSync } from "@sg/three/avatar";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { bindConversation, endSession } from "@/app/(app)/session/actions";
 import { sendDeliverySummary, startInterviewSession } from "@/app/(app)/interview/actions";
 import { AvatarSlot } from "@/components/session/avatar-slot";
 import {
-  Captions,
-  DiagramPlaceholder,
-  EditorPlaceholder,
-  EvidenceTicker,
-  QuestionCardView,
-} from "@/components/session/stage-parts";
+  CallControls,
+  ErrorBanner,
+  SavedNotice,
+  StageHeader,
+  StagePanels,
+  StatusNote,
+  useMouthLevelFallback,
+  usePhase,
+} from "@/components/session/stage-chrome";
+import { Captions, EvidenceTicker } from "@/components/session/stage-parts";
 import { PaceTracker } from "@/lib/interview/delivery";
 import { INITIAL_DIRECTOR, directorReducer, shotWeight, type Shot } from "@/lib/interview/director";
 import { plainText, speakerOfMessage, type PanelSpeaker } from "@/lib/interview/speaker";
@@ -23,8 +26,6 @@ import { useDeliveryObserver } from "@/lib/interview/use-delivery-observer";
 import { AlignmentClock } from "@/lib/session/alignment-clock";
 import { INITIAL_STAGE, createStageTools, stageReducer } from "@/lib/session/stage";
 import { useLiveGrowth } from "@/lib/session/use-live-growth";
-
-type Phase = "idle" | "starting" | "live" | "ended" | "interrupted";
 
 export interface InterviewStageProps {
   mode: "hr" | "panel";
@@ -53,10 +54,9 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
   const speaker = useRef<PanelSpeaker>("vidura");
   const pace = useRef(new PaceTracker());
   const sessionId = useRef<string | null>(null);
-  const phaseRef = useRef<Phase>("idle");
   const [stage, dispatch] = useReducer(stageReducer, INITIAL_STAGE);
   const [director, direct] = useReducer(directorReducer, INITIAL_DIRECTOR);
-  const [phase, setPhase] = useState<Phase>("idle");
+  const { phase, phaseRef, setPhaseBoth } = usePhase();
   const [error, setError] = useState<string | null>(null);
   const [captions, setCaptions] = useState({ agent: "", user: "" });
   const [talking, setTalking] = useState<PanelSpeaker | null>(null);
@@ -68,11 +68,6 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
     stop: stopCamera,
     summary: cameraSummary,
   } = useDeliveryObserver();
-
-  const setPhaseBoth = useCallback((next: Phase) => {
-    phaseRef.current = next;
-    setPhase(next);
-  }, []);
 
   const live = useLiveGrowth({
     enabled: phase === "live" || phase === "ended",
@@ -146,26 +141,15 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
   });
 
   // Mouth-level fallback for whoever is speaking while no alignment is playing.
-  const outputVolume = conversation.getOutputVolume;
-  const speaking = conversation.isSpeaking;
-  useEffect(() => {
-    const active = driverFor(speaker.current);
-    if (phase !== "live" || !speaking) {
-      viduraSync.setLevel(0);
-      arjunaSync.setLevel(0);
-      return;
-    }
-    let frame = 0;
-    const tick = () => {
-      active.setLevel(outputVolume());
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(frame);
-      active.setLevel(0);
-    };
-  }, [phase, speaking, outputVolume, driverFor, viduraSync, arjunaSync]);
+  const drivers = useMemo(() => [viduraSync, arjunaSync], [viduraSync, arjunaSync]);
+  const pickDriver = useCallback(() => driverFor(speaker.current), [driverFor]);
+  useMouthLevelFallback({
+    live: phase === "live",
+    speaking: conversation.isSpeaking,
+    outputVolume: conversation.getOutputVolume,
+    drivers,
+    pick: pickDriver,
+  });
 
   // Apply a camera cut that was held back by the minimum dwell.
   useEffect(() => {
@@ -243,43 +227,24 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
 
   return (
     <main className="mx-auto flex w-full max-w-[1100px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-glow">Interview practice</p>
-          <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h1>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-foreground/60">
-          {isMock && (
-            <span className="rounded-full bg-ember/15 px-2.5 py-1 text-ember ring-1 ring-ember/40">
-              Sample garden
-            </span>
-          )}
-          <span
-            className={`rounded-full px-2.5 py-1 ring-1 ${live.connected ? "text-moss ring-moss/40" : "ring-white/15"}`}
-          >
-            {live.connected ? "Live garden updates on" : "Live updates idle"}
-          </span>
-        </div>
-      </header>
+      <StageHeader
+        eyebrow="Interview practice"
+        title={title}
+        isMock={isMock}
+        liveConnected={live.connected}
+      />
 
-      {error && (
-        <p
-          role="alert"
-          className="rounded-xl border border-ember/40 bg-ember/10 px-4 py-2 text-sm text-ember"
-        >
-          {error}
-        </p>
-      )}
+      <ErrorBanner message={error} />
       {cameraStatus === "denied" && (
-        <p role="status" className="rounded-xl bg-white/5 px-4 py-2 text-sm">
+        <StatusNote>
           Camera access was declined, so there will be no delivery notes. The interview is
           unaffected.
-        </p>
+        </StatusNote>
       )}
       {phase === "interrupted" && (
-        <p role="status" className="rounded-xl bg-white/5 px-4 py-2 text-sm">
+        <StatusNote>
           The connection dropped. What you said so far is kept, and it will still be checked.
-        </p>
+        </StatusNote>
       )}
 
       <div
@@ -309,38 +274,14 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
       </div>
 
       <div className="flex flex-wrap items-start gap-3">
-        {!inCall ? (
-          <button
-            type="button"
-            onClick={begin}
-            disabled={busy}
-            className="rounded-xl bg-glow/90 px-5 py-2.5 text-sm font-medium text-night outline-none hover:bg-glow focus-visible:ring-2 focus-visible:ring-glow disabled:opacity-50"
-          >
-            {busy
-              ? "Starting…"
-              : phase === "ended" || phase === "interrupted"
-                ? "Start again"
-                : "Start interview"}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={finish}
-              className="rounded-xl bg-ember/90 px-5 py-2.5 text-sm font-medium text-night outline-none hover:bg-ember focus-visible:ring-2 focus-visible:ring-ember"
-            >
-              End interview
-            </button>
-            <button
-              type="button"
-              onClick={() => conversation.setMuted(!conversation.isMuted)}
-              aria-pressed={conversation.isMuted}
-              className="rounded-xl border border-white/15 px-4 py-2.5 text-sm outline-none hover:border-white/30 focus-visible:ring-2 focus-visible:ring-glow"
-            >
-              {conversation.isMuted ? "Unmute" : "Mute"}
-            </button>
-          </>
-        )}
+        <CallControls
+          noun="interview"
+          phase={phase}
+          isMuted={conversation.isMuted}
+          onStart={begin}
+          onEnd={finish}
+          onToggleMute={() => conversation.setMuted(!conversation.isMuted)}
+        />
 
         <fieldset
           className="min-w-[16rem] flex-1 rounded-xl border border-white/10 p-3 text-sm"
@@ -377,35 +318,13 @@ function Stage({ mode, dataset, isMock, viduraVrmUrl, arjunaVrmUrl }: InterviewS
 
       <Captions agent={captions.agent} user={captions.user} />
 
-      {stage.card && (
-        <QuestionCardView
-          card={stage.card}
-          onClose={() => dispatch({ type: "dismiss", what: "card" })}
-        />
-      )}
-      {stage.editor && (
-        <EditorPlaceholder
-          problemId={stage.editor.problem_id}
-          language={stage.editor.language}
-          onClose={() => dispatch({ type: "dismiss", what: "editor" })}
-        />
-      )}
-      {stage.diagram && (
-        <DiagramPlaceholder
-          id={stage.diagram.id}
-          caption={stage.diagram.caption}
-          onClose={() => dispatch({ type: "dismiss", what: "diagram" })}
-        />
-      )}
+      <StagePanels stage={stage} onDismiss={(what) => dispatch({ type: "dismiss", what })} />
       <EvidenceTicker entries={stage.ticker} />
       {phase === "ended" && (
-        <p role="status" className="rounded-xl bg-white/5 px-4 py-3 text-sm">
+        <SavedNotice>
           Interview saved. Your answers are being checked; feedback on your communication appears in
-          your memory panel and any technical growth in your garden within about half a minute.{" "}
-          <Link href="/garden" className="text-glow underline underline-offset-2">
-            Open your garden
-          </Link>
-        </p>
+          your memory panel and any technical growth in your garden within about half a minute.
+        </SavedNotice>
       )}
     </main>
   );

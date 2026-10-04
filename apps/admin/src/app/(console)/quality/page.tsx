@@ -57,6 +57,58 @@ export default async function QualityPage() {
             />
           </div>
 
+          <Card
+            title="Judge calibration"
+            note={
+              quality.data.calibration
+                ? `${quality.data.calibration.set_version} · ${quality.data.calibration.judge_model} · ${dateTime(quality.data.calibration.generated_at)}`
+                : "labeled answer set"
+            }
+          >
+            {quality.data.calibration ? (
+              <div className="space-y-3 text-sm">
+                {quality.data.calibration.synthetic && (
+                  <p className="flex items-start gap-2">
+                    <Badge tone="warn">synthetic labels</Badge>
+                    <span className="text-xs text-foreground/60">
+                      {quality.data.calibration.notice}
+                    </span>
+                  </p>
+                )}
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Stat
+                    label="Disagreement vs human labels"
+                    value={pct(quality.data.calibration.disagreement_rate)}
+                    hint={`${num(quality.data.calibration.disagreements)} of ${num(quality.data.calibration.items)} items`}
+                  />
+                  <Stat
+                    label="Severe flips"
+                    value={num(quality.data.calibration.severe_disagreements)}
+                    hint="demonstrated vs not demonstrated"
+                    tone={quality.data.calibration.severe_disagreements ? "bad" : "good"}
+                  />
+                  <Stat
+                    label="Assistance mismatches"
+                    value={num(quality.data.calibration.assistance_mismatches)}
+                    hint="independent vs assisted"
+                  />
+                </div>
+                <BarList
+                  format={num}
+                  rows={Object.entries(quality.data.calibration.by_dimension).map(
+                    ([label, value]) => ({ label: `${label} disagreements`, value }),
+                  )}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-foreground/60">
+                No calibration run yet. Run{" "}
+                <code>uv run python -m sg_core.evidence.calibration</code> to compare the judge with
+                the labeled set.
+              </p>
+            )}
+          </Card>
+
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Assessments by status">
               <BarList

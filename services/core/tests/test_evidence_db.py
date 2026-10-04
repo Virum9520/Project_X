@@ -329,3 +329,182 @@ async def test_other_learners_data_is_untouched(db: AsyncSession) -> None:
     assert (await store.garden_state(theirs.id)).rev == 0
     assert (await store.garden_state(mine.id)).rev == 1
     assert observation_call() and datetime.now(UTC)
+
+
+async def _arjuna_code_run(
+    db: AsyncSession,
+    store: DbEvidenceStore,
+    user: User,
+    conv: str,
+    *,
+    passed: int,
+    total: int,
+    hinted: bool = False,
+) -> uuid.UUID:
+    """Mirror what Arjuna's `record_run` writes: snapshot, sandbox run, hint, code_run evidence."""
+    from sg_core.models.enums import Assistance, Dimension, SandboxRunStatus
+    from sg_core.models.sessions import CodeSnapshot, SandboxRun
+
+    ref = await store.ensure_session(
+        user_id=user.id,
+        character=Character.ARJUNA,
+        mode="technical_interview",
+        conversation_id=conv,
+        public_session_id=None,
+        now=T0,
+    )
+    concept = (await store.catalog())[BS]
+    snap = CodeSnapshot(
+        session_id=ref.id,
+        user_id=user.id,
+        problem_ref="bs-1",
+        language="python",
+        code="def f(): ...",
+        content_hash="h" * 64,
+        trigger="run",
+    )
+    db.add(snap)
+    await db.flush()
+    run = SandboxRun(
+        session_id=ref.id,
+        code_snapshot_id=snap.id,
+        user_id=user.id,
+        status=SandboxRunStatus.PASSED if passed == total else SandboxRunStatus.FAILED,
+        tests_passed=passed,
+        tests_total=total,
+        finished_at=T0,
+        result={"kind": "tests"},
+    )
+    db.add(run)
+    hint_ids: list[uuid.UUID] = []
+    if hinted:
+        hint = HintGiven(
+            session_id=ref.id,
+            user_id=user.id,
+            concept_id=concept.id,
+            question_ref="bs-1",
+            level=1,
+            content="think about the middle",
+        )
+        db.add(hint)
+        await db.flush()
+        hint_ids = [hint.id]
+    await db.flush()
+    db.add(
+        EvidenceItem(
+            user_id=user.id,
+            session_id=ref.id,
+            concept_id=concept.id,
+            dimension=Dimension.APPLICATION,
+            assistance=Assistance.ASSISTED if hinted else Assistance.INDEPENDENT,
+            kind="code_run",
+            quote=f"Ran the hidden tests: {passed} of {total} passed.",
+            code_snapshot_id=snap.id,
+            sandbox_run_id=run.id,
+            hint_ids=hint_ids,
+            problem_family="bs.classic",
+            dedupe_key=f"code_run:{run.id}",
+            occurred_at=T0,
+        )
+    )
+    await db.flush()
+    return run.id
+
+
+async def test_code_run_evidence_grows_the_garden_through_the_rules_engine(
+    db: AsyncSession,
+) -> None:
+    user = await new_user(db)
+    store = DbEvidenceStore(db)
+    run_id = await _arjuna_code_run(db, store, user, "conv_code", passed=5, total=5)
+    llm = ScriptedLLM(judge_body())
+    data = payload([], conversation_id="conv_code", focus=None)
+    result = await run_post_call(deps(store, llm), data)
+    assert result.revision == 1 and llm.calls == []
+    assessment = (await db.scalars(select(Assessment).where(Assessment.user_id == user.id))).one()
+    assert assessment.judge_model == "rules:code_run@1"
+    assert assessment.assistance.value == "independent"
+    cited = (
+        await db.scalars(select(EvidenceItem).where(EvidenceItem.id.in_(assessment.evidence_ids)))
+    ).all()
+    # It cites the evidence row Arjuna wrote (not a copy), which links the run and snapshot.
+    assert [e.sandbox_run_id for e in cited] == [run_id] and cited[0].code_snapshot_id
+    assert await uncited_growth(db, user.id) == []
+    plant = (await db.scalars(select(PlantState).where(PlantState.user_id == user.id))).one()
+    assert plant.dimension_scores["application"]["independent"] > 0
+    # Replaying the webhook changes nothing.
+    again = await run_post_call(deps(store, llm), data)
+    assert again.status == "unchanged"
+    assert (await store.garden_state(user.id)).rev == 1
+
+
+async def test_hinted_code_run_stays_on_the_assisted_track(db: AsyncSession) -> None:
+    user = await new_user(db)
+    store = DbEvidenceStore(db)
+    await _arjuna_code_run(db, store, user, "conv_code", passed=5, total=5, hinted=True)
+    data = payload([], conversation_id="conv_code", focus=None)
+    await run_post_call(deps(store, ScriptedLLM(judge_body())), data)
+    plant = (await db.scalars(select(PlantState).where(PlantState.user_id == user.id))).one()
+    scores = plant.dimension_scores["application"]
+    assert scores["assisted"] > 0 and scores.get("independent", 0) == 0
+    assessment = (await db.scalars(select(Assessment).where(Assessment.user_id == user.id))).one()
+    assert assessment.assistance.value == "assisted"
+
+
+async def test_bhima_retention_result_is_recorded_with_its_evidence(db: AsyncSession) -> None:
+    user = await new_user(db)
+    store = DbEvidenceStore(db)
+    await start(store, user, "conv_learn")
+    old = payload(conversation_id="conv_learn")
+    old["metadata"]["start_time_unix_secs"] = START - 2 * 86400
+    await run_post_call(deps(store, ScriptedLLM(judge_body(verdict(family="h")))), old)
+    occurrence = CallOccurrence(
+        user_id=user.id, local_date=date(2026, 10, 4), scheduled_for=T0, is_test=False
+    )
+    db.add(occurrence)
+    await db.flush()
+    attempt = CallAttempt(
+        occurrence_id=occurrence.id,
+        attempt_no=1,
+        channel=CallChannelKind.WEB,
+        el_conversation_id="conv_bhima",
+    )
+    db.add(attempt)
+    await db.flush()
+    from sg_core.memory import MemoryStore, NewMemory
+    from sg_core.models.enums import MemorySource
+
+    await MemoryStore(db).append(
+        NewMemory(
+            user_id=user.id,
+            layer=MemoryLayer.SESSION,
+            kind="retention_check",
+            content="Bhima asked a retention question.",
+            source=MemorySource.SYSTEM,
+            status=MemoryStatus.ACCEPTED,
+            data={"concept_key": BS, "attempt_id": str(attempt.id), "source": "retention_call"},
+        )
+    )
+    turns = [
+        turn("agent", "What makes binary search logarithmic?", 100),
+        turn("user", "Each comparison halves what is left, so log n steps.", 110),
+    ]
+    llm = ScriptedLLM(
+        judge_body(
+            verdict(dimension="retention", turn=1, quote="Each comparison halves what is left")
+        )
+    )
+    await run_post_call(deps(store, llm), payload(turns, conversation_id="conv_bhima", focus=None))
+    mem = (
+        await db.scalars(
+            select(Memory).where(Memory.user_id == user.id, Memory.kind == "retention_result")
+        )
+    ).one()
+    assert mem.data["answered"] is True and mem.data["counted"] is True
+    assert mem.evidence_ids and mem.data["concept_key"] == BS
+    event = await db.scalar(
+        select(SessionEvent).where(
+            SessionEvent.user_id == user.id, SessionEvent.event_type == "bhima.retention_judged"
+        )
+    )
+    assert event is not None

@@ -5,11 +5,11 @@ real thing; `InMemoryEvidenceStore` below keeps the same rules for fast, databas
 """
 
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
-from sg_core.evidence.types import ConceptInfo
+from sg_core.evidence.types import CodeRun, ConceptInfo
 from sg_core.memory import NewMemory
 from sg_core.models.enums import (
     AssessmentOutcome,
@@ -121,6 +121,9 @@ class EvidenceStore(Protocol):
     async def hinted_concepts(self, session_id: uuid.UUID) -> set[str | None]: ...
     async def retention_concept(self, user_id: uuid.UUID, conversation_id: str) -> str | None: ...
     async def provisional_memories(self, session_id: uuid.UUID) -> list[ProvisionalMemory]: ...
+    async def code_runs(self, session_id: uuid.UUID) -> list[CodeRun]:
+        """Hidden-tests runs Arjuna stored as `code_run` evidence in this session."""
+        ...
 
     async def add_evidence(
         self, user_id: uuid.UUID, session_id: uuid.UUID, item: NewEvidence
@@ -201,6 +204,7 @@ class InMemoryEvidenceStore:
         self.sessions: dict[uuid.UUID, SessionRef] = {}
         self.hints: dict[uuid.UUID, set[str | None]] = {}
         self.retention: dict[str, str] = {}  # conversation id -> concept key
+        self.session_code_runs: dict[uuid.UUID, list[CodeRun]] = {}
         self.evidence: dict[uuid.UUID, _Evidence] = {}
         self.assessments: dict[uuid.UUID, _Assessment] = {}
         self.memories: dict[uuid.UUID, _Memory] = {}
@@ -277,6 +281,27 @@ class InMemoryEvidenceStore:
 
     async def retention_concept(self, user_id: uuid.UUID, conversation_id: str) -> str | None:
         return self.retention.get(conversation_id)
+
+    def seed_code_run(self, session_id: uuid.UUID, user_id: uuid.UUID, run: CodeRun) -> CodeRun:
+        """Mimic Arjuna's `record_run`: the evidence row exists before the pipeline runs."""
+        item = NewEvidence(
+            concept_key=run.concept_key,
+            dimension="application",
+            assistance=run.assistance,
+            kind="code_run",
+            quote=run.quote,
+            occurred_at=run.occurred_at,
+            dedupe_key=run.dedupe_key,
+            problem_family=run.problem_family,
+        )
+        row = _Evidence(uuid.uuid4(), user_id, session_id, item)
+        self.evidence[row.id] = row
+        seeded = replace(run, evidence_id=row.id)
+        self.session_code_runs.setdefault(session_id, []).append(seeded)
+        return seeded
+
+    async def code_runs(self, session_id: uuid.UUID) -> list[CodeRun]:
+        return list(self.session_code_runs.get(session_id, []))
 
     async def provisional_memories(self, session_id: uuid.UUID) -> list[ProvisionalMemory]:
         out: list[ProvisionalMemory] = []
