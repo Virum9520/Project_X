@@ -1,10 +1,12 @@
 "use client";
 
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { DAY_MS } from "@/lib/garden/derive";
 import { type DashboardState, focusGrove } from "@/lib/garden/state";
+import { useLiveGrowth } from "@/lib/session/use-live-growth";
 
 import { AskSanjaya } from "./ask-sanjaya";
 import { EvidenceTimeline } from "./evidence-timeline";
@@ -37,6 +39,9 @@ export function GardenDashboard({
   const { state, view, series, actions } = useGardenDashboard(dataset, initialState);
   const { focus, filters, scrubDate } = state;
   const [notice, setNotice] = useState<string | null>(null);
+  const router = useRouter();
+  // Live provisional growth from a voice session (this tab or another) makes plants glow.
+  const live = useLiveGrowth();
 
   // Esc zooms out one level (unless the user is typing in a field).
   useEffect(() => {
@@ -51,9 +56,13 @@ export function GardenDashboard({
   }, [actions]);
 
   const onPractise = (c: Character, plantKey: string) => {
+    if (c === "drona") {
+      router.push(`/session?concept=${encodeURIComponent(plantKey)}`);
+      return;
+    }
     const title = dataset.plants.find((p) => p.key === plantKey)?.title;
     setNotice(
-      `Starting ${cap(c)} on ${title} launches from the voice stage, which arrives with the session loop (C12).`,
+      `Starting ${cap(c)} on ${title} arrives with that character's session (Drona is available now).`,
     );
   };
 
@@ -75,15 +84,17 @@ export function GardenDashboard({
       ? (dataset.groves.find((g) => g.id === grove)?.title ?? "Grove")
       : "Whole garden";
 
+  const livePulse = live.pulseConceptIds;
   const recentGrowth = useMemo(
     () => [
-      ...new Set(
-        view.growthEvents
+      ...new Set([
+        ...view.growthEvents
           .filter((g) => view.cutoff - Date.parse(g.occurredAt) < DAY_MS * 1.5)
           .map((g) => g.plantKey),
-      ),
+        ...(view.isPast ? [] : livePulse),
+      ]),
     ],
-    [view.growthEvents, view.cutoff],
+    [view.growthEvents, view.cutoff, view.isPast, livePulse],
   );
 
   const revision = useMemo(
