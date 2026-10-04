@@ -173,8 +173,13 @@ async def reconcile_cost(
 
     Idempotent for an unchanged amount: if the live entry is already reconciled at that amount
     its id is returned. Reports must sum only entries where `superseded_by_id IS NULL`.
+    Concurrent reconciliations of one event are serialised with an advisory lock for the rest
+    of the transaction, so the live entries are read only after any earlier one has committed.
     """
     usd = usd_amount.quantize(MICRO)
+    await session.execute(
+        select(func.pg_advisory_xact_lock(func.hashtext(f"usage-reconcile:{usage_event_id}")))
+    )
     live = (
         (
             await session.execute(

@@ -123,6 +123,35 @@ async def test_provider_cost_wins_then_reconciliation_supersedes(
         await s.rollback()
 
 
+async def test_concurrent_reconciliations_leave_one_live_entry(
+    maker: async_sessionmaker[AsyncSession], key: str
+) -> None:
+    measure = UsageMeasure(provider="e2b", sandbox_seconds=Decimal("10"))
+    async with maker() as s, s.begin():
+        res = await record_usage(s, _ctx(key), measure, PriceBook(), environment="test")
+
+    async def attempt(usd: str) -> None:
+        async with maker() as s, s.begin():
+            await reconcile_cost(s, res.usage_event_id, Decimal(usd))
+
+    try:
+        await asyncio.gather(*(attempt(usd) for usd in ["0.0002"] * 4 + ["0.0003"] * 4))
+        async with maker() as s:
+            live = (
+                await s.scalars(
+                    select(CostEntry).where(
+                        CostEntry.usage_event_id == res.usage_event_id,
+                        CostEntry.superseded_by_id.is_(None),
+                    )
+                )
+            ).all()
+        assert len(live) == 1 and live[0].kind is CostKind.RECONCILED
+    finally:
+        async with maker() as s, s.begin():
+            await s.execute(delete(CostEntry).where(CostEntry.usage_event_id == res.usage_event_id))
+            await s.execute(delete(UsageEvent).where(UsageEvent.idempotency_key == key))
+
+
 async def test_unpriced_usage_records_event_without_cost(
     maker: async_sessionmaker[AsyncSession], key: str
 ) -> None:
