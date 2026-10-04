@@ -1,0 +1,25 @@
+name: set_filter
+type: client
+description: >-
+  Filter the dashboard and garden together. Unmatched plants dim. Call with no arguments to clear
+  all filters.
+timeout_secs: 5
+parameters:
+  properties:
+    domain:
+      type: string
+      description: Domain ID to show.
+    dimension:
+      type: string
+      description: Evidence dimension to show.
+      enum: [explanation, application, transfer, retention, communication]
+    evidence:
+      type: string
+      description: Which evidence counts.
+      enum: [independent_only, all]
+    date_from:
+      type: string
+      description: Start date, ISO 8601.
+    date_to:
+      type: string
+      description: End date, ISO 8601.

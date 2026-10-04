@@ -1,0 +1,45 @@
+{
+    "description": "Fly the garden camera to a level of detail: the whole garden, a domain grove, one concept plant, or one part of a plant. Use it whenever you start talking about a specific area.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "focus_plant",
+    "parameters": {
+        "description": "Arguments for focus_plant",
+        "properties": {
+            "level": {
+                "description": "Zoom level.",
+                "enum": [
+                    "garden",
+                    "grove",
+                    "plant",
+                    "part"
+                ],
+                "type": "string"
+            },
+            "part": {
+                "description": "Plant part, only for level part.",
+                "enum": [
+                    "roots",
+                    "stem",
+                    "branches",
+                    "blossoms"
+                ],
+                "type": "string"
+            },
+            "target_id": {
+                "description": "Domain ID for grove, concept ID for plant or part. Omit for garden.",
+                "type": "string"
+            }
+        },
+        "required": [
+            "level"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

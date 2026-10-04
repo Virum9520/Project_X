@@ -1,0 +1,65 @@
+{
+    "api_schema": {
+        "content_type": "application/json",
+        "method": "POST",
+        "request_body_schema": {
+            "description": "Arguments for fetch_question",
+            "properties": {
+                "concept_id": {
+                    "description": "Concept ID to target. Omit to let the backend choose from the session plan.",
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "dynamic_variable": "system__conversation_id",
+                    "type": "string"
+                },
+                "difficulty": {
+                    "description": "Desired difficulty relative to the learner.",
+                    "enum": [
+                        "easier",
+                        "same",
+                        "harder"
+                    ],
+                    "type": "string"
+                },
+                "exclude_question_ids": {
+                    "description": "Comma-separated question IDs already used in this session.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "The kind of question needed now.",
+                    "enum": [
+                        "concept_check",
+                        "cross_question",
+                        "teach_back",
+                        "coding_problem",
+                        "behavioral"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "conversation_id"
+            ],
+            "type": "object"
+        },
+        "request_headers": {
+            "X-SG-Tool-Token": {
+                "variable_name": "secret__sg_tool_token"
+            }
+        },
+        "url": "https://api-dev.skillgarden.invalid/v1/agent-tools/fetch_question"
+    },
+    "description": "Get the next question or problem from the Skill Garden question bank, chosen for this learner. Always use it instead of inventing assessed questions, so every answer links to a known question and rubric. Returns question_id, prompt text, and optional hints for you only.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {
+            "secret__sg_tool_token": "test-token"
+        }
+    },
+    "force_pre_tool_speech": false,
+    "name": "fetch_question",
+    "response_timeout_secs": 8,
+    "type": "webhook"
+}

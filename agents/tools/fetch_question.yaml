@@ -1,0 +1,25 @@
+name: fetch_question
+type: webhook
+path: /v1/agent-tools/fetch_question
+description: >-
+  Get the next question or problem from the Skill Garden question bank, chosen for this learner.
+  Always use it instead of inventing assessed questions, so every answer links to a known
+  question and rubric. Returns question_id, prompt text, and optional hints for you only.
+timeout_secs: 8
+parameters:
+  required: [kind]
+  properties:
+    kind:
+      type: string
+      description: The kind of question needed now.
+      enum: [concept_check, cross_question, teach_back, coding_problem, behavioral]
+    concept_id:
+      type: string
+      description: Concept ID to target. Omit to let the backend choose from the session plan.
+    difficulty:
+      type: string
+      description: Desired difficulty relative to the learner.
+      enum: [easier, same, harder]
+    exclude_question_ids:
+      type: string
+      description: Comma-separated question IDs already used in this session.

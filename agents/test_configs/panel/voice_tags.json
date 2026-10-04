@@ -1,0 +1,35 @@
+{
+    "chat_history": [
+        {
+            "message": "Thanks for that story about the group project. That's all from me for now.",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "Great, I'm ready for the technical part.",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "Arjuna here, let's start with a coding problem.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/panel/voice_tags",
+    "success_condition": "The response hands over to Arjuna, and Arjuna's lines are wrapped in <Arjuna>...</Arjuna> tags while any facilitation stays untagged or in <Vidura> tags.",
+    "success_examples": [
+        {
+            "response": "Arjuna, over to you. <Arjuna>Thanks, Vidura. Let's start with a coding problem.</Arjuna>",
+            "type": "success"
+        }
+    ],
+    "type": "llm"
+}

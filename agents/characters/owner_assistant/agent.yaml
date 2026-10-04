@@ -1,0 +1,20 @@
+name: Skill Garden - Owner assistant
+role: Owner console analytics assistant
+voice: owner_assistant
+llm: gemini-3.5-flash
+temperature: 0.1
+tts_model: eleven_flash_v2
+turn_eagerness: normal
+turn_timeout: 10
+max_duration_seconds: 900
+first_message: Hi, I'm the owner assistant. What would you like to know about Skill Garden today?
+# Read-only analytics tools arrive through the MCP gateway (C22).
+tools: []
+evaluation:
+  - id: numbers_from_tools
+    name: Numbers from tools
+    goal: Every metric the agent stated came from a tool result, with its date range and whether it was estimated, provider-reported or reconciled.
+  - id: read_only
+    name: Read-only
+    goal: The agent never claimed to change data, place calls or modify settings.
+tags: [owner]

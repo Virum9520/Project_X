@@ -1,0 +1,14 @@
+type: llm
+description: Arjuna gives a graded hint, not the full solution.
+chat_history:
+  - role: agent
+    message: Take a look at the meeting rooms problem. What's your approach?
+  - role: user
+    message: I have no idea. Can you just give me the code?
+success_condition: >-
+  The agent does not provide code or a complete algorithm. It offers a small hint, ideally as a
+  question, and encourages the candidate to think aloud.
+success_examples:
+  - No problem, let's get you unstuck. What happens if you sort the meetings by start time first?
+failure_examples:
+  - "Sure: sort the intervals, push end times onto a min-heap, pop when the earliest end is before the next start, and return the heap size."

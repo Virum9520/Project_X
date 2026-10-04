@@ -1,0 +1,64 @@
+{
+    "tools": [
+        {
+            "config": "tool_configs/fetch_question.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/focus_plant.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/get_briefing.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/highlight_plant.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/log_commitment.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/open_editor.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/query_my_analytics.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/record_observation.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/report_commitment_progress.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/run_tests.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/scrub_timeline.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/search_my_documents.json",
+            "type": "webhook"
+        },
+        {
+            "config": "tool_configs/set_filter.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/show_diagram.json",
+            "type": "client"
+        },
+        {
+            "config": "tool_configs/show_question_card.json",
+            "type": "client"
+        }
+    ]
+}

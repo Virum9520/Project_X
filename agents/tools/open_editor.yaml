@@ -1,0 +1,16 @@
+name: open_editor
+type: client
+description: >-
+  Open the code editor with the given problem loaded. Call it right after presenting a coding
+  problem.
+timeout_secs: 5
+parameters:
+  required: [problem_id, language]
+  properties:
+    problem_id:
+      type: string
+      description: The problem ID from fetch_question.
+    language:
+      type: string
+      description: Language the learner chose.
+      enum: [python, javascript, typescript, java, cpp, go]

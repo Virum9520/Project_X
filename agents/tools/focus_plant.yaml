@@ -1,0 +1,20 @@
+name: focus_plant
+type: client
+description: >-
+  Fly the garden camera to a level of detail: the whole garden, a domain grove, one concept plant,
+  or one part of a plant. Use it whenever you start talking about a specific area.
+timeout_secs: 5
+parameters:
+  required: [level]
+  properties:
+    level:
+      type: string
+      description: Zoom level.
+      enum: [garden, grove, plant, part]
+    target_id:
+      type: string
+      description: Domain ID for grove, concept ID for plant or part. Omit for garden.
+    part:
+      type: string
+      description: Plant part, only for level part.
+      enum: [roots, stem, branches, blossoms]

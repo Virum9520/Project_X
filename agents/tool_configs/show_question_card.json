@@ -1,0 +1,35 @@
+{
+    "description": "Show the current question on the learner's screen so they can read it while answering. Call it whenever you ask a question from fetch_question.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "show_question_card",
+    "parameters": {
+        "description": "Arguments for show_question_card",
+        "properties": {
+            "body": {
+                "description": "The question text as the learner should read it. Plain text, under 80 words.",
+                "type": "string"
+            },
+            "question_id": {
+                "description": "The question ID from fetch_question.",
+                "type": "string"
+            },
+            "title": {
+                "description": "Short title, under 8 words.",
+                "type": "string"
+            }
+        },
+        "required": [
+            "question_id",
+            "title",
+            "body"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

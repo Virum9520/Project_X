@@ -1,0 +1,23 @@
+name: log_commitment
+type: webhook
+path: /v1/agent-tools/log_commitment
+description: >-
+  Save one specific commitment the learner has explicitly agreed to, such as "solve two graph
+  problems by 9 PM". Only call it after you have read the commitment back and the learner has
+  said yes. Use it for the learner's own promises, not your suggestions.
+timeout_secs: 8
+parameters:
+  required: [description, due_local, confirmed_by_learner]
+  properties:
+    description:
+      type: string
+      description: The commitment in the learner's words, specific and measurable.
+    due_local:
+      type: string
+      description: When it is due in the learner's local time, ISO 8601 without offset, e.g. 2026-10-05T21:00.
+    concept_id:
+      type: string
+      description: Related curriculum concept ID, if any.
+    confirmed_by_learner:
+      type: boolean
+      description: True only if the learner explicitly confirmed the commitment as read back.
