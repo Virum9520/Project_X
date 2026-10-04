@@ -1,0 +1,40 @@
+# OS
+.DS_Store
+
+# Node
+node_modules/
+.pnpm-store/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+coverage/
+playwright-report/
+test-results/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local data
+.data/
+*.log

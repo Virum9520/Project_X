@@ -1,0 +1,42 @@
+[project]
+name = "skill-garden"
+version = "0.1.0"
+description = "Skill Garden Python workspace root"
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/core", "services/api", "services/worker", "services/mcp_gateway"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.7",
+  "mypy>=1.13",
+  "httpx>=0.27",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC", "RUF"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["services"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+
+[tool.ruff.lint.isort]
+known-first-party = ["sg_core", "sg_api", "sg_worker", "sg_mcp_gateway"]
