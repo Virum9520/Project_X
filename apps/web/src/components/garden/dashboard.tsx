@@ -1,8 +1,8 @@
 "use client";
 
 import { CHARACTER_META, CharacterAvatar } from "@/components/character/character-avatar";
+import { COACHES } from "@/components/character/coaches";
 import type { Character, FocusTarget, GardenDataset } from "@sg/contracts";
-import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -306,64 +306,25 @@ export function GardenDashboard({
   );
 }
 
-const PRACTICE: { href: Route; label: string; hint: string; character: Character }[] = [
-  {
-    href: "/session",
-    label: "Voice session",
-    hint: "Concept by concept, out loud",
-    character: "drona",
-  },
-  {
-    href: "/interview",
-    label: "HR and panel interview",
-    hint: "Behavioural questions",
-    character: "vidura",
-  },
-  {
-    href: "/interview/technical",
-    label: "Technical interview",
-    hint: "Think aloud, with code",
-    character: "arjuna",
-  },
-  {
-    href: "/settings/schedule",
-    label: "Accountability calls",
-    hint: "Commitments and check-ins",
-    character: "bhima",
-  },
-  {
-    href: "/future-self",
-    label: "Future-self message",
-    hint: "Hear from the you to come",
-    character: "krishna",
-  },
-  {
-    href: "/recap",
-    label: "Weekly recap",
-    hint: "A narrated garden flythrough",
-    character: "sanjaya",
-  },
-];
-
 /** Your guides: a column beside the garden. Each portrait breathes, and swells on hover. */
 function PracticeLinks() {
   return (
     <nav aria-label="Guides" className="flex min-w-0 flex-col gap-3">
       <span className="text-base uppercase tracking-[0.2em] text-foreground/60">Your guides</span>
-      {PRACTICE.map((p) => {
-        const meta = CHARACTER_META[p.character];
+      {COACHES.map((p) => {
+        const meta = CHARACTER_META[p.id];
         return (
           <Link
             key={p.href}
             href={p.href}
             className="glass group flex items-center gap-4 rounded-2xl p-3 outline-none transition hover:-translate-y-0.5 hover:border-glow/40 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-glow"
           >
-            <CharacterAvatar character={p.character} size={84} />
+            <CharacterAvatar character={p.id} size={84} />
             <span className="min-w-0">
               <span className="block text-xs uppercase tracking-[0.2em] text-foreground/50">
                 {meta.name} · {meta.role}
               </span>
-              <span className="mt-0.5 block text-lg font-medium leading-tight">{p.label}</span>
+              <span className="mt-0.5 block text-lg font-medium leading-tight">{p.feature}</span>
               <span className="block text-sm text-foreground/60">{p.hint}</span>
             </span>
             <span

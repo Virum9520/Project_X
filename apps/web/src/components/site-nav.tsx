@@ -1,6 +1,7 @@
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { NavLinks, SignedOutNav } from "./nav-links";
 import { SectionLink } from "./section-link";
 
 const SECTIONS = [
@@ -34,15 +35,22 @@ export function SiteNav() {
             Skill Garden
           </span>
         </Link>
-        <ul className="hidden items-center gap-7 text-sm text-foreground/70 lg:flex">
-          {SECTIONS.map(({ hash, label }) => (
-            <li key={hash}>
-              <SectionLink id={hash} className="transition hover:text-foreground">
-                {label}
-              </SectionLink>
-            </li>
-          ))}
-        </ul>
+        <Show when="signed-out">
+          <SignedOutNav>
+            <ul className="hidden items-center gap-7 text-sm text-foreground/70 lg:flex">
+              {SECTIONS.map(({ hash, label }) => (
+                <li key={hash}>
+                  <SectionLink id={hash} className="transition hover:text-foreground">
+                    {label}
+                  </SectionLink>
+                </li>
+              ))}
+            </ul>
+          </SignedOutNav>
+        </Show>
+        <Show when="signed-in">
+          <NavLinks />
+        </Show>
         <div className="flex items-center gap-2 whitespace-nowrap text-sm">
           <Show
             when="signed-in"
@@ -62,24 +70,6 @@ export function SiteNav() {
               </>
             }
           >
-            <Link
-              href="/interview"
-              className="hidden rounded-xl px-3 py-2 text-foreground/80 transition hover:bg-white/5 hover:text-foreground sm:inline"
-            >
-              Interviews
-            </Link>
-            <Link
-              href="/interview/technical"
-              className="hidden rounded-xl px-3 py-2 text-foreground/80 transition hover:bg-white/5 hover:text-foreground md:inline"
-            >
-              Technical
-            </Link>
-            <Link
-              href="/garden"
-              className="rounded-xl bg-moss px-4 py-2 font-medium text-night transition hover:brightness-110"
-            >
-              My garden
-            </Link>
             <span className="px-1">
               <UserButton />
             </span>
