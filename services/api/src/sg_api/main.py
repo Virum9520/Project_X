@@ -11,6 +11,7 @@ from sg_api.accountability.router import router as accountability_router
 from sg_api.admin.router import router as admin_console_router
 from sg_api.agent_tools.commitments import router as commitments_tool_router
 from sg_api.agent_tools.get_briefing import router as get_briefing_router
+from sg_api.agent_tools.record_observation import router as record_observation_router
 from sg_api.agent_tools.search_my_documents import router as search_my_documents_router
 from sg_api.auth import build_identity
 from sg_api.future_self.router import router as future_self_router
@@ -75,6 +76,7 @@ def create_app() -> FastAPI:
     app.include_router(garden_router)
     app.include_router(query_analytics_router)
     app.include_router(commitments_tool_router)
+    app.include_router(record_observation_router)
     app.include_router(accountability_router)
     return app
 

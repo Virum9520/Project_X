@@ -539,3 +539,55 @@ async def test_commitment_talk_in_a_bhima_call_never_creates_evidence() -> None:
     )
     result = await run_post_call(deps(world, llm), payload(turns, focus=None))
     assert result.revision is None and not world.store.evidence
+
+
+async def test_a_failed_retention_answer_resets_the_review_clock_and_cites_evidence() -> None:
+    world = World(Character.BHIMA, "accountability_call")
+    await world.start_session()
+    world.store.retention[CONV] = BS
+    await _seed_learned(world, minutes_ago=60 * 24 * 3)  # review was due two days ago
+    before = plant(world)
+    turns = [
+        turn("agent", "What makes binary search logarithmic?", 100),
+        turn("user", "Um, I think it checks every element one by one.", 110),
+    ]
+    llm = ScriptedLLM(
+        judge_body(
+            verdict(
+                dimension="retention",
+                outcome="not_demonstrated",
+                turn=1,
+                quote="I think it checks every element one by one",
+            )
+        )
+    )
+    result = await run_post_call(deps(world, llm), payload(turns, focus=None))
+    assert result.revision == 2
+    [event] = [e for c in world.store.revisions[1]["changes"] for e in c["events"]]
+    assert event["kind"] == "review_failed" and event["evidence_ids"]
+    after = plant(world)
+    # Scores never go down on a miss; only the schedule moves.
+    assert after.dimension("explanation").independent == before.dimension("explanation").independent
+    assert after.dimension("retention").independent == 0.0
+    assert after.next_review_at != before.next_review_at
+
+
+async def test_assisted_retention_does_not_count_even_in_a_bhima_call() -> None:
+    world = World(Character.BHIMA, "accountability_call")
+    await world.start_session()
+    world.store.retention[CONV] = BS
+    await _seed_learned(world, minutes_ago=60 * 24 * 2)
+    turns = [turn("user", "Each comparison halves what is left, so log n steps.", 110)]
+    llm = ScriptedLLM(
+        judge_body(
+            verdict(
+                dimension="retention",
+                assistance="assisted",
+                turn=0,
+                quote="Each comparison halves what is left",
+            )
+        )
+    )
+    result = await run_post_call(deps(world, llm), payload(turns, focus=None))
+    assert result.revision is None
+    assert plant(world).dimension("retention").assisted == 0.0
