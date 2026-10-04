@@ -1,17 +1,21 @@
 """The identity services one API process shares across requests."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import httpx
 
+from sg_core.db import get_sessionmaker
 from sg_core.identity import (
     AuditSink,
     ClerkTokenVerifier,
     ClerkUserDirectory,
     GrantStore,
     LogAuditSink,
+    NullUserStore,
     StaticGrantStore,
+    UserStore,
 )
+from sg_core.identity.db import DbAuditSink, DbGrantStore, DbUserStore
 from sg_core.settings import Settings
 
 
@@ -24,6 +28,7 @@ class Identity:
     audit: AuditSink
     owner_emails: frozenset[str]
     admin_origins: frozenset[str]
+    users: UserStore = field(default_factory=NullUserStore)
 
 
 def build_identity(settings: Settings, http: httpx.AsyncClient) -> Identity:
@@ -41,7 +46,7 @@ def build_identity(settings: Settings, http: httpx.AsyncClient) -> Identity:
         if settings.clerk_secret_key
         else None
     )
-    return Identity(
+    identity = Identity(
         verifier=verifier,
         directory=directory,
         grants=StaticGrantStore(),
@@ -49,3 +54,10 @@ def build_identity(settings: Settings, http: httpx.AsyncClient) -> Identity:
         owner_emails=frozenset(settings.admin_owner_emails),
         admin_origins=frozenset(settings.admin_origins),
     )
+    if settings.identity_backend == "db":
+        # Lazy engine: nothing connects until the first query.
+        sessions = get_sessionmaker()
+        identity.grants = DbGrantStore(sessions)
+        identity.audit = DbAuditSink(sessions)
+        identity.users = DbUserStore(sessions)
+    return identity

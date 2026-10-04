@@ -99,13 +99,26 @@ async def capabilities_of(
     is_owner = user.primary_email is not None and user.primary_email in identity.owner_emails
     if is_owner:
         return True, OWNER_CAPABILITIES
-    return False, await identity.grants.capabilities_for(user.id)
+    try:
+        return False, await identity.grants.capabilities_for(user.id)
+    except Exception as exc:  # grant store down: deny rather than guess
+        log.error("auth.grants_lookup_failed", user_id=user.id, error=str(exc))
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "grant lookup failed") from exc
+
+
+async def sync_user(identity: Identity, user: ClerkUser) -> None:
+    """Mirror the Clerk user into our tables. Best effort: a database blip must not break auth."""
+    try:
+        await identity.users.sync(user)
+    except Exception as exc:
+        log.warning("auth.user_sync_failed", user_id=user.id, error=str(exc))
 
 
 async def current_admin(
     request: Request, identity: IdentityDep, claims: SessionDep
 ) -> AdminPrincipal:
     user = await load_user(identity, claims.user_id)
+    await sync_user(identity, user)  # so grants and audit rows can reference the user
     is_owner, capabilities = await capabilities_of(identity, user)
     if user.primary_email is None or Capability.CONSOLE_ACCESS not in capabilities:
         log.warning("auth.admin_denied", user_id=user.id, reason="not_allowlisted")

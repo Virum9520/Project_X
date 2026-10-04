@@ -16,6 +16,7 @@ from sg_core.identity import (
     AuditEvent,
     Capability,
     ClerkTokenVerifier,
+    ClerkUser,
     ClerkUserDirectory,
     StaticGrantStore,
 )
@@ -246,3 +247,44 @@ async def test_auth_unconfigured_answers_503(app: FastAPI, client: AsyncClient) 
     app.state.identity.verifier = None
     response = await client.get("/v1/me", headers=auth("user_learner"))
     assert response.status_code == 503
+
+
+class RecordingUserStore:
+    def __init__(self, *, fail: bool = False) -> None:
+        self.synced: list[str] = []
+        self._fail = fail
+
+    async def sync(self, user: ClerkUser) -> None:
+        if self._fail:
+            raise RuntimeError("db down")
+        self.synced.append(user.id)
+
+
+async def test_me_and_admin_sync_the_user(app: FastAPI, client: AsyncClient) -> None:
+    store = RecordingUserStore()
+    app.state.identity.users = store
+    assert (await client.get("/v1/me", headers=auth("user_learner"))).status_code == 200
+    assert (await client.get("/v1/admin/me", headers=auth("user_owner"))).status_code == 200
+    assert store.synced == ["user_learner", "user_owner"]
+
+
+async def test_user_sync_failure_does_not_break_auth(app: FastAPI, client: AsyncClient) -> None:
+    app.state.identity.users = RecordingUserStore(fail=True)
+    assert (await client.get("/v1/me", headers=auth("user_learner"))).status_code == 200
+
+
+async def test_grant_store_failure_denies_with_503(app: FastAPI, client: AsyncClient) -> None:
+    class BrokenGrants:
+        async def capabilities_for(self, user_id: str) -> frozenset[Capability]:
+            raise RuntimeError("db down")
+
+    app.state.identity.grants = BrokenGrants()
+    response = await client.get("/v1/admin/me", headers=auth("user_support"))
+    assert response.status_code == 503
+    # Owners never depend on the grant store.
+    assert (await client.get("/v1/admin/me", headers=auth("user_owner"))).status_code == 200
+    # Learners' /v1/me degrades to no capabilities instead of failing.
+    response = await client.get("/v1/me", headers=auth("user_support"))
+    assert response.status_code == 200
+    assert response.json()["capabilities"] == []
+    assert response.json()["console_access"] is False

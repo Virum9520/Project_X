@@ -8,7 +8,7 @@ from decimal import Decimal
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import AliasChoices, Field, PostgresDsn, SecretStr, field_validator
@@ -91,6 +91,9 @@ class Settings(BaseSettings):
     admin_owner_emails: Annotated[list[str], NoDecode] = []
     # Browser origins allowed to send admin mutations (CSRF origin check).
     admin_origins: Annotated[list[str], NoDecode] = ["http://localhost:3001"]
+    # "db": grants, audit log and the users/profiles mirror live in Postgres. "memory": no
+    # persistence (static grants, log-only audit), for runs without a database.
+    identity_backend: Literal["db", "memory"] = "db"
 
     # CORS: exact origins (comma-separated), plus an optional regex for preview deployments,
     # e.g. https://skill-garden-web-[a-z0-9-]+-myteam\.vercel\.app

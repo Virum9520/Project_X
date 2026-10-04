@@ -82,6 +82,8 @@ async def _write_audit(request: Request, status_code: int) -> None:
         target=details.target,
         before=details.before,
         after=details.after,
+        ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
     )
     try:
         await request.app.state.identity.audit.record(event)
