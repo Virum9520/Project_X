@@ -10,9 +10,7 @@ from pydantic import SecretStr
 from sg_api.drona.growth import (
     GrowthFeed,
     MemoryGrowthFeed,
-    MicroJudge,
     get_growth_feed,
-    get_micro_judge,
 )
 from sg_api.drona.questions import ConceptRubric
 from sg_api.drona.store import BindResult, NewSession, SessionStore, get_session_store
@@ -93,14 +91,11 @@ def token(conversation_id: str | None = "conv_1", user: str = "user_clerk_1") ->
 async def make_client(
     store: SessionStore | None = None,
     feed: GrowthFeed | None = None,
-    judge: MicroJudge | None = None,
 ) -> AsyncIterator[AsyncClient]:
     app = create_app()
     app.dependency_overrides[get_settings] = lambda: SETTINGS
     app.dependency_overrides[get_session_store] = lambda: store or FakeStore()
     app.dependency_overrides[get_growth_feed] = lambda: feed or MemoryGrowthFeed()
-    if judge is not None:
-        app.dependency_overrides[get_micro_judge] = lambda: judge
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
