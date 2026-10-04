@@ -27,7 +27,7 @@ done, and the real integration waits.
 | C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | todo | | Pure Python, can start on mocks |
 | C11 | Evidence and judge pipeline: post-call workflow, micro-judge, validation, garden revisions | 5 | C03, C04, C09, C10 | todo | | |
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
-| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | todo | | Ready to start; uses mock garden state |
+| C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | claimed | `feat/c13-3d-garden-scene` | Ready to start; uses mock garden state |
 | C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | todo | | USP. UI can start on mocks |
 | C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | todo | | Ready to start |
 | C16 | Arjuna technical interview: résumé and job description parsing, problem bank, Monaco, E2B tests, Scribe captions | 7 | C11, C12 | todo | | |
