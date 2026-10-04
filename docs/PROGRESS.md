@@ -84,7 +84,7 @@ event name or SSE channel), record it here in the same PR.
 | `sg_core.curriculum`: `load_curriculum`, `curriculum_path`, `CurriculumSpec`, `sync_curriculum` | C07 | `services/core/src/sg_core/curriculum/` | `CurriculumSpec` gives `concept()`, `concepts_in()`, `topological_order()`, `prerequisite_closure()`, `dependents()`, `content_hash`. `sync_curriculum` is idempotent per `(key, version)` + content hash |
 | Curriculum CLI | C07 | `uv run python -m sg_core.curriculum validate\|load [key] [version] [--activate]` | `load` syncs into `DATABASE_URL`; `--activate` retires the previous active version |
 | Rubric rows and concept attributes | C07 | `rubrics`, `concepts.attributes` | Rubric keys: `cs-core@v1/<concept key>` (per concept, `dimension` null), `cs-core@v1/dimension.<d>` and `cs-core@v1/communication.<behavior>` (`concept_id` null). `criteria.kind` is `concept`/`dimension`/`communication`; dimension and communication criteria carry `guardrails` for judge prompts. `concepts.attributes` = `{topic, aliases, assessment}` (`behavioral` concepts are also scored with the communication rubrics) |
-| Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/`. The service image must include `curriculum/` (or set this) wherever `load` runs |
+| Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/` (`/app/curriculum` in the service image) |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
