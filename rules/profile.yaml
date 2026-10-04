@@ -1,0 +1,29 @@
+# Garden rules profile "normal". Versioned: any change to a number below changes growth, so bump
+# `version` (stored on every garden revision as `rule_ver`) and never edit a shipped version in
+# place once revisions exist. Semantics: services/core/src/sg_core/rules/engine.py and rules/README.md.
+name: normal
+version: 1
+
+# Credit one accepted observation adds to its track, by judge outcome. `unassessable` never counts.
+outcome_credit:
+  demonstrated: 1.0
+  partial: 0.5
+  not_demonstrated: 0.0
+
+# Judge uncertainty above this makes the evidence ambiguous: no growth, flagged for reassessment.
+max_uncertainty: 0.5
+
+# A track (dimension, independent or assisted) is "reached" at this score. Generous on purpose:
+# one good demonstration reaches it, so every stage fits in one 5-10 minute session.
+reach_threshold: 0.6
+
+# Minimum seconds between the learner's earlier independent evidence on the plant and a later
+# recall for it to count as retention ("later correct recall").
+retention_min_gap_seconds: 120
+
+# Spaced-repetition clock. `review_intervals_seconds[step]` is the wait after the evidence that
+# set the step. A review succeeding advances the step; failing one steps back by `review_fail_drop`.
+review_intervals_seconds: [86400, 259200, 604800, 1382400, 3024000]
+# A plant is DUE from `next_review_at` and WILTING `wilt_grace_seconds` after that.
+wilt_grace_seconds: 172800
+review_fail_drop: 1

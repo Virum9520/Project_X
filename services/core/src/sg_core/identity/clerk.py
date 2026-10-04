@@ -48,6 +48,9 @@ class ClerkUser:
     primary_email: str | None
     """Lower-cased primary email, set only when Clerk has verified it."""
     two_factor_enabled: bool
+    display_name: str | None = None
+    onboarding: dict[str, Any] | None = None
+    """`publicMetadata.onboarding` as written by the web app; untrusted shape, validate on use."""
 
 
 class ClerkTokenVerifier:
@@ -184,8 +187,18 @@ def _parse_user(data: dict[str, Any]) -> ClerkUser:
         verified = (entry.get("verification") or {}).get("status") == "verified"
         if entry.get("id") == primary_id and verified:
             primary_email = str(entry["email_address"]).strip().lower()
+    metadata = data.get("public_metadata")
+    onboarding = metadata.get("onboarding") if isinstance(metadata, dict) else None
     return ClerkUser(
         id=str(data["id"]),
         primary_email=primary_email,
         two_factor_enabled=bool(data.get("two_factor_enabled")),
+        display_name=_display_name(data),
+        onboarding=onboarding if isinstance(onboarding, dict) else None,
     )
+
+
+def _display_name(data: dict[str, Any]) -> str | None:
+    parts = [data.get("first_name"), data.get("last_name")]
+    name = " ".join(p.strip() for p in parts if isinstance(p, str) and p.strip())
+    return name[:200] or None

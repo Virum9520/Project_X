@@ -1,0 +1,19 @@
+# Garden rules profile "demo": identical growth thresholds, compressed spaced-repetition clock so
+# reviews fall due and plants wilt within minutes. Demo and test accounts only; never mixed with
+# real learner analytics. Keep the thresholds in sync with profile.yaml (a test enforces it).
+name: demo
+version: 1
+
+outcome_credit:
+  demonstrated: 1.0
+  partial: 0.5
+  not_demonstrated: 0.0
+
+max_uncertainty: 0.5
+reach_threshold: 0.6
+
+retention_min_gap_seconds: 30
+
+review_intervals_seconds: [120, 240, 480, 960, 1920]
+wilt_grace_seconds: 120
+review_fail_drop: 1

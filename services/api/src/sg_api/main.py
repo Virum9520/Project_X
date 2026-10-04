@@ -7,12 +7,18 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from sg_api.agent_tools.get_briefing import router as get_briefing_router
 from sg_api.auth import build_identity
 from sg_api.middleware import AuditMiddleware, RequestContextMiddleware
 from sg_api.routers import admin, health, me
 from sg_api.sessions.router import router as sessions_router
-from sg_core.logging import configure_logging
+from sg_api.webhooks.router import router as webhooks_router
+from sg_core.db import get_sessionmaker
+from sg_core.identity.db import seed_identity_catalog_committed
+from sg_core.logging import configure_logging, get_logger
 from sg_core.settings import Environment, get_settings
+
+log = get_logger(__name__)
 
 
 def create_app() -> FastAPI:
@@ -22,6 +28,11 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        if settings.identity_backend == "db":
+            try:
+                await seed_identity_catalog_committed(get_sessionmaker())
+            except Exception as exc:  # e.g. database not migrated yet; the API still serves
+                log.warning("identity.seed_failed", error=str(exc))
         yield
         await http.aclose()
 
@@ -47,6 +58,8 @@ def create_app() -> FastAPI:
     app.include_router(me.router)
     app.include_router(admin.router)
     app.include_router(sessions_router)
+    app.include_router(webhooks_router)
+    app.include_router(get_briefing_router)
     return app
 
 
