@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from sg_api.drona.questions import SERVED_KINDS, parse_exclusions, select_question
 from sg_api.drona.store import SessionStore, get_session_store
 from sg_api.sessions.tool_tokens import ToolTokenClaims, check_conversation, require_tool_token
+from sg_api.vidura.behavioral import next_competency
 from sg_core.logging import get_logger
 
 router = APIRouter(prefix="/v1/agent-tools", tags=["agent-tools"])
@@ -56,6 +57,14 @@ async def fetch_question(
         concept_key = body.concept_id or await store.session_focus(
             claims.user_id, claims.session_id
         )
+        if concept_key is None and body.kind == "behavioral":
+            # Vidura and the Panel have no focus concept: rotate through the competencies.
+            used = {
+                q.split(":")[1]
+                for q in parse_exclusions(body.exclude_question_ids)
+                if q.count(":") == 2
+            }
+            concept_key = next_competency(used)
         if concept_key is None:
             raise HTTPException(
                 422,

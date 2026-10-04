@@ -12,6 +12,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Literal
 
+from sg_api.vidura.behavioral import probe_hints, prompts_for
+
 QuestionKind = Literal[
     "concept_check", "cross_question", "teach_back", "coding_problem", "behavioral"
 ]
@@ -115,12 +117,10 @@ def _variants(concept: ConceptRubric, kind: str) -> list[tuple[str, list[str]]]:
                 )
             )
         return out or [(f"What could go wrong when using {title}, and why?", [])]
-    # concept_check and behavioral
-    generic = f"In your own words, what is {title}, and why does it work?"
     if kind == "behavioral":
-        generic = (
-            f"Tell me about a time that shows {title.lower()}. What did you do and what happened?"
-        )
+        # STAR-shaped prompts from Vidura's bank; hints are follow-up probes, not an answer key.
+        return [(prompt, probe_hints()) for prompt in prompts_for(concept.key, title)]
+    generic = f"In your own words, what is {title}, and why does it work?"
     out = [(generic, explanation[:MAX_HINTS])]
     for criterion in explanation:
         asked = _as_question(criterion)
