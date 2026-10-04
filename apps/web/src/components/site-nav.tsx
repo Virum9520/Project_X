@@ -63,7 +63,7 @@ export function SiteNav() {
             }
           >
             <Link
-              href="/account"
+              href="/garden"
               className="rounded-xl bg-moss px-4 py-2 font-medium text-night transition hover:brightness-110"
             >
               My garden

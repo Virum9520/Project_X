@@ -28,7 +28,7 @@ done, and the real integration waits.
 | C11 | Evidence and judge pipeline: post-call workflow, micro-judge, validation, garden revisions | 5 | C03, C04, C09, C10 | todo | | |
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
 | C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | claimed | `feat/c13-3d-garden-scene` | Ready to start; uses mock garden state |
-| C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | todo | | USP. UI can start on mocks |
+| C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | in-review | `feat/c14-dashboard-ui` | USP. UI on mocks; API integration pending C09/C10/C13. Done on mocks: shell, filters (URL-synced), KPI/insights rails, evidence timeline, time-travel scrubber, memory panel, 2D table view, `focus_plant`/`set_filter`/`scrub_timeline` handlers, 3D slot placeholder. Not done: analytics API (`/garden/*`), live SSE growth, Ask Sanjaya agent wiring, real 3D scene (C13) |
 | C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | todo | | Ready to start |
 | C16 | Arjuna technical interview: résumé and job description parsing, problem bank, Monaco, E2B tests, Scribe captions | 7 | C11, C12 | todo | | |
 | C17 | Vidura HR interview and Panel interview | 8 | C12 | todo | | |
@@ -85,10 +85,16 @@ event name or SSE channel), record it here in the same PR.
 | Curriculum CLI | C07 | `uv run python -m sg_core.curriculum validate\|load [key] [version] [--activate]` | `load` syncs into `DATABASE_URL`; `--activate` retires the previous active version |
 | Rubric rows and concept attributes | C07 | `rubrics`, `concepts.attributes` | Rubric keys: `cs-core@v1/<concept key>` (per concept, `dimension` null), `cs-core@v1/dimension.<d>` and `cs-core@v1/communication.<behavior>` (`concept_id` null). `criteria.kind` is `concept`/`dimension`/`communication`; dimension and communication criteria carry `guardrails` for judge prompts. `concepts.attributes` = `{topic, aliases, assessment}` (`behavioral` concepts are also scored with the communication rubrics) |
 | Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/` (`/app/curriculum` in the service image) |
+| Garden contracts (`GardenDataset`, `EvidenceItem`, `GrowthEvent`, `PlantState`, `GardenFilters`, `FocusTarget`, client-tool arg types) | C14 | `packages/contracts/src/garden.ts` | Shape the analytics API (C09/C10) should return. Growth events must cite evidence; assisted evidence is a separate `kind` |
+| Dashboard data-access seam `getGardenDataset()` | C14 | `apps/web/src/lib/garden/data.ts` | The only place to swap the mock (`mock.ts`) for the real API (`apiGet<GardenDataset>`) |
+| Garden dashboard route `/garden` (filters, zoom, time travel in the query string) | C14 | `apps/web/src/app/(app)/garden/page.tsx` | Dev-only mock preview without auth at `/dev/garden` (404 in production) |
+| `GardenSceneSlot` props contract (`GardenSceneSlotProps`) | C14 | `apps/web/src/components/garden/garden-scene-slot.tsx` | C13 fills the slot: honour `plants`, `focus`, `onFocusChange`, `recentGrowthPlantKeys`; doc comment lists the rules |
+| `useGardenDashboard().clientTools` (`focus_plant`, `set_filter`, `scrub_timeline`) | C14 | `apps/web/src/components/garden/use-garden-dashboard.ts`, `apps/web/src/lib/garden/client-tools.ts` | Validated handlers returning a sentence for the agent; pass to ElevenLabs `useConversation({ clientTools })` when Ask Sanjaya is wired |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C14 (UI on mocks) · PR_LINK · Garden Dashboard UI: shell, URL-synced filters, KPI and insights rails, evidence timeline, time-travel scrubber, memory panel, table view, client-tool handlers, 3D slot placeholder, garden contracts. API integration pending C09/C10/C13.
 - 2026-10-04 · C07 · [#12](https://github.com/Virum9520/Project_X/pull/12) · Curriculum `cs-core@v1`: 86 concepts across 6 groves with prerequisite DAG and per-concept rubrics, dimension and communication rubrics, typed loader/validator, idempotent DB sync and CLI.
 - 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).
 - 2026-10-04 · C06 · [#8](https://github.com/Virum9520/Project_X/pull/8) · ElevenLabs agents-as-code (8 agents, 15 tools, 14 tests, `sg-agents`), Voice Design prompts, `POST /v1/sessions` with signed tool tokens, spike ADRs 0001–0005. Voices and first sync pending the API key.

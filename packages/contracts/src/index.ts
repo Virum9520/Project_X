@@ -29,3 +29,4 @@ export const PLANT_STAGES = [
 export type PlantStage = (typeof PLANT_STAGES)[number];
 
 export * from "./identity";
+export * from "./garden";

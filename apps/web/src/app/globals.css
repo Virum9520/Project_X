@@ -6,6 +6,8 @@
   --moss: #3fae7a;
   --bloom: #f4b8d4;
   --glow: #9be7ff;
+  --ember: #f2a65a;
+  --wilt: #8a7f6a;
   --background: var(--night);
   --foreground: #e8ecf6;
 }
@@ -18,6 +20,8 @@
   --color-moss: var(--moss);
   --color-bloom: var(--bloom);
   --color-glow: var(--glow);
+  --color-ember: var(--ember);
+  --color-wilt: var(--wilt);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -149,7 +153,29 @@ html {
   border: 1px solid rgb(255 255 255 / 0.08);
 }
 
+/* Garden Dashboard: assisted evidence is hatched so it never reads as independent. */
+.hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgb(242 166 90 / 0.28) 0 3px,
+    transparent 3px 7px
+  );
+}
+.garden-camera {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .garden-camera {
+    transition: none;
+  }
   html {
     scroll-behavior: auto;
   }
