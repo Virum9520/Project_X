@@ -24,7 +24,7 @@ from sg_core.evidence.store import (
     SessionRef,
     StaleGardenError,
 )
-from sg_core.evidence.types import ConceptInfo, RubricInfo
+from sg_core.evidence.types import CodeRun, ConceptInfo, RubricInfo
 from sg_core.memory import MemoryStore, NewMemory
 from sg_core.models.accountability import CallAttempt, CallOccurrence
 from sg_core.models.curriculum import Concept, Curriculum, Rubric
@@ -46,7 +46,7 @@ from sg_core.models.evidence import (
 from sg_core.models.evidence import PlantState as PlantRow
 from sg_core.models.identity import User
 from sg_core.models.memory import Memory
-from sg_core.models.sessions import HintGiven, SessionEvent
+from sg_core.models.sessions import HintGiven, SandboxRun, SessionEvent
 from sg_core.models.sessions import Session as SessionRow
 from sg_core.rules import GardenState, Observation, PlantState, RulesResult
 from sg_core.settings import get_settings
@@ -274,6 +274,33 @@ class DbEvidenceStore:
         )
         key = data.get("concept_key") if isinstance(data, dict) else None
         return key if isinstance(key, str) else None
+
+    async def code_runs(self, session_id: uuid.UUID) -> list[CodeRun]:
+        rows = await self.session.execute(
+            select(EvidenceItem, SandboxRun, Concept.key)
+            .join(Concept, Concept.id == EvidenceItem.concept_id)
+            .join(SandboxRun, SandboxRun.id == EvidenceItem.sandbox_run_id)
+            .where(EvidenceItem.session_id == session_id, EvidenceItem.kind == "code_run")
+            .order_by(EvidenceItem.occurred_at, EvidenceItem.created_at)
+        )
+        return [
+            CodeRun(
+                concept_key=key,
+                status=run.status.value,
+                passed=run.tests_passed or 0,
+                total=run.tests_total or 0,
+                assistance=Assistance(ev.assistance),
+                quote=ev.quote or "",
+                occurred_at=ev.occurred_at,
+                dedupe_key=ev.dedupe_key,
+                problem_family=ev.problem_family,
+                hint_count=len(ev.hint_ids or []),
+                run_id=run.id,
+                snapshot_id=ev.code_snapshot_id,
+                evidence_id=ev.id,
+            )
+            for ev, run, key in rows.all()
+        ]
 
     async def provisional_memories(self, session_id: uuid.UUID) -> list[ProvisionalMemory]:
         rows = await self.session.scalars(
