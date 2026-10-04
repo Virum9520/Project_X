@@ -4,6 +4,7 @@ Every service reads configuration through `get_settings()`. Secrets are
 `SecretStr` so they never appear in logs or reprs.
 """
 
+import os
 from decimal import Decimal
 from enum import StrEnum
 from functools import lru_cache
@@ -36,6 +37,14 @@ class Settings(BaseSettings):
     git_sha: str | None = Field(
         default=None, validation_alias=AliasChoices("GIT_SHA", "RAILWAY_GIT_COMMIT_SHA")
     )
+
+    # Observability (C23). Everything is off until configured: no DSN or endpoint, no-op.
+    sentry_dsn: SecretStr | None = None
+    sentry_traces_sample_rate: float = 0.0
+    # OTLP/HTTP collector base URL (e.g. https://otlp.example.com); headers as "k=v,k2=v2".
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_exporter_otlp_headers: SecretStr | None = None
+    otel_traces_sample_ratio: float = 0.1
 
     # Data
     database_url: PostgresDsn = Field(
@@ -198,6 +207,19 @@ class Settings(BaseSettings):
     @property
     def authorized_parties(self) -> list[str]:
         return self.clerk_authorized_parties or self.cors_origins
+
+    @property
+    def dev_identity_allowed(self) -> bool:
+        """May a request name its own user (`X-Dev-User-Id`)? Only on a developer machine.
+
+        `ENVIRONMENT` defaults to `local`, so a hosted deploy that forgets to set it must not
+        turn this on: Railway and Vercel inject their own variables, which keep it off.
+        """
+        hosted = any(
+            os.environ.get(name)
+            for name in ("RAILWAY_PROJECT_ID", "RAILWAY_ENVIRONMENT_NAME", "VERCEL", "VERCEL_ENV")
+        )
+        return self.environment in (Environment.LOCAL, Environment.TEST) and not hosted
 
     @property
     def is_production(self) -> bool:
