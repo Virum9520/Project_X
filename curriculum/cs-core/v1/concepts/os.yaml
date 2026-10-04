@@ -1,0 +1,215 @@
+# Grove: operating systems.
+domain: os
+concepts:
+  # ── Processes ──
+  - key: os.processes_threads
+    title: Processes and threads
+    topic: processes
+    difficulty: 2
+    summary: Processes as isolated programs in execution, and threads as concurrent paths of execution that share one address space.
+    aliases: [process, thread, PCB, multithreading]
+    rubric:
+      explanation:
+        - Distinguishes processes (separate address spaces) from threads (shared memory, separate stacks and registers)
+        - Explains what a context switch saves and restores, and why it costs time
+        - Compares creation cost, isolation and communication for processes versus threads
+      application:
+        - Chooses processes or threads for a scenario (for example, CPU-bound work in Python with a GIL) and justifies it
+      transfer:
+        - Relates the model to containers, browser tabs or web-server worker models
+      misconceptions:
+        - Threads in the same process have separate heaps
+
+  - key: os.system_calls
+    title: Kernel mode and system calls
+    topic: processes
+    difficulty: 2
+    summary: How user programs request privileged services from the kernel, and the boundary between user and kernel mode.
+    aliases: [syscall, user mode, kernel mode, trap, fork, exec]
+    prerequisites: [os.processes_threads]
+    rubric:
+      explanation:
+        - Explains why the CPU separates user and kernel mode
+        - Describes a system call as a controlled trap into the kernel, with examples (read, write, fork, exec)
+        - Explains fork and exec and how a shell launches a program
+      application:
+        - Traces what system calls happen when a program reads a file and prints it
+      transfer:
+        - Explains why reducing system calls (buffering, batching) speeds up I/O-heavy code
+      misconceptions:
+        - A system call is just an ordinary function call into a library
+
+  - key: os.cpu_scheduling
+    title: CPU scheduling
+    topic: processes
+    difficulty: 3
+    summary: How the OS decides which runnable thread gets the CPU, and the trade-offs between policies.
+    aliases: [round robin, preemption, context switch, scheduler, time slice]
+    prerequisites: [os.processes_threads, dsa.queues]
+    rubric:
+      explanation:
+        - Describes the ready, running and blocked states and the transitions between them
+        - Compares FCFS, shortest job first, round robin and priority scheduling on throughput, latency and fairness
+        - Explains preemption and the effect of time-slice length
+      application:
+        - Computes average waiting time for a small workload under two policies
+      transfer:
+        - Connects scheduling ideas to request queues in web servers or job schedulers
+      misconceptions:
+        - A shorter time slice is always better
+
+  # ── Concurrency ──
+  - key: os.race_conditions
+    title: Race conditions and critical sections
+    topic: concurrency
+    difficulty: 2
+    summary: Bugs where the outcome depends on the timing of concurrent operations on shared state.
+    aliases: [data race, critical section, atomicity, check-then-act]
+    prerequisites: [os.processes_threads]
+    rubric:
+      explanation:
+        - Explains how count += 1 is a read-modify-write that can lose updates under concurrency
+        - Defines a critical section and the mutual-exclusion requirement
+        - Recognizes check-then-act and read-modify-write patterns as race-prone
+      application:
+        - Identifies the race in a code snippet and proposes a fix
+      transfer:
+        - Spots the same race at a higher level (for example, two requests double-booking a seat)
+      misconceptions:
+        - Races cannot happen on a single-core machine
+
+  - key: os.synchronization
+    title: Locks, semaphores and condition variables
+    topic: concurrency
+    difficulty: 3
+    summary: The primitives used to coordinate threads safely, and when to use each.
+    aliases: [mutex, semaphore, condition variable, monitor, atomic operations]
+    prerequisites: [os.race_conditions]
+    rubric:
+      explanation:
+        - Explains a mutex and what "holding a lock" guarantees
+        - Distinguishes a counting semaphore from a mutex
+        - Explains why condition variables are used with a lock and a while loop (spurious wakeups)
+      application:
+        - Implements a bounded producer-consumer buffer correctly
+      transfer:
+        - Chooses between a lock, an atomic operation and a lock-free queue for a given workload
+      misconceptions:
+        - Adding more locks always makes code safer
+
+  - key: os.deadlocks
+    title: Deadlocks
+    topic: concurrency
+    difficulty: 3
+    summary: When threads wait on each other forever, the conditions that cause it, and how to prevent it.
+    aliases: [Coffman conditions, lock ordering, livelock, starvation]
+    prerequisites: [os.synchronization, dsa.graph_representation]
+    rubric:
+      explanation:
+        - Names the four necessary conditions (mutual exclusion, hold and wait, no preemption, circular wait)
+        - Explains prevention by breaking a condition, especially global lock ordering
+        - Distinguishes deadlock from livelock and starvation
+      application:
+        - Finds the deadlock in a two-lock example and fixes it
+      transfer:
+        - Recognizes deadlocks in databases (transactions locking rows) or in distributed services waiting on each other
+      misconceptions:
+        - Deadlocks only happen with more than two threads
+
+  # ── Memory ──
+  - key: os.memory_layout
+    title: Stack, heap and memory allocation
+    topic: memory
+    difficulty: 2
+    summary: How a process's memory is laid out, and how stack and heap allocation differ.
+    aliases: [stack frame, heap allocation, malloc, garbage collection, memory leak]
+    prerequisites: [os.processes_threads]
+    rubric:
+      explanation:
+        - Describes the code, data, heap and stack segments
+        - Compares stack allocation (automatic, LIFO, fast) with heap allocation (dynamic, explicit or garbage collected)
+        - Explains memory leaks, dangling pointers or use-after-free
+      application:
+        - Explains where each variable in a code snippet lives, and why returning a pointer to a local is a bug
+      transfer:
+        - Relates garbage collection pauses or memory leaks to production latency or out-of-memory incidents
+      misconceptions:
+        - Garbage-collected languages cannot leak memory
+
+  - key: os.virtual_memory
+    title: Virtual memory and paging
+    topic: memory
+    difficulty: 3
+    summary: Giving each process its own address space by mapping virtual pages to physical frames.
+    aliases: [paging, page table, TLB, page fault, swap]
+    prerequisites: [os.memory_layout]
+    rubric:
+      explanation:
+        - Explains the purposes of virtual memory (isolation, more address space than RAM, sharing)
+        - Explains translating an address with a page table, and the role of the TLB
+        - Explains what a page fault is and what happens when one occurs
+      application:
+        - Splits a virtual address into page number and offset for a given page size
+      transfer:
+        - Explains thrashing, or why memory-mapped files and copy-on-write fork are efficient
+      misconceptions:
+        - Every page fault means the program crashed
+
+  - key: os.page_replacement
+    title: Page replacement and caching policies
+    topic: memory
+    difficulty: 3
+    summary: Choosing what to evict when a cache or memory is full, with LRU, FIFO, clock and optimal policies.
+    aliases: [LRU, FIFO eviction, clock algorithm, Belady's anomaly, cache eviction]
+    prerequisites: [os.virtual_memory, dsa.hash_tables, dsa.linked_lists]
+    rubric:
+      explanation:
+        - Compares FIFO, LRU, clock and optimal (Belady) policies
+        - Explains locality of reference and why LRU works well in practice
+      application:
+        - Implements an O(1) LRU cache with a hash map and a doubly linked list
+        - Counts the page faults for a reference string under LRU and FIFO
+      transfer:
+        - Applies eviction policies to application caches (for example, Redis maxmemory policies)
+      misconceptions:
+        - LRU is always optimal
+
+  # ── Storage and I/O ──
+  - key: os.file_systems
+    title: File systems and I/O
+    topic: storage
+    difficulty: 3
+    summary: How files, directories and metadata are stored, and how reads and writes reach the disk.
+    aliases: [inode, file descriptor, page cache, fsync, journaling]
+    prerequisites: [os.system_calls]
+    rubric:
+      explanation:
+        - Explains inodes, directories and file descriptors
+        - Explains the page cache and why a write is not durable until it is flushed (fsync)
+        - Explains how journaling keeps a file system consistent after a crash
+      application:
+        - Explains what happens to data if power fails right after write() returns
+      transfer:
+        - Connects fsync and journaling to database write-ahead logs and durability
+      misconceptions:
+        - Data is on disk as soon as write() returns
+
+  - key: os.async_io
+    title: Blocking, non-blocking and async I/O
+    topic: storage
+    difficulty: 3
+    summary: Ways to wait for I/O, from blocking calls to event loops built on readiness notification.
+    aliases: [event loop, epoll, select, async/await, non-blocking sockets]
+    prerequisites: [os.system_calls]
+    related: [os.cpu_scheduling]
+    rubric:
+      explanation:
+        - Distinguishes blocking, non-blocking and asynchronous I/O
+        - Explains how an event loop multiplexes many connections on one thread (select, epoll, kqueue)
+        - Explains why CPU-bound work blocks an event loop
+      application:
+        - Chooses between threads and async I/O for a server handling 10,000 mostly idle connections
+      transfer:
+        - Diagnoses latency caused by a blocking call inside an async web handler
+      misconceptions:
+        - Async code runs in parallel on multiple cores by default

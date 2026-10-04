@@ -1,0 +1,628 @@
+# Grove: data structures and algorithms (complexity analysis included).
+# difficulty: 1 (first-year) .. 5 (hard interview topic).
+domain: dsa
+concepts:
+  # ── Complexity ──
+  - key: dsa.big_o
+    title: Big-O, time and space complexity
+    topic: complexity
+    difficulty: 1
+    summary: Describing how an algorithm's running time and memory grow with input size, using asymptotic upper bounds.
+    aliases: [asymptotic analysis, time complexity, space complexity, Big-O notation]
+    rubric:
+      explanation:
+        - Big-O describes growth rate as input size grows, ignoring constants and lower-order terms
+        - Distinguishes time complexity from space complexity, including auxiliary space
+        - Orders the common classes (O(1), O(log n), O(n), O(n log n), O(n^2), O(2^n)) and knows where each arises
+        - Distinguishes best, average and worst case from the bound itself
+      application:
+        - Derives the complexity of given code, including nested loops and loops that halve their input
+        - Compares two solutions to the same problem by complexity and picks the better one for a stated input size
+      transfer:
+        - Uses back-of-envelope reasoning (for example, 10^8 simple operations per second) to judge whether an approach fits a constraint
+      misconceptions:
+        - O(2n) and O(n) are different complexity classes
+        - Big-O always describes the worst case
+        - An O(1) operation is always faster than an O(n) one on real inputs
+
+  - key: dsa.amortized_analysis
+    title: Amortized analysis
+    topic: complexity
+    difficulty: 3
+    summary: Averaging the cost of operations over a worst-case sequence, so occasional expensive steps are paid for by many cheap ones.
+    aliases: [amortized cost, aggregate method, accounting method]
+    prerequisites: [dsa.arrays]
+    rubric:
+      explanation:
+        - Amortized cost is the average per operation over a worst-case sequence, not an expected value over random inputs
+        - Explains why dynamic-array append is amortized O(1) with geometric resizing
+        - Explains why growing by a constant amount instead of a factor makes append O(n) amortized
+      application:
+        - Computes the total cost of n appends with doubling and shows it is O(n)
+      transfer:
+        - Recognizes amortized bounds elsewhere, such as union-find with path compression or a two-stack queue
+      misconceptions:
+        - Amortized O(1) means every individual operation is O(1)
+        - Amortized analysis is the same as average-case analysis over random inputs
+
+  - key: dsa.recurrence_relations
+    title: Recurrence relations and the master theorem
+    topic: complexity
+    difficulty: 3
+    summary: Expressing the cost of recursive algorithms as recurrences and solving them with recursion trees or the master theorem.
+    aliases: [master theorem, recursion tree, T(n)]
+    prerequisites: [dsa.recursion]
+    rubric:
+      explanation:
+        - Writes a recurrence from a recursive algorithm (number of subproblems, their size, work per call)
+        - Solves a recurrence with a recursion tree by summing work per level
+        - Explains the three master-theorem cases in terms of where the work concentrates
+      application:
+        - Derives O(n log n) for merge sort and O(log n) for binary search from their recurrences
+        - Shows why naive recursive Fibonacci is exponential
+      transfer:
+        - Uses a recurrence to analyze an unfamiliar divide-and-conquer algorithm
+      misconceptions:
+        - Every recursive algorithm with two calls is O(2^n)
+
+  # ── Linear structures ──
+  - key: dsa.arrays
+    title: Arrays and dynamic arrays
+    topic: linear
+    difficulty: 1
+    summary: Contiguous, index-addressable storage, and the resizable arrays (lists, vectors) built on it.
+    aliases: [dynamic array, vector, ArrayList, Python list]
+    prerequisites: [dsa.big_o]
+    rubric:
+      explanation:
+        - Explains O(1) indexing from contiguous memory and address arithmetic
+        - Gives the cost of inserting or deleting in the middle (O(n) shifting) versus at the end
+        - Explains how a dynamic array grows by allocating a larger block and copying
+      application:
+        - Solves an in-place array problem (for example, removing duplicates or rotating) with correct indexing and bounds
+      transfer:
+        - Explains why arrays are cache-friendly compared to linked structures
+      misconceptions:
+        - Inserting at the front of a dynamic array is O(1)
+
+  - key: dsa.strings
+    title: Strings and string manipulation
+    topic: linear
+    difficulty: 1
+    summary: Strings as character arrays, immutability, building strings efficiently and common string processing.
+    aliases: [string builder, substring, anagram, palindrome]
+    prerequisites: [dsa.arrays]
+    related: [dsa.hash_tables]
+    rubric:
+      explanation:
+        - Explains string immutability in languages like Java and Python and its cost
+        - Explains why repeated concatenation in a loop can be O(n^2) and how a builder or join avoids it
+        - Knows that character counts or frequency maps underlie anagram and permutation checks
+      application:
+        - Solves a string problem (palindrome, anagram grouping, parsing) with correct handling of edge cases like empty strings
+      transfer:
+        - Recognizes a string problem as an array or hashing problem in disguise
+      misconceptions:
+        - Taking a substring or slice is always O(1)
+
+  - key: dsa.linked_lists
+    title: Linked lists
+    topic: linear
+    difficulty: 2
+    summary: Nodes connected by pointers, giving O(1) insertion and removal at known positions but O(n) access.
+    aliases: [singly linked list, doubly linked list, sentinel node]
+    prerequisites: [dsa.big_o]
+    related: [dsa.arrays]
+    rubric:
+      explanation:
+        - Compares linked lists with arrays for access, insertion, deletion and memory overhead
+        - Explains singly versus doubly linked lists and when each is needed
+        - Explains how a dummy or sentinel head simplifies edge cases
+      application:
+        - Reverses a list or merges two sorted lists with correct pointer updates
+        - Detects a cycle with fast and slow pointers
+      transfer:
+        - Explains why an LRU cache pairs a doubly linked list with a hash map
+      misconceptions:
+        - Inserting into a linked list is O(1) even when you must first search for the position
+
+  - key: dsa.stacks
+    title: Stacks
+    topic: linear
+    difficulty: 1
+    summary: Last-in, first-out collections and the problems that need "most recent unmatched" state.
+    aliases: [LIFO, push and pop, call stack]
+    prerequisites: [dsa.arrays, dsa.linked_lists]
+    rubric:
+      explanation:
+        - Defines LIFO behavior and O(1) push, pop and peek
+        - Explains how a stack can be built on an array or a linked list
+        - Connects the call stack to function calls and recursion
+      application:
+        - Validates balanced brackets or evaluates a postfix expression with a stack
+      transfer:
+        - Recognizes "undo", backtracking state or nested structure as a stack problem
+      misconceptions:
+        - Popping from an empty stack is a valid way to get a default value
+
+  - key: dsa.queues
+    title: Queues and deques
+    topic: linear
+    difficulty: 1
+    summary: First-in, first-out collections, double-ended queues and circular buffers.
+    aliases: [FIFO, deque, circular buffer, ring buffer]
+    prerequisites: [dsa.arrays, dsa.linked_lists]
+    rubric:
+      explanation:
+        - Defines FIFO behavior and O(1) enqueue and dequeue
+        - Explains why dequeuing from the front of a plain array is O(n) and how a circular buffer or deque fixes it
+        - Explains what a deque adds (O(1) operations at both ends)
+      application:
+        - Implements a queue with two stacks or a circular buffer and states the complexity
+      transfer:
+        - Connects queues to BFS, task scheduling and buffering between producers and consumers
+      misconceptions:
+        - list.pop(0) in Python is O(1)
+
+  - key: dsa.hash_tables
+    title: Hash tables
+    topic: hashing
+    difficulty: 2
+    summary: Maps and sets that hash keys to buckets, giving average O(1) lookup, insert and delete.
+    aliases: [hash map, dictionary, hash set, HashMap]
+    prerequisites: [dsa.arrays]
+    rubric:
+      explanation:
+        - Describes hashing a key to a bucket index
+        - Explains collision handling with chaining or open addressing
+        - States average O(1) and worst-case O(n) operations and why the worst case happens
+        - Explains load factor and resizing (rehashing)
+      application:
+        - Uses a hash map to replace a nested-loop lookup and brings an O(n^2) solution to O(n), such as two-sum
+        - Uses a frequency map or a seen-set to solve a counting or duplicate problem
+      transfer:
+        - Connects hashing to database hash indexes, caches or sharding
+      misconceptions:
+        - Hash table operations are always O(1)
+        - Mutable objects are safe to use as hash keys
+
+  # ── Techniques ──
+  - key: dsa.two_pointers
+    title: Two pointers
+    topic: techniques
+    difficulty: 2
+    summary: Moving two indices through a sequence (toward each other or in the same direction) to avoid nested loops.
+    aliases: [fast and slow pointers, left and right pointers]
+    prerequisites: [dsa.arrays]
+    rubric:
+      explanation:
+        - Explains why sorted input lets two converging pointers discard candidates safely
+        - Distinguishes converging pointers from same-direction (read and write) pointers
+      application:
+        - Solves pair-sum on a sorted array, or in-place partitioning, in O(n) with O(1) extra space
+      transfer:
+        - Recognizes two-pointer structure in merging sorted lists or in linked-list cycle detection
+      misconceptions:
+        - Two pointers work for pair-sum on unsorted input without sorting first
+
+  - key: dsa.sliding_window
+    title: Sliding window
+    topic: techniques
+    difficulty: 3
+    summary: Maintaining a contiguous window over a sequence and updating it incrementally as it grows and shrinks.
+    aliases: [variable-size window, fixed-size window]
+    prerequisites: [dsa.two_pointers, dsa.hash_tables]
+    rubric:
+      explanation:
+        - Explains the window invariant and when to expand or shrink
+        - Explains why each element enters and leaves the window at most once, giving O(n)
+        - Distinguishes fixed-size from variable-size windows
+      application:
+        - Solves longest substring without repeating characters, or minimum window size with a sum constraint, in O(n)
+      transfer:
+        - Applies the idea to rate limiting or rolling metrics over time windows
+      misconceptions:
+        - Sliding window works for any subarray problem, including ones with negative numbers and sum targets
+
+  - key: dsa.prefix_sums
+    title: Prefix sums
+    topic: techniques
+    difficulty: 2
+    summary: Precomputing cumulative sums so any range sum takes O(1).
+    aliases: [cumulative sum, range sum query, difference array]
+    prerequisites: [dsa.arrays]
+    related: [dsa.hash_tables]
+    rubric:
+      explanation:
+        - Defines prefix[i] and derives range sum as prefix[r+1] - prefix[l]
+        - States the trade-off of O(n) preprocessing for O(1) queries
+      application:
+        - Counts subarrays summing to k by combining prefix sums with a hash map
+      transfer:
+        - Extends the idea to 2D prefix sums or to difference arrays for range updates
+      misconceptions:
+        - Prefix sums still help when the array changes between queries
+
+  - key: dsa.binary_search
+    title: Binary search
+    topic: techniques
+    difficulty: 2
+    summary: Halving a sorted or monotonic search space each step to find a target or boundary in O(log n).
+    aliases: [bisect, lower bound, binary search on the answer]
+    prerequisites: [dsa.arrays]
+    rubric:
+      explanation:
+        - Explains why it needs sorted or monotonic input and why it is O(log n)
+        - States a loop invariant and chooses inclusive or exclusive bounds consistently
+        - Explains how to find the first or last position that satisfies a condition, not just an exact match
+      application:
+        - Implements binary search without off-by-one errors or infinite loops, including on a rotated sorted array
+      transfer:
+        - Binary-searches on the answer (for example, minimum capacity to ship within D days)
+      misconceptions:
+        - (low + high) / 2 can never cause problems
+        - Binary search only finds exact matches
+
+  - key: dsa.recursion
+    title: Recursion
+    topic: techniques
+    difficulty: 2
+    summary: Solving a problem by reducing it to smaller instances of itself, with base cases that stop the reduction.
+    aliases: [recursive function, base case, call stack depth]
+    prerequisites: [dsa.stacks]
+    rubric:
+      explanation:
+        - Identifies the base case and the recursive case, and why the input shrinks toward the base case
+        - Explains how each call uses a stack frame, and the cost of deep recursion (stack overflow)
+        - Can convert a simple recursion to iteration with an explicit stack
+      application:
+        - Writes a correct recursive solution (for example, generating subsets or computing tree height)
+      transfer:
+        - Recognizes self-similar structure (trees, nested lists, divide and conquer) as recursive
+      misconceptions:
+        - Recursion uses no extra memory
+
+  - key: dsa.sorting
+    title: Sorting algorithms
+    topic: techniques
+    difficulty: 2
+    summary: Comparison sorts (merge, quick, heap) and non-comparison sorts, their complexity, stability and trade-offs.
+    aliases: [merge sort, quicksort, counting sort, stable sort]
+    prerequisites: [dsa.recursion]
+    related: [dsa.recurrence_relations]
+    rubric:
+      explanation:
+        - Explains merge sort and quicksort, including their best, average and worst cases
+        - Explains stability and when it matters
+        - States the O(n log n) lower bound for comparison sorting and how counting or radix sort avoid it
+      application:
+        - Uses sorting as a preprocessing step to simplify a problem (for example, meeting rooms or grouping)
+        - Implements merge or partition logic correctly
+      transfer:
+        - Chooses external merge sort for data that does not fit in memory
+      misconceptions:
+        - Quicksort is always O(n log n)
+        - Built-in sorts are O(n)
+
+  - key: dsa.monotonic_stack
+    title: Monotonic stack
+    topic: techniques
+    difficulty: 3
+    summary: A stack kept in increasing or decreasing order to answer next-greater or next-smaller queries in O(n).
+    aliases: [next greater element, monotonic queue]
+    prerequisites: [dsa.stacks]
+    rubric:
+      explanation:
+        - Explains the invariant and why popping resolves the answer for the popped elements
+        - Explains why the whole pass is O(n) even with an inner while loop
+      application:
+        - Solves next greater element, daily temperatures or largest rectangle in a histogram
+      transfer:
+        - Recognizes a monotonic deque for sliding-window maximum
+      misconceptions:
+        - A nested while loop always makes the algorithm O(n^2)
+
+  - key: dsa.intervals
+    title: Interval problems
+    topic: techniques
+    difficulty: 3
+    summary: Merging, inserting and scheduling ranges, usually by sorting on start or end points.
+    aliases: [merge intervals, meeting rooms, sweep line]
+    prerequisites: [dsa.sorting]
+    related: [dsa.heaps]
+    rubric:
+      explanation:
+        - Explains why sorting by start time lets you merge overlaps in one pass
+        - Defines the overlap condition precisely, including touching endpoints
+      application:
+        - Merges overlapping intervals, or finds the minimum number of meeting rooms with a heap or sweep line
+      transfer:
+        - Applies interval reasoning to calendar booking or resource allocation
+      misconceptions:
+        - Interval problems can be solved without sorting in O(n) in general
+
+  # ── Trees ──
+  - key: dsa.binary_trees
+    title: Binary trees and traversals
+    topic: trees
+    difficulty: 2
+    summary: Hierarchical nodes with up to two children, traversed in pre-, in-, post- or level-order.
+    aliases: [tree traversal, inorder, preorder, postorder, level order]
+    prerequisites: [dsa.recursion, dsa.queues]
+    rubric:
+      explanation:
+        - Defines root, leaf, height and depth, and full, complete and balanced trees
+        - Explains the four traversals and when each is useful
+        - Explains that recursive traversal uses O(h) stack space
+      application:
+        - Computes height or diameter, or checks symmetry, recursively
+        - Implements level-order traversal with a queue
+      transfer:
+        - Recognizes tree structure in file systems, the DOM or expression parsing
+      misconceptions:
+        - Every binary tree has height O(log n)
+
+  - key: dsa.binary_search_trees
+    title: Binary search trees
+    topic: trees
+    difficulty: 2
+    summary: Binary trees ordered so the left subtree is smaller and the right larger, enabling ordered search.
+    aliases: [BST, ordered map, TreeMap]
+    prerequisites: [dsa.binary_trees, dsa.binary_search]
+    rubric:
+      explanation:
+        - States the BST invariant for whole subtrees, not just immediate children
+        - Explains O(h) search, insert and delete, and why h can degrade to O(n)
+        - Explains that in-order traversal yields sorted order
+      application:
+        - Validates a BST using value bounds, or finds the kth smallest element
+      transfer:
+        - Chooses an ordered map over a hash map when range queries or ordering are needed
+      misconceptions:
+        - Checking only that left child < node < right child validates a BST
+
+  - key: dsa.balanced_trees
+    title: Balanced search trees and B-trees
+    topic: trees
+    difficulty: 4
+    summary: Self-balancing trees (AVL, red-black) and B-trees that guarantee O(log n) height.
+    aliases: [AVL tree, red-black tree, B-tree, B+ tree]
+    prerequisites: [dsa.binary_search_trees]
+    rubric:
+      explanation:
+        - Explains why balancing matters (O(log n) worst-case height) and that rotations restore balance
+        - Explains how B-trees keep many keys per node to reduce disk or page reads
+        - Knows that standard-library ordered maps are usually red-black trees
+      application:
+        - Estimates the height of a B-tree for a given fan-out and number of keys
+      transfer:
+        - Explains why databases use B+ trees for indexes instead of binary search trees
+      misconceptions:
+        - Balanced trees are needed to get O(1) lookup
+
+  - key: dsa.heaps
+    title: Heaps and priority queues
+    topic: trees
+    difficulty: 2
+    summary: Complete binary trees stored in arrays that give O(1) access to the minimum or maximum and O(log n) updates.
+    aliases: [priority queue, min-heap, max-heap, heapq]
+    prerequisites: [dsa.binary_trees]
+    rubric:
+      explanation:
+        - States the heap property and the array layout (children at 2i+1 and 2i+2)
+        - Explains O(log n) push and pop via sift-up and sift-down, and O(n) heapify
+        - Explains that a heap is not fully sorted
+      application:
+        - Finds the top k elements in O(n log k), or merges k sorted lists, with a heap
+      transfer:
+        - Uses a heap for scheduling, Dijkstra or streaming medians (two heaps)
+      misconceptions:
+        - A heap gives O(log n) search for any element
+        - Building a heap from n elements always takes O(n log n)
+
+  - key: dsa.tries
+    title: Tries
+    topic: trees
+    difficulty: 3
+    summary: Prefix trees keyed by characters for fast prefix lookups and autocomplete.
+    aliases: [prefix tree, autocomplete]
+    prerequisites: [dsa.binary_trees, dsa.strings, dsa.hash_tables]
+    rubric:
+      explanation:
+        - Explains node structure (children map plus an end-of-word marker)
+        - States O(L) insert and search for a word of length L, independent of the number of words
+      application:
+        - Implements insert, search and startsWith, or a word-search board using a trie
+      transfer:
+        - Applies tries to autocomplete, IP routing (longest prefix match) or spell checking
+      misconceptions:
+        - A trie always uses less memory than a hash set of the same words
+
+  # ── Graphs ──
+  - key: dsa.graph_representation
+    title: Graph representations
+    topic: graphs
+    difficulty: 2
+    summary: Modeling relationships as vertices and edges, stored as adjacency lists, matrices or edge lists.
+    aliases: [adjacency list, adjacency matrix, directed graph, weighted graph]
+    prerequisites: [dsa.hash_tables]
+    rubric:
+      explanation:
+        - Distinguishes directed and undirected, weighted and unweighted, and cyclic and acyclic graphs
+        - Compares adjacency lists with matrices in space and edge-lookup time for sparse and dense graphs
+      application:
+        - Builds an adjacency list from an edge list or a grid, including implicit neighbors
+      transfer:
+        - Models a non-obvious problem (word ladder, course schedule, network) as a graph
+      misconceptions:
+        - An adjacency matrix is always the better choice
+
+  - key: dsa.bfs
+    title: Breadth-first search
+    topic: graphs
+    difficulty: 2
+    summary: Exploring a graph level by level with a queue, which finds shortest paths in unweighted graphs.
+    aliases: [BFS, level-order search, multi-source BFS]
+    prerequisites: [dsa.graph_representation, dsa.queues]
+    rubric:
+      explanation:
+        - Explains level-by-level exploration and why BFS gives shortest paths in unweighted graphs
+        - Explains marking nodes visited when enqueued to avoid duplicates
+        - States O(V + E) time
+      application:
+        - Finds the shortest path in a grid or the minimum number of steps (for example, word ladder)
+      transfer:
+        - Uses multi-source BFS (for example, rotting oranges) or BFS over states rather than places
+      misconceptions:
+        - BFS finds shortest paths in weighted graphs
+
+  - key: dsa.dfs
+    title: Depth-first search
+    topic: graphs
+    difficulty: 2
+    summary: Exploring as deep as possible before backtracking, recursively or with an explicit stack.
+    aliases: [DFS, flood fill, connected components]
+    prerequisites: [dsa.graph_representation, dsa.recursion]
+    rubric:
+      explanation:
+        - Explains recursive and iterative DFS and the role of the visited set
+        - States O(V + E) time and O(V) space, and the risk of deep recursion
+      application:
+        - Counts connected components or islands, or detects a cycle in a directed graph with node colors
+      transfer:
+        - Recognizes DFS as the engine behind backtracking and topological sort
+      misconceptions:
+        - DFS finds shortest paths
+
+  - key: dsa.topological_sort
+    title: Topological sort
+    topic: graphs
+    difficulty: 3
+    summary: Ordering the vertices of a directed acyclic graph so every edge points forward.
+    aliases: [Kahn's algorithm, DAG ordering, dependency resolution]
+    prerequisites: [dsa.bfs, dsa.dfs]
+    rubric:
+      explanation:
+        - Explains that a topological order exists only for DAGs
+        - Explains Kahn's algorithm (in-degrees) or the DFS post-order approach
+        - Explains how either approach detects a cycle
+      application:
+        - Solves course schedule, or orders tasks with dependencies
+      transfer:
+        - Connects topological sort to build systems, package managers or spreadsheet recalculation
+      misconceptions:
+        - A graph has exactly one topological order
+
+  - key: dsa.shortest_paths
+    title: Weighted shortest paths
+    topic: graphs
+    difficulty: 4
+    summary: Dijkstra's algorithm for non-negative weights, and Bellman-Ford for negative edges.
+    aliases: [Dijkstra, Bellman-Ford, single-source shortest path]
+    prerequisites: [dsa.bfs, dsa.heaps]
+    rubric:
+      explanation:
+        - Explains Dijkstra's greedy choice and why it requires non-negative edge weights
+        - States O((V + E) log V) with a binary heap
+        - Knows when to use Bellman-Ford (negative edges) and how it detects negative cycles
+      application:
+        - Implements Dijkstra with a priority queue, including skipping stale heap entries
+      transfer:
+        - Applies shortest paths to a disguised problem (network delay, cheapest flights within k stops)
+      misconceptions:
+        - Dijkstra works with negative edge weights
+
+  - key: dsa.union_find
+    title: Union-find (disjoint set union)
+    topic: graphs
+    difficulty: 3
+    summary: Tracking which elements are in the same set, with near-constant-time union and find.
+    aliases: [disjoint set, DSU, path compression, union by rank]
+    prerequisites: [dsa.graph_representation, dsa.amortized_analysis]
+    rubric:
+      explanation:
+        - Explains the parent-array representation, find and union
+        - Explains path compression and union by rank or size, and their near-O(1) amortized cost
+      application:
+        - Counts connected components or detects a redundant edge with union-find
+      transfer:
+        - Connects union-find to Kruskal's minimum spanning tree or to grouping equivalent accounts
+      misconceptions:
+        - Union-find can efficiently split sets apart again
+
+  # ── Paradigms ──
+  - key: dsa.backtracking
+    title: Backtracking
+    topic: paradigms
+    difficulty: 3
+    summary: Building candidate solutions incrementally and abandoning a path as soon as it cannot succeed.
+    aliases: [permutations, combinations, N-queens, pruning]
+    prerequisites: [dsa.dfs]
+    rubric:
+      explanation:
+        - Explains choose, explore and un-choose, and why state must be restored
+        - Explains how pruning cuts the search space, and the exponential worst case
+      application:
+        - Generates subsets, permutations or combination sums without duplicates
+      transfer:
+        - Recognizes constraint-satisfaction problems (sudoku, word search) as backtracking
+      misconceptions:
+        - Backtracking is efficient because it prunes, so it is polynomial
+
+  - key: dsa.greedy
+    title: Greedy algorithms
+    topic: paradigms
+    difficulty: 3
+    summary: Making the locally best choice at each step when that provably leads to a global optimum.
+    aliases: [greedy choice, exchange argument, activity selection]
+    prerequisites: [dsa.sorting]
+    related: [dsa.dynamic_programming]
+    rubric:
+      explanation:
+        - Explains the greedy-choice property and how to justify it (exchange argument)
+        - Gives a counterexample where greedy fails (for example, coin change with arbitrary denominations)
+      application:
+        - Solves activity selection, jump game or non-overlapping intervals greedily and argues correctness
+      transfer:
+        - Decides between greedy and dynamic programming for a new optimization problem
+      misconceptions:
+        - Greedy is correct whenever it works on the examples
+
+  - key: dsa.dynamic_programming
+    title: Dynamic programming fundamentals
+    topic: paradigms
+    difficulty: 4
+    summary: Solving problems with overlapping subproblems by defining a state, a recurrence and reusing results.
+    aliases: [DP, memoization, tabulation, top-down, bottom-up]
+    prerequisites: [dsa.recursion, dsa.hash_tables]
+    rubric:
+      explanation:
+        - Identifies overlapping subproblems and optimal substructure
+        - Defines state, transition and base cases explicitly
+        - Compares memoization (top-down) with tabulation (bottom-up)
+      application:
+        - Solves a 1D DP (climbing stairs, house robber, coin change) and states time and space
+        - Reduces space by keeping only the previous states
+      transfer:
+        - Turns a brute-force recursion for a new problem into a DP by spotting repeated states
+      misconceptions:
+        - Memoization changes the recurrence itself
+        - Any recursion with caching is dynamic programming
+
+  - key: dsa.dp_patterns
+    title: Multi-dimensional dynamic programming
+    topic: paradigms
+    difficulty: 5
+    summary: 2D and sequence DP patterns such as knapsack, longest common subsequence, edit distance and grid paths.
+    aliases: [knapsack, LCS, edit distance, grid DP, interval DP]
+    prerequisites: [dsa.dynamic_programming]
+    rubric:
+      explanation:
+        - Defines a 2D state (for example, dp[i][j] over two prefixes) and explains each transition
+        - Explains the 0/1 knapsack recurrence and why iteration order matters when compressing to 1D
+      application:
+        - Solves edit distance, longest common subsequence or unique grid paths with correct base rows and columns
+      transfer:
+        - Maps a new problem onto a known DP pattern (for example, subset-sum as knapsack)
+      misconceptions:
+        - A 2D DP always needs O(n*m) memory

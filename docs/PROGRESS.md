@@ -21,7 +21,7 @@ done, and the real integration waits.
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | done | `feat/c05-hosting` | Repo side done: image, Railway/Vercel config, probes, smoke script, runbook ([hosting.md](hosting.md)). Account provisioning follows the runbook |
 | C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | done | `feat/c06-elevenlabs-agents` | 8 agents, 15 tools, 14 agent tests, `sg-agents` CLI, ADRs 0001–0005. `POST /v1/sessions` uses Clerk auth (C01); session row not yet persisted (C02 tables exist) and the briefing is a stub until C09. **Follow-up (owner, needs `ELEVENLABS_API_KEY`):** `sg-agents voices design`/`create`, set dev `api_base_url` after C05, first `sg-agents sync`, commit registries, ADR live checks |
-| C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | claimed | `feat/c07-curriculum` | Content-only and ready to start |
+| C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | done | `feat/c07-curriculum` | 86 concepts in 6 groves, 117 prerequisite + 9 related edges, 94 rubrics. Not yet loaded into the dev DB: run `uv run python -m sg_core.curriculum load --activate` |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
 | C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | todo | | Pure Python, can start on mocks |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C03, C04, C07, C09, C13, C15.
+**Ready now** (dependencies met): C03, C04, C09, C10, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -80,10 +80,16 @@ event name or SSE channel), record it here in the same PR.
 | `GET /healthz` (liveness) and `GET /readyz` (database and Redis) | C05 | `services/api/src/sg_api/routers/health.py` | `/readyz` is the Railway deploy gate |
 | `GET /healthz` on web and admin | C05 | `apps/*/src/app/healthz/route.ts` | Public in each app's `proxy.ts`; returns the configured `API_URL` |
 | Deploy smoke test | C05 | `scripts/smoke.py`, `python -m sg_worker.smoke` | |
+| Curriculum catalog `cs-core@v1` | C07 | `curriculum/cs-core/v1/` (format in `curriculum/README.md`) | Concept keys `<domain>.<slug>` are stable across versions. Groves: `dsa`, `os`, `networks`, `databases`, `system_design`, `behavioral`. Active versions are immutable |
+| `sg_core.curriculum`: `load_curriculum`, `curriculum_path`, `CurriculumSpec`, `sync_curriculum` | C07 | `services/core/src/sg_core/curriculum/` | `CurriculumSpec` gives `concept()`, `concepts_in()`, `topological_order()`, `prerequisite_closure()`, `dependents()`, `content_hash`. `sync_curriculum` is idempotent per `(key, version)` + content hash |
+| Curriculum CLI | C07 | `uv run python -m sg_core.curriculum validate\|load [key] [version] [--activate]` | `load` syncs into `DATABASE_URL`; `--activate` retires the previous active version |
+| Rubric rows and concept attributes | C07 | `rubrics`, `concepts.attributes` | Rubric keys: `cs-core@v1/<concept key>` (per concept, `dimension` null), `cs-core@v1/dimension.<d>` and `cs-core@v1/communication.<behavior>` (`concept_id` null). `criteria.kind` is `concept`/`dimension`/`communication`; dimension and communication criteria carry `guardrails` for judge prompts. `concepts.attributes` = `{topic, aliases, assessment}` (`behavioral` concepts are also scored with the communication rubrics) |
+| Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/` (`/app/curriculum` in the service image) |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C07 · [#12](https://github.com/Virum9520/Project_X/pull/12) · Curriculum `cs-core@v1`: 86 concepts across 6 groves with prerequisite DAG and per-concept rubrics, dimension and communication rubrics, typed loader/validator, idempotent DB sync and CLI.
 - 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).
 - 2026-10-04 · C06 · [#8](https://github.com/Virum9520/Project_X/pull/8) · ElevenLabs agents-as-code (8 agents, 15 tools, 14 tests, `sg-agents`), Voice Design prompts, `POST /v1/sessions` with signed tool tokens, spike ADRs 0001–0005. Voices and first sync pending the API key.
 - 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
