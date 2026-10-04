@@ -7,6 +7,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent,
@@ -17,11 +18,10 @@ import { plantGrowth, plantVigor, type PlantGrowth } from "../model/growth";
 import {
   describeFocus,
   focusConceptId,
+  focusForKey,
   focusGroveId,
   GARDEN_FOCUS,
-  moveSibling,
   sanitizeFocus,
-  zoomIn,
   zoomOut,
 } from "../model/navigation";
 import type { EvidenceCardData, GardenFocus } from "../model/types";
@@ -181,6 +181,7 @@ export function GardenScene({
     [vigorById, matches, layout, focusedPlant, focusedGrove],
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const handleKey = useCallback(
     (event: {
       key: string;
@@ -190,16 +191,19 @@ export function GardenScene({
     }) => {
       if (event.defaultPrevented) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']"))
+      // Only keys aimed at the page itself or at the scene; other widgets keep their own keys.
+      const inScene = !!target && !!containerRef.current?.contains(target);
+      if (target && !inScene && target !== document.body && target !== document.documentElement)
         return;
-      let next: GardenFocus | null = null;
-      if (event.key === "Escape") next = zoomOut(focus, layout);
-      else if (event.key === "ArrowRight" || event.key === "ArrowDown")
-        next = moveSibling(focus, layout, 1);
-      else if (event.key === "ArrowLeft" || event.key === "ArrowUp")
-        next = moveSibling(focus, layout, -1);
+      if (
+        target?.isContentEditable ||
+        target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")
+      )
+        return;
       // Enter on a focused button activates the button instead.
-      else if (event.key === "Enter" && !target?.closest("button, a")) next = zoomIn(focus, layout);
+      if (event.key === "Enter" && target?.closest("button, a")) return;
+      // Unchanged focus (e.g. arrows at Garden level) leaves the key to the browser (scrolling).
+      const next = focusForKey(event.key, focus, layout);
       if (!next) return;
       event.preventDefault();
       setFocus(next);
@@ -245,6 +249,7 @@ export function GardenScene({
 
   return (
     <div
+      ref={containerRef}
       className={className}
       style={{
         position: "relative",

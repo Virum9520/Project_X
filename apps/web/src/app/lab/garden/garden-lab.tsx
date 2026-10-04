@@ -219,9 +219,10 @@ export function GardenLab({ initialFocus }: { initialFocus: string | null }) {
         />
         <span className="w-28 text-right tabular-nums text-foreground/70">
           rev {revision} ·{" "}
-          {new Date(snapshot.createdAt).toLocaleDateString(undefined, {
+          {new Date(snapshot.createdAt).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
+            timeZone: "UTC",
           })}
         </span>
       </div>

@@ -276,6 +276,8 @@ function Grass({ layout, count }: { layout: GardenLayout; count: number }) {
     m.customProgramCacheKey = () => "sg-grass-v1";
     return m;
   }, [uniforms]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
 
   useEffect(() => {
     const mesh = ref.current;

@@ -4,6 +4,7 @@ import { generateGardenLayout } from "../src/generator/layout";
 import { mockGardenSnapshot } from "../src/mock/garden";
 import {
   describeFocus,
+  focusForKey,
   focusFromString,
   focusTrail,
   focusToString,
@@ -83,5 +84,19 @@ describe("navigation", () => {
     expect(describeFocus({ level: "part", conceptId: plantId, part: "roots" }, snapshot)).toContain(
       "independent",
     );
+  });
+  it("maps keys to focus changes and ignores keys that change nothing", () => {
+    for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape"])
+      expect(focusForKey(key, GARDEN_FOCUS, layout)).toBeNull();
+    expect(focusForKey("a", GARDEN_FOCUS, layout)).toBeNull();
+    expect(focusForKey("Enter", GARDEN_FOCUS, layout)).toEqual({
+      level: "grove",
+      groveId: firstGrove.id,
+    });
+    const grove: GardenFocus = { level: "grove", groveId: firstGrove.id };
+    expect(focusForKey("Escape", grove, layout)).toEqual(GARDEN_FOCUS);
+    expect(focusForKey("ArrowRight", grove, layout)).toEqual(moveSibling(grove, layout, 1));
+    const part: GardenFocus = { level: "part", conceptId: plantId, part: "roots" };
+    expect(focusForKey("Enter", part, layout)).toBeNull();
   });
 });

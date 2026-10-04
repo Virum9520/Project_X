@@ -77,6 +77,23 @@ export function moveSibling(focus: GardenFocus, layout: GardenLayout, delta: num
   }
 }
 
+/**
+ * Focus after a navigation key (Escape, arrows, Enter), or `null` when the key is not a
+ * navigation key or would leave the focus unchanged, so callers can let the browser handle it.
+ */
+export function focusForKey(
+  key: string,
+  focus: GardenFocus,
+  layout: GardenLayout,
+): GardenFocus | null {
+  let next: GardenFocus | null = null;
+  if (key === "Escape") next = zoomOut(focus, layout);
+  else if (key === "ArrowRight" || key === "ArrowDown") next = moveSibling(focus, layout, 1);
+  else if (key === "ArrowLeft" || key === "ArrowUp") next = moveSibling(focus, layout, -1);
+  else if (key === "Enter") next = zoomIn(focus, layout);
+  return next && !focusEquals(next, focus) ? next : null;
+}
+
 export function focusEquals(a: GardenFocus, b: GardenFocus): boolean {
   return focusToString(a) === focusToString(b);
 }
