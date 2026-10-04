@@ -6,6 +6,7 @@ from sg_core.models.accountability import (
     CallOccurrence,
     CallSchedule,
     Commitment,
+    PushSubscription,
     VoiceConsent,
 )
 from sg_core.models.base import EMBEDDING_DIM, Base
@@ -82,6 +83,7 @@ __all__ = [
     "PricingVersion",
     "Profile",
     "ProviderEvent",
+    "PushSubscription",
     "RoleCapability",
     "Rubric",
     "SandboxRun",
