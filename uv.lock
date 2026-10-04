@@ -1251,6 +1251,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "pyjwt", extra = ["crypto"] },
     { name = "sg-core" },
+    { name = "sg-worker" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -1260,6 +1261,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.9" },
     { name = "sg-core", editable = "services/core" },
+    { name = "sg-worker", editable = "services/worker" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]
 
