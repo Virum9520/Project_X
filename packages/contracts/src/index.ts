@@ -91,3 +91,4 @@ export * from "./garden";
 export * from "./future-self";
 export * from "./session";
 export * from "./arjuna";
+export * from "./documents";

@@ -58,7 +58,7 @@ router = APIRouter(prefix="/v1/arjuna", tags=["arjuna"])
 log = get_logger(__name__)
 
 EDITOR_LANGUAGES = Literal["python", "javascript", "typescript", "java", "cpp", "go"]
-RunnableLanguage = Literal["python", "javascript"]
+RunnableLanguage = Literal["python", "javascript", "typescript"]
 MAX_PLAN_VARIABLE_CHARS = 1800
 
 
@@ -232,7 +232,9 @@ def problem_out(problem: Problem, language: str) -> ProblemOut:
         statement=problem.statement,
         difficulty=problem.difficulty,
         concept_id=problem.concept_key,
-        function=problem.js_function if language == "javascript" else problem.function,
+        function=problem.js_function
+        if language in ("javascript", "typescript")
+        else problem.function,
         params=list(problem.params),
         language=language,
         # Languages without a harness still get an editable stub with the signature in a comment.

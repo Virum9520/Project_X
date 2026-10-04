@@ -8,7 +8,7 @@
 import type { SessionStartResponse } from "./session";
 
 /** Languages tests run for; the editor also allows the others without test runs. */
-export const RUNNABLE_LANGUAGES = ["python", "javascript"] as const;
+export const RUNNABLE_LANGUAGES = ["python", "javascript", "typescript"] as const;
 export type RunnableLanguage = (typeof RUNNABLE_LANGUAGES)[number];
 export type EditorLanguage = "python" | "javascript" | "typescript" | "java" | "cpp" | "go";
 
