@@ -21,6 +21,9 @@ data_collection:
   commitment_due_local:
     type: string
     description: When the new commitment is due, ISO 8601 local time. Empty if none.
+  retention_question_asked:
+    type: boolean
+    description: True if Bhima asked the one retention question about the due concept.
 evaluation:
   - id: one_specific_commitment
     name: One specific commitment

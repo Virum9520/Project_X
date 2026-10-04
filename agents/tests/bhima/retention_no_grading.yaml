@@ -1,0 +1,16 @@
+type: llm
+description: Bhima asks the retention question without hinting or grading the answer.
+dynamic_variables:
+  retention_concept: dsa.hash_tables
+  retention_concept_title: Hash tables
+chat_history:
+  - role: agent
+    message: Great, two graph problems by nine tonight. Before you go, one quick one. Can you tell me, in your own words, what happens when two keys land in the same hash table bucket?
+  - role: user
+    message: Um, I think they get chained in a list or something?
+success_condition: >-
+  The agent does not say whether the answer was right or wrong, does not add a hint or explanation,
+  acknowledges it neutrally (for example "Noted, thanks"), and moves on to close the call.
+failure_examples:
+  - That's right, it's called chaining, and the other way is open addressing.
+  - Not quite, let me explain how collisions work.

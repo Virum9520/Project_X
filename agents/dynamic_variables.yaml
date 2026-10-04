@@ -34,6 +34,14 @@ persona_tone:
 local_time:
   description: Learner's local date and time, e.g. "Tuesday 7:42 AM".
   placeholder: Tuesday 7:42 AM
+retention_concept:
+  description: >-
+    Concept key Bhima asks one spaced-repetition question about at the end of a call, or "none".
+    Set by the accountability call flow (C18); "none" in every other session.
+  placeholder: none
+retention_concept_title:
+  description: Human-readable title of the retention concept, or "none".
+  placeholder: none
 secret__sg_tool_token:
   description: >-
     Short-lived HMAC token scoping server-tool calls to this learner and session. Sent only as a

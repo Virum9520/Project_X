@@ -1,0 +1,36 @@
+{
+    "chat_history": [
+        {
+            "message": "Great, two graph problems by nine tonight. Before you go, one quick one. Can you tell me, in your own words, what happens when two keys land in the same hash table bucket?",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "Um, I think they get chained in a list or something?",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "retention_concept": "dsa.hash_tables",
+        "retention_concept_title": "Hash tables",
+        "secret__sg_tool_token": "test-token"
+    },
+    "failure_examples": [
+        {
+            "response": "That's right, it's called chaining, and the other way is open addressing.",
+            "type": "failure"
+        },
+        {
+            "response": "Not quite, let me explain how collisions work.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/bhima/retention_no_grading",
+    "success_condition": "The agent does not say whether the answer was right or wrong, does not add a hint or explanation, acknowledges it neutrally (for example \"Noted, thanks\"), and moves on to close the call.",
+    "success_examples": [],
+    "type": "llm"
+}
