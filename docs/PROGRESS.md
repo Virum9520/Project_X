@@ -29,7 +29,7 @@ done, and the real integration waits.
 | C12 | Drona session loop: voice stage UI, server and client tools, Teach-back, live provisional growth over SSE | 5 | C01, C06, C11 | todo | | UI can start on mocks |
 | C13 | 3D garden scene and generator in `packages/three` (island, plants, growth animation, semantic zoom) | 6 | C00 | claimed | `feat/c13-3d-garden-scene` | Ready to start; uses mock garden state |
 | C14 | Garden Dashboard: analytics API, dashboard shell, KPI and insights rails, timeline, time travel, memory panel, Ask Sanjaya | 6 | C09, C10, C13 | todo | | USP. UI can start on mocks |
-| C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | todo | | Ready to start |
+| C15 | VRM avatars and lip-sync (`onAudioAlignment` to visemes) | 6 | C00 | in-review | `feat/c15-avatars-lipsync` | Alignment→viseme mapper, lip-sync driver/hook, VRM + procedural avatar, `/dev/avatar` demo (mock data). No `.vrm` asset committed: owner supplies one (see PR). Live `onAudioAlignment` wiring waits for C12 |
 | C16 | Arjuna technical interview: résumé and job description parsing, problem bank, Monaco, E2B tests, Scribe captions | 7 | C11, C12 | todo | | |
 | C17 | Vidura HR interview and Panel interview | 8 | C12 | todo | | |
 | C18 | Bhima accountability: commitments, scheduler, dispatcher, `WebCallChannel`, retention calls | 9 | C01, C03, C04, C06 | todo | | `PhoneCallChannel` is a stub only |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C03, C04, C09, C10, C13, C15.
+**Ready now** (dependencies met): C03, C04, C09, C10, C13.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -84,10 +84,15 @@ event name or SSE channel), record it here in the same PR.
 | `sg_core.curriculum`: `load_curriculum`, `curriculum_path`, `CurriculumSpec`, `sync_curriculum` | C07 | `services/core/src/sg_core/curriculum/` | `CurriculumSpec` gives `concept()`, `concepts_in()`, `topological_order()`, `prerequisite_closure()`, `dependents()`, `content_hash`. `sync_curriculum` is idempotent per `(key, version)` + content hash |
 | Curriculum CLI | C07 | `uv run python -m sg_core.curriculum validate\|load [key] [version] [--activate]` | `load` syncs into `DATABASE_URL`; `--activate` retires the previous active version |
 | Rubric rows and concept attributes | C07 | `rubrics`, `concepts.attributes` | Rubric keys: `cs-core@v1/<concept key>` (per concept, `dimension` null), `cs-core@v1/dimension.<d>` and `cs-core@v1/communication.<behavior>` (`concept_id` null). `criteria.kind` is `concept`/`dimension`/`communication`; dimension and communication criteria carry `guardrails` for judge prompts. `concepts.attributes` = `{topic, aliases, assessment}` (`behavioral` concepts are also scored with the communication rubrics) |
+| `@sg/three/avatar`: `LipSyncDriver`, `useLipSync()`, `VisemeTimeline`, `alignmentToSegments`, `fromTtsTimestamps`, `mockAlignment` | C15 | `packages/three/src/avatar/` | Client-only. `driver.pushAlignment({chars, charStartTimesMs, charDurationsMs}, audioStartMs)` takes ElevenLabs `onAudioAlignment` payloads; `driver.setLevel(0..1)` is the frequency fallback; `driver.reset()` on interruption |
+| `<Avatar driver vrmUrl?>`, `<AvatarStage>` | C15 | `packages/three/src/avatar/avatar.tsx` | Loads a VRM via `@pixiv/three-vrm`; falls back to a procedural head when `vrmUrl` is absent or fails. Same `LipSyncFrame` drives both |
+| Dev demo `/dev/avatar` | C15 | `apps/web/src/app/dev/avatar/` | 404 in production; public in dev via `proxy.ts` |
 | Setting `CURRICULUM_DIR` | C07 | `Settings.curriculum_dir` | Optional; defaults to the repo's `curriculum/` (`/app/curriculum` in the service image) |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
+
+- 2026-10-04 · C15 · PR pending · VRM avatars and lip-sync: ElevenLabs character alignment to `aa/ih/ou/ee/oh` timeline, blink/saccade idle, level fallback, VRM + procedural avatar, `/dev/avatar` demo, 18 unit tests (vitest in `@sg/three`).
 
 - 2026-10-04 · C07 · [#12](https://github.com/Virum9520/Project_X/pull/12) · Curriculum `cs-core@v1`: 86 concepts across 6 groves with prerequisite DAG and per-concept rubrics, dimension and communication rubrics, typed loader/validator, idempotent DB sync and CLI.
 - 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).

@@ -4,13 +4,29 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./avatar": "./src/avatar/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@react-three/fiber": "^9.8.1",
     "@sg/tsconfig": "workspace:*",
-    "typescript": "^5"
+    "@types/react": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "react": "19.2.8",
+    "three": "^0.186.1",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5"
+  },
+  "peerDependencies": {
+    "@react-three/fiber": "^9",
+    "react": "^19",
+    "three": "^0.186"
   }
 }
