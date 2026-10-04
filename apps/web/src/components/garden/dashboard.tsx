@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DAY_MS } from "@/lib/garden/derive";
 import { type DashboardState, focusGrove } from "@/lib/garden/state";
 
+import { AskSanjaya } from "./ask-sanjaya";
 import { EvidenceTimeline } from "./evidence-timeline";
 import { FiltersBar } from "./filters-bar";
 import { GardenSceneSlot } from "./garden-scene-slot";
@@ -23,10 +24,13 @@ export function GardenDashboard({
   dataset,
   initialState,
   isMock,
+  fallbackReason,
 }: {
   dataset: GardenDataset;
   initialState: DashboardState;
   isMock: boolean;
+  /** Why sample data is showing (development fallback only). */
+  fallbackReason?: string;
 }) {
   const { state, view, series, actions } = useGardenDashboard(dataset, initialState);
   const { focus, filters, scrubDate } = state;
@@ -80,6 +84,11 @@ export function GardenDashboard({
     [view.growthEvents, view.cutoff],
   );
 
+  const revision = useMemo(
+    () => view.growthEvents.reduce((max, g) => Math.max(max, g.revision), 0),
+    [view.growthEvents],
+  );
+
   return (
     <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-4 pb-16 pt-24 sm:px-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -91,7 +100,10 @@ export function GardenDashboard({
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-foreground/60">
           {isMock && (
-            <span className="rounded-full bg-ember/15 px-2.5 py-1 text-ember ring-1 ring-ember/40">
+            <span
+              className="rounded-full bg-ember/15 px-2.5 py-1 text-ember ring-1 ring-ember/40"
+              title={fallbackReason ? `API unavailable (${fallbackReason})` : undefined}
+            >
               Sample data
             </span>
           )}
@@ -171,6 +183,10 @@ export function GardenDashboard({
             asOf={new Date(view.cutoff).toISOString()}
             isTimeTravel={view.isPast}
             recentGrowthPlantKeys={recentGrowth}
+            evidence={view.evidence}
+            prerequisites={dataset.prerequisites}
+            revision={revision}
+            ruleVersion={dataset.freshness.rulesVersion}
           />
           <p className="sr-only" role="status" aria-live="polite">
             Focused on {scopeLabel}.
@@ -193,7 +209,8 @@ export function GardenDashboard({
           )}
         </div>
 
-        <aside aria-label="Insights" className="order-3">
+        <aside aria-label="Insights" className="order-3 flex flex-col gap-4">
+          <AskSanjaya dataset={dataset} live={!isMock} onFocus={actions.focusOn} />
           <InsightsRail
             dataset={dataset}
             growthEvents={view.growthEvents}
@@ -227,6 +244,7 @@ export function GardenDashboard({
         <MemoryPanel
           dataset={dataset}
           cutoff={view.cutoff}
+          live={!isMock}
           onFocusPlant={(key) => actions.focusOn({ level: "plant", plantKey: key })}
         />
       </div>

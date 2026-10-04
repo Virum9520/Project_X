@@ -68,6 +68,35 @@ async def _concepts(session: AsyncSession, user_id: uuid.UUID) -> dict[uuid.UUID
     return found
 
 
+def change_after(
+    change: dict[str, Any], concept_ids_by_key: dict[str, uuid.UUID]
+) -> tuple[uuid.UUID, dict[str, Any]] | None:
+    """The concept and its state after one `GardenRevision.changes` entry. Understands both the
+    documented `{concept_id, after: {status, dimension_scores}}` shape and the rules engine's
+    `RulesResult.to_revision_changes()` shape (`{concept, status: {after}, scores: {after}}`)."""
+    concept_id: uuid.UUID | None = None
+    try:
+        if "concept_id" in change:
+            concept_id = uuid.UUID(str(change["concept_id"]))
+        elif isinstance(change.get("concept"), str):
+            concept_id = concept_ids_by_key.get(change["concept"])
+    except ValueError:
+        return None
+    if concept_id is None:
+        return None
+    after = change.get("after")
+    if isinstance(after, dict):
+        return concept_id, after
+    status = change.get("status")
+    scores = change.get("scores")
+    if isinstance(status, dict) and isinstance(status.get("after"), str):
+        state: dict[str, Any] = {"status": status["after"]}
+        if isinstance(scores, dict) and isinstance(scores.get("after"), dict):
+            state["dimension_scores"] = scores["after"]
+        return concept_id, state
+    return None
+
+
 async def garden_view(
     session: AsyncSession, user_id: uuid.UUID, *, rev: int | None = None
 ) -> GardenView:
@@ -102,14 +131,12 @@ async def garden_view(
                 .order_by(GardenRevision.rev)
             )
         ).all()
+        by_key = {c.key: cid for cid, c in concepts.items()}
         for revision in revisions:
             for change in revision.changes:
-                after = change.get("after")
-                try:
-                    concept_id = uuid.UUID(str(change["concept_id"]))
-                except (KeyError, ValueError):
-                    continue
-                if isinstance(after, dict):
+                resolved = change_after(change, by_key)
+                if resolved is not None:
+                    concept_id, after = resolved
                     states[concept_id] = {**states.get(concept_id, {}), **after}
         current_rev = revisions[-1].rev if revisions else 0
         rule_ver = revisions[-1].rule_ver if revisions else None

@@ -8,6 +8,7 @@
 export * from "./model/types";
 export * from "./model/growth";
 export * from "./model/navigation";
+export * from "./model/dashboard";
 export * from "./generator/random";
 export * from "./generator/terrain";
 export * from "./generator/layout";

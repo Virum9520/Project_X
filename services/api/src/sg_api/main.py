@@ -13,6 +13,8 @@ from sg_api.agent_tools.search_my_documents import router as search_my_documents
 from sg_api.auth import build_identity
 from sg_api.future_self.router import router as future_self_router
 from sg_api.knowledge.router import router as documents_router
+from sg_api.garden.router import router as garden_router
+from sg_api.garden.tool import router as query_analytics_router
 from sg_api.middleware import AuditMiddleware, RequestContextMiddleware
 from sg_api.routers import admin, health, me
 from sg_api.sessions.router import router as sessions_router
@@ -68,6 +70,8 @@ def create_app() -> FastAPI:
     app.include_router(future_self_router)
     app.include_router(search_my_documents_router)
     app.include_router(documents_router)
+    app.include_router(garden_router)
+    app.include_router(query_analytics_router)
     return app
 
 
