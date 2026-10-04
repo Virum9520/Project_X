@@ -16,7 +16,7 @@ done, and the real integration waits.
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
 | C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | todo | | Owner allowlist comes from `ADMIN_OWNER_EMAILS` |
-| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | in-progress | `feat/c02-db-baseline` | Baseline `0001` applied to the new Skill Garden Tiger service (the old dev DB holds prototype tables). Awaiting owner validation |
+| C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | done | `feat/c02-db-baseline` | Baseline `0001` is applied to the dedicated Skill Garden Tiger service. The old dev DB holds prototype tables, so point `DATABASE_URL` at the new service |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C02, C05, C06 (except the token endpoint), C07, C13, C15.
+**Ready now** (dependencies met): C01, C03, C04, C05, C06 (except the token endpoint), C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -63,4 +63,5 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.
