@@ -20,7 +20,7 @@ done, and the real integration waits.
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | todo | | Needs the owner's Vercel, Railway and R2 accounts |
-| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | claimed | `feat/c06-elevenlabs-agents` | The token endpoint needs C01; the rest can start now |
+| C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | done | `feat/c06-elevenlabs-agents` | 8 agents, 15 tools, 14 agent tests, `sg-agents` CLI, ADRs 0001–0005. `POST /v1/sessions` uses Clerk auth (C01); session row not yet persisted (C02 tables exist) and the briefing is a stub until C09. **Follow-up (owner, needs `ELEVENLABS_API_KEY`):** `sg-agents voices design`/`create`, set dev `api_base_url` after C05, first `sg-agents sync`, commit registries, ADR live checks |
 | C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
@@ -40,7 +40,7 @@ done, and the real integration waits.
 | C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C03, C04, C05, C06 (including the token endpoint, now that C01 is done), C07, C09, C13, C15.
+**Ready now** (dependencies met): C03, C04, C05, C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -65,10 +65,19 @@ event name or SSE channel), record it here in the same PR.
 | Hypertables `session_events`, `usage_events` | C02 | migration `0001` | Partitioned on `occurred_at`, 7-day chunks, PK `(id, occurred_at)`. No FKs may point at them. `usage_events` dedupes on `(idempotency_key, occurred_at)` |
 | Vector columns `chunks.embedding`, `memories.embedding` | C02 | `vector(1536)`, HNSW cosine indexes | pgvector 0.8; vectorscale is available if diskann is needed later |
 | Schemas `analytics`, `learner_analytics` | C02 | migration `0001` | Empty; C14 (learner caggs) and C22 (owner views, Tiger MCP grants) fill them |
+| `POST /v1/sessions` (start voice session: conversation token, dynamic variables, tool token) | C06 | `services/api/src/sg_api/sessions/router.py` | Clerk bearer auth (dev headers only in local/test). Swap `get_briefing_provider` (C09); persist session + `conversation_id` |
+| Server-tool auth: `X-SG-Tool-Token`, `require_tool_token`, `check_conversation` | C06 | `services/api/src/sg_api/sessions/tool_tokens.py` | Every `/v1/agent-tools/*` route must use both |
+| Server-tool contracts `/v1/agent-tools/{get_briefing, record_observation, fetch_question, run_tests, log_commitment, report_commitment_progress, search_my_documents, query_my_analytics}` | C06 | `agents/tools/*.yaml` (request bodies) | Routes are built by the data owners: C09, C11/C12, C07/C12, C16, C18, C08, C14. `record_observation.dimension` adds `communication`, which is not in `Dimension` (contracts or `sg_core.models.enums`): C10/C11 decide. Persist panel sessions as `character=vidura, mode=panel_interview` |
+| Client-tool contracts (`show_question_card`, `highlight_plant`, `open_editor`, `show_diagram`, `focus_plant`, `set_filter`, `scrub_timeline`) | C06 | `agents/tools/*.yaml` | Implemented in the browser by C12, C14, C16 |
+| Agent dynamic variables | C06 | `agents/dynamic_variables.yaml` | Set by `POST /v1/sessions`; a test enforces parity |
+| `ElevenLabsClient` (conversation token, Voice Design) | C06 | `services/core/src/sg_core/providers/elevenlabs.py` | C03 extends it (usage ledger, budgets) |
+| Settings `ELEVENLABS_AGENT_IDS`, `AGENT_TOOL_TOKEN_SECRET`, `ELEVENLABS_BASE_URL` | C06 | `services/core/src/sg_core/settings.py` | `uv run sg-agents ids` prints the agent IDs JSON |
+| `sg-agents` CLI (build, sync, test, voices, ids) | C06 | `services/agentops`, `agents/README.md` | |
 
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C06 · [#8](https://github.com/Virum9520/Project_X/pull/8) · ElevenLabs agents-as-code (8 agents, 15 tools, 14 tests, `sg-agents`), Voice Design prompts, `POST /v1/sessions` with signed tool tokens, spike ADRs 0001–0005. Voices and first sync pending the API key.
 - 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
 - 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.

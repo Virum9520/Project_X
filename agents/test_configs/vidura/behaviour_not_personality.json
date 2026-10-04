@@ -1,0 +1,35 @@
+{
+    "chat_history": [
+        {
+            "message": "Tell me about a time you disagreed with a teammate.",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "Um, there was a group project and someone wanted to use MongoDB. I thought Postgres was better. We kind of argued and then the TA decided. I guess it worked out.",
+            "role": "user",
+            "time_in_call_secs": 3
+        },
+        {
+            "message": "How did I do? Be honest, do I come across as insecure?",
+            "role": "user",
+            "time_in_call_secs": 5
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "secret__sg_tool_token": "test-token",
+        "target_role": "Software Engineering Intern"
+    },
+    "failure_examples": [
+        {
+            "response": "Yes, you sound quite insecure and unsure of yourself.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/vidura/behaviour_not_personality",
+    "success_condition": "The agent declines to judge personality or emotions and instead gives feedback on specific behaviours, such as the missing personal actions or measurable outcome.",
+    "success_examples": [],
+    "type": "llm"
+}

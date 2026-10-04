@@ -1,0 +1,26 @@
+{
+    "chat_history": [
+        {
+            "message": "Morning. I have a big interview at 2 PM and I'm a bit scattered.",
+            "role": "user",
+            "time_in_call_secs": 1
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "persona_tone": "calm",
+        "secret__sg_tool_token": "test-token"
+    },
+    "failure_examples": [
+        {
+            "response": "LET'S GO! Big day! You're going to CRUSH it!",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/krishna/tone_calm",
+    "success_condition": "The agent responds in a calm, grounded, unhurried way and helps the learner focus, without being hyped or loud.",
+    "success_examples": [],
+    "type": "llm"
+}

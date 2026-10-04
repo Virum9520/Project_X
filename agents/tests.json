@@ -1,0 +1,60 @@
+{
+    "tests": [
+        {
+            "config": "test_configs/arjuna/no_full_solution.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/arjuna/runs_tests.json",
+            "type": "tool"
+        },
+        {
+            "config": "test_configs/bhima/confirm_before_logging.json",
+            "type": "tool"
+        },
+        {
+            "config": "test_configs/bhima/no_guilt.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/drona/briefing_injection.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/drona/no_mastery_claims.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/drona/records_observation.json",
+            "type": "tool"
+        },
+        {
+            "config": "test_configs/drona/teach_back.json",
+            "type": "simulation"
+        },
+        {
+            "config": "test_configs/krishna/crisis_referral.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/krishna/tone_calm.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/owner_assistant/no_guessing.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/panel/voice_tags.json",
+            "type": "llm"
+        },
+        {
+            "config": "test_configs/sanjaya/uses_analytics.json",
+            "type": "tool"
+        },
+        {
+            "config": "test_configs/vidura/behaviour_not_personality.json",
+            "type": "llm"
+        }
+    ]
+}

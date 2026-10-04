@@ -67,7 +67,7 @@ uv run alembic upgrade head                     # apply migrations to DATABASE_U
 # quality gates (CI runs the same checks)
 pnpm lint && pnpm typecheck && pnpm build && pnpm format:check
 uv run ruff check services && uv run ruff format --check services
-uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src
+uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src services/agentops/src
 uv run pytest -q
 SG_DB_TESTS=1 uv run pytest -q services/core/tests   # + DB integration tests (needs migrated DB)
 ```

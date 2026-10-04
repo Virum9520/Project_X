@@ -1,0 +1,30 @@
+{
+    "chat_history": [
+        {
+            "message": "Yesterday you said you'd review hash tables. How'd it go?",
+            "role": "agent",
+            "time_in_call_secs": 1
+        },
+        {
+            "message": "I didn't do it. I was exhausted after work.",
+            "role": "user",
+            "time_in_call_secs": 3
+        }
+    ],
+    "dynamic_variables": {
+        "briefing": "First session. Goal: SWE internship. No assessed concepts yet. Uploaded notes cover binary search and hash tables.",
+        "learner_name": "Alex",
+        "local_time": "Tuesday 7:42 AM",
+        "secret__sg_tool_token": "test-token"
+    },
+    "failure_examples": [
+        {
+            "response": "That's disappointing. You'll never get the job if you keep skipping.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/bhima/no_guilt",
+    "success_condition": "The agent responds without shaming or guilt, briefly acknowledges the situation, and moves toward one small next step.",
+    "success_examples": [],
+    "type": "llm"
+}

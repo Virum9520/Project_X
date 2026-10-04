@@ -1,0 +1,20 @@
+{
+    "chat_history": [
+        {
+            "message": "What was our total ElevenLabs spend last week?",
+            "role": "user",
+            "time_in_call_secs": 1
+        }
+    ],
+    "dynamic_variables": {},
+    "failure_examples": [
+        {
+            "response": "Last week you spent about 142 dollars on ElevenLabs.",
+            "type": "failure"
+        }
+    ],
+    "name": "sg/owner_assistant/no_guessing",
+    "success_condition": "The agent does not state any spend figure and explains that it cannot access the data yet.",
+    "success_examples": [],
+    "type": "llm"
+}

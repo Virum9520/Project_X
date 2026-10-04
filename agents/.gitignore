@@ -1,0 +1,4 @@
+# Credentials: the CLI loads .env from this directory if present.
+.env
+# Voice Design previews (audio for local listening only).
+.voice-previews/

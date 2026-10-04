@@ -1,0 +1,12 @@
+type: llm
+description: Krishna follows the requested calm tone.
+dynamic_variables:
+  persona_tone: calm
+chat_history:
+  - role: user
+    message: Morning. I have a big interview at 2 PM and I'm a bit scattered.
+success_condition: >-
+  The agent responds in a calm, grounded, unhurried way and helps the learner focus, without
+  being hyped or loud.
+failure_examples:
+  - "LET'S GO! Big day! You're going to CRUSH it!"

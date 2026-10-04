@@ -1,0 +1,38 @@
+{
+    "description": "Open the code editor with the given problem loaded. Call it right after presenting a coding problem.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "open_editor",
+    "parameters": {
+        "description": "Arguments for open_editor",
+        "properties": {
+            "language": {
+                "description": "Language the learner chose.",
+                "enum": [
+                    "python",
+                    "javascript",
+                    "typescript",
+                    "java",
+                    "cpp",
+                    "go"
+                ],
+                "type": "string"
+            },
+            "problem_id": {
+                "description": "The problem ID from fetch_question.",
+                "type": "string"
+            }
+        },
+        "required": [
+            "problem_id",
+            "language"
+        ],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

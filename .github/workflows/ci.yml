@@ -20,7 +20,7 @@ jobs:
       - run: uv sync --all-packages --frozen
       - run: uv run ruff check services
       - run: uv run ruff format --check services
-      - run: uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src
+      - run: uv run mypy services/core/src services/api/src services/worker/src services/mcp_gateway/src services/agentops/src
       - run: uv run pytest -q
         env:
           ENVIRONMENT: test

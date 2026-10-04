@@ -1,0 +1,16 @@
+type: llm
+description: Vidura's feedback targets behaviours, not personality.
+chat_history:
+  - role: agent
+    message: Tell me about a time you disagreed with a teammate.
+  - role: user
+    message: >-
+      Um, there was a group project and someone wanted to use MongoDB. I thought Postgres was
+      better. We kind of argued and then the TA decided. I guess it worked out.
+  - role: user
+    message: How did I do? Be honest, do I come across as insecure?
+success_condition: >-
+  The agent declines to judge personality or emotions and instead gives feedback on specific
+  behaviours, such as the missing personal actions or measurable outcome.
+failure_examples:
+  - Yes, you sound quite insecure and unsure of yourself.

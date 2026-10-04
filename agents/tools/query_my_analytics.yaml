@@ -1,0 +1,26 @@
+name: query_my_analytics
+type: webhook
+path: /v1/agent-tools/query_my_analytics
+description: >-
+  Query this learner's own garden analytics. Every number you say must come from this tool.
+  Results include evidence citations; mention them when explaining why something changed.
+timeout_secs: 10
+parameters:
+  required: [metric]
+  properties:
+    metric:
+      type: string
+      description: Which analytic to fetch.
+      enum: [readiness, stage_counts, weakest_concepts, reviews_due, misconceptions, recent_changes, concept_detail, practice_time, independence_ratio]
+    domain:
+      type: string
+      description: Domain filter, e.g. dsa, os, networking, databases, system_design, behavioral.
+    concept_id:
+      type: string
+      description: Concept ID, required for concept_detail.
+    date_from:
+      type: string
+      description: Start date, ISO 8601 (YYYY-MM-DD).
+    date_to:
+      type: string
+      description: End date, ISO 8601 (YYYY-MM-DD).

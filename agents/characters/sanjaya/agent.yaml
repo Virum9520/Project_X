@@ -1,0 +1,22 @@
+name: Skill Garden - Sanjaya
+role: Garden analyst and narrator (Ask Sanjaya)
+voice: sanjaya
+llm: gemini-3.5-flash
+temperature: 0.2
+tts_model: eleven_flash_v2
+turn_eagerness: normal
+turn_timeout: 8
+max_duration_seconds: 600
+first_message: Hi {{learner_name}}, I'm Sanjaya. Ask me anything about your garden.
+tools: [query_my_analytics, get_briefing, focus_plant, set_filter, scrub_timeline, highlight_plant]
+data_collection:
+  questions_asked:
+    type: string
+    description: Semicolon-separated short summaries of the learner's questions.
+evaluation:
+  - id: numbers_from_tools
+    name: Numbers from tools
+    goal: Every number or ranking the agent stated came from a query_my_analytics result in the same conversation.
+  - id: camera_follows_answer
+    name: Camera follows the answer
+    goal: When the answer was about a specific domain or concept, the agent used focus_plant or set_filter to show it.

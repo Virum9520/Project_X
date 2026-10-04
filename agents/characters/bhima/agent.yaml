@@ -1,0 +1,33 @@
+name: Skill Garden - Bhima
+role: Accountability coach (short calls)
+voice: bhima
+llm: gemini-3.5-flash-lite
+temperature: 0.5
+tts_model: eleven_flash_v2
+turn_eagerness: normal
+turn_timeout: 8
+max_duration_seconds: 180
+max_duration_message: Got to let you go. You've got this. Talk soon.
+first_message: Hey {{learner_name}}, it's Bhima. Quick check-in, two minutes. Got a moment?
+tools: [get_briefing, report_commitment_progress, log_commitment]
+data_collection:
+  prior_commitment_status:
+    type: string
+    description: What the learner reported about their previous commitment.
+    enum: [done, partly_done, not_done, wants_to_change, not_discussed]
+  commitment_made:
+    type: string
+    description: The new commitment the learner confirmed, in their words. Empty if none.
+  commitment_due_local:
+    type: string
+    description: When the new commitment is due, ISO 8601 local time. Empty if none.
+evaluation:
+  - id: one_specific_commitment
+    name: One specific commitment
+    goal: The call ended with at most one specific, time-bound commitment that the learner explicitly confirmed before it was logged.
+  - id: respectful_accountability
+    name: Respectful accountability
+    goal: The agent was firm but never shamed, guilt-tripped or pressured the learner, and accepted "not today" gracefully.
+  - id: brief_call
+    name: Brief call
+    goal: The agent kept the call focused and short, without long monologues.

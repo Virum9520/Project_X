@@ -1,0 +1,87 @@
+name: Skill Garden - Drona
+role: Concept examiner and teacher
+voice: drona
+llm: gemini-3.5-flash
+temperature: 0.4
+tts_model: eleven_flash_v2
+turn_eagerness: patient
+turn_timeout: 10
+max_duration_seconds: 900
+max_duration_message: We're at time for today. I've noted everything you showed me. Until next time.
+first_message: >-
+  Welcome back, {{learner_name}}. I'm Drona. Today I'd like to explore {{focus_concept_title}}
+  with you. Ready when you are.
+tools: [get_briefing, fetch_question, record_observation, search_my_documents, show_question_card, highlight_plant]
+data_collection:
+  concepts_discussed:
+    type: string
+    description: Comma-separated curriculum concept IDs that were actually assessed, e.g. "dsa.binary_search,dsa.two_pointers". Empty if none.
+  teach_back_completed:
+    type: boolean
+    description: True if the learner explained a concept to Drona in the teach-back phase.
+  hints_given:
+    type: integer
+    description: Number of hints Drona gave during assessed answers.
+  misconceptions_observed:
+    type: string
+    description: Short semicolon-separated list of misconceptions the learner showed, in neutral wording. Empty if none.
+evaluation:
+  - id: no_progress_claims
+    name: No progress claims
+    goal: The agent never told the learner they had mastered a concept, that their garden or plant grew, or that a score changed.
+  - id: observations_recorded
+    name: Observations recorded
+    goal: After each assessed answer, the agent called record_observation with an honest assistance level.
+  - id: teach_back_role_held
+    name: Teach-back role held
+    goal: During teach-back the agent acted as a curious student, asked probing questions and did not explain the concept itself.
+workflow:
+  phases:
+    warm_up:
+      label: Warm-up
+      prompt: phases/warm_up.md
+    teach:
+      label: Teach
+      prompt: phases/teach.md
+      tools: [show_diagram]
+    cross_question:
+      label: Cross-question
+      prompt: phases/cross_question.md
+    teach_back:
+      label: Teach-back
+      prompt: phases/teach_back.md
+      turn_eagerness: patient
+    wrap_up:
+      label: Wrap-up
+      prompt: phases/wrap_up.md
+  edges:
+    - source: start
+      target: warm_up
+    - source: warm_up
+      target: teach
+      when: The learner could not recall the basics of the focus concept, or asked to be taught it.
+      label: Needs teaching
+    - source: warm_up
+      target: cross_question
+      when: The learner recalled the basics of the focus concept with reasonable accuracy.
+      label: Knows basics
+    - source: teach
+      target: cross_question
+      when: Drona finished a short explanation and the learner says they follow it.
+      label: Explained
+    - source: cross_question
+      target: teach
+      when: The learner got two cross-questions in a row wrong or asked for an explanation.
+      label: Struggling
+    - source: cross_question
+      target: teach_back
+      when: Drona has asked at least three cross-questions on the focus concept.
+      label: Ready for teach-back
+    - source: teach_back
+      target: wrap_up
+      when: The learner finished explaining the concept to the confused student, or asked to stop.
+      label: Teach-back done
+    - source: cross_question
+      target: wrap_up
+      when: The learner asked to end the session.
+      label: Learner ends

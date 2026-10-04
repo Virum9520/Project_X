@@ -1,0 +1,50 @@
+{
+    "description": "Filter the dashboard and garden together. Unmatched plants dim. Call with no arguments to clear all filters.",
+    "disable_interruptions": false,
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": false,
+    "force_pre_tool_speech": false,
+    "name": "set_filter",
+    "parameters": {
+        "description": "Arguments for set_filter",
+        "properties": {
+            "date_from": {
+                "description": "Start date, ISO 8601.",
+                "type": "string"
+            },
+            "date_to": {
+                "description": "End date, ISO 8601.",
+                "type": "string"
+            },
+            "dimension": {
+                "description": "Evidence dimension to show.",
+                "enum": [
+                    "explanation",
+                    "application",
+                    "transfer",
+                    "retention",
+                    "communication"
+                ],
+                "type": "string"
+            },
+            "domain": {
+                "description": "Domain ID to show.",
+                "type": "string"
+            },
+            "evidence": {
+                "description": "Which evidence counts.",
+                "enum": [
+                    "independent_only",
+                    "all"
+                ],
+                "type": "string"
+            }
+        },
+        "required": [],
+        "type": "object"
+    },
+    "response_timeout_secs": 5,
+    "type": "client"
+}

@@ -1,0 +1,13 @@
+# Where server (webhook) tools call back into the Skill Garden API.
+# Generated configs in git are always built for `default`. Build another environment with
+#   uv run sg-agents build --env <name>   (do not commit the result)
+default: dev
+environments:
+  dev:
+    # TODO(C05): replace with the Railway dev API URL once hosting is live.
+    api_base_url: https://api-dev.skillgarden.invalid
+    description: Shared dev deployment (Railway).
+  local:
+    # Point a tunnel (ngrok, cloudflared) at uvicorn :8000 and put its URL here locally.
+    api_base_url: https://sg-local.invalid
+    description: A developer's tunnel to their local API.
