@@ -4,6 +4,7 @@ import uuid
 from collections.abc import AsyncIterator
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 import httpx
 import pytest
@@ -12,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
 from test_auth import ISSUER, KID, OWNER, USERS, MemoryAuditSink, auth, clerk_api
 
+from sg_api.admin import router as admin_router
 from sg_api.admin.deps import get_admin_store
 from sg_api.admin.dispatcher import (
     DispatchCommand,
@@ -36,6 +38,14 @@ from sg_api.admin.store import CooldownError, TestCallRecord
 from sg_api.auth import Identity
 from sg_api.main import create_app
 from sg_core.economics.budget import BudgetExceededError
+from sg_core.evidence.calibration import (
+    load_labeled_set,
+    load_report,
+    run_calibration,
+    save_report,
+)
+from sg_core.evidence.judge import JudgeRequest
+from sg_core.evidence.types import RawVerdict
 from sg_core.identity import (
     Capability,
     ClerkTokenVerifier,
@@ -326,6 +336,42 @@ async def test_owner_reaches_every_read_route(
 ) -> None:
     response = await client.get(path, headers=auth("user_owner"))
     assert response.status_code in (200, 404), response.text
+
+
+async def test_quality_surfaces_latest_calibration_run(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    owner = auth("user_owner")
+    none = await client.get("/v1/admin/quality", headers=owner)
+    assert none.json()["calibration"] is None or none.json()["calibration"]["synthetic"] is True
+
+    report = await run_calibration(_AgreeingJudge())
+    path = tmp_path / "report.json"
+    save_report(report, path)
+    monkeypatch.setattr(admin_router, "load_report", lambda: load_report(path))
+    body = (await client.get("/v1/admin/quality", headers=owner)).json()["calibration"]
+    assert body["synthetic"] is True and "SYNTHETIC" in body["notice"]
+    assert body["disagreement_rate"] == 0.0 and body["items"] == len(load_labeled_set().items)
+    assert set(body["by_dimension"]) >= {"explanation", "application"}
+
+    path.write_text("{broken")
+    assert (await client.get("/v1/admin/quality", headers=owner)).json()["calibration"] is None
+
+
+class _AgreeingJudge:
+    model = "agree"
+
+    async def judge(self, request: JudgeRequest) -> list[RawVerdict]:
+        item = next(
+            i
+            for i in load_labeled_set().items
+            if i.turns[-1].text == request.transcript.turns[-1].text
+        )
+        return [
+            RawVerdict(
+                item.concept, item.dimension, item.human_outcome, item.human_assistance, (), ""
+            )
+        ]
 
 
 async def test_mfa_is_required_for_console_data(client: AsyncClient) -> None:
