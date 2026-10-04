@@ -21,7 +21,7 @@ done, and the real integration waits.
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
 | C05 | Simple hosting: Vercel (web, admin), Railway (api, worker, Redis), R2 | 2 | C00 | done | `feat/c05-hosting` | Repo side done: image, Railway/Vercel config, probes, smoke script, runbook ([hosting.md](hosting.md)). Account provisioning follows the runbook |
 | C06 | ElevenLabs agents-as-code, Voice Design voices, conversation-token endpoint, spikes (a)–(e) | 3 | C00 | done | `feat/c06-elevenlabs-agents` | 8 agents, 15 tools, 14 agent tests, `sg-agents` CLI, ADRs 0001–0005. `POST /v1/sessions` uses Clerk auth (C01); session row not yet persisted (C02 tables exist) and the briefing is a stub until C09. **Follow-up (owner, needs `ELEVENLABS_API_KEY`):** `sg-agents voices design`/`create`, set dev `api_base_url` after C05, first `sg-agents sync`, commit registries, ADR live checks |
-| C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | todo | | Content-only and ready to start |
+| C07 | Curriculum `cs-core@v1` (about 80 concepts, prerequisite edges, rubrics) as YAML plus a loader | 4 | none | claimed | `feat/c07-curriculum` | Content-only and ready to start |
 | C08 | Knowledge ingestion pipeline (upload, extract, map, embed, activate) | 4 | C02, C03, C04, C07 | todo | | |
 | C09 | Memory Persistence Engine: append-only memories, briefing builder, projections | 5–6 | C02 | todo | | Core USP backend |
 | C10 | Rules engine: deterministic, versioned, `profile.yaml` and `profile.demo.yaml` | 5 | C07 | todo | | Pure Python, can start on mocks |
