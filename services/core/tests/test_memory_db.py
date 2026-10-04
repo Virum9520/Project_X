@@ -220,6 +220,23 @@ async def test_only_private_reflections_can_be_deleted(db: AsyncSession, world: 
     assert await db.get(Memory, private.id) is None
 
 
+async def test_forgetting_private_reflection_deletes_every_revision(
+    db: AsyncSession, world: World
+) -> None:
+    store = MemoryStore(db)
+    first = await store.append(
+        _new(world, "felt anxious", layer=MemoryLayer.PRIVATE, kind="reflection")
+    )
+    second = await store.correct(first.id, world.user.id, "felt very anxious")
+    latest = await store.correct(second.id, world.user.id, "felt nervous")
+    await store.forget_private(latest.id, world.user.id)
+    db.expunge_all()
+    remaining = await db.scalars(
+        select(Memory).where(Memory.id.in_([first.id, second.id, latest.id]))
+    )
+    assert remaining.all() == []
+
+
 # ── briefing ──
 async def test_briefing_ranks_filters_and_bounds(db: AsyncSession, world: World) -> None:
     store = MemoryStore(db)

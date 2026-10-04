@@ -15,6 +15,7 @@ from sg_api.sessions.identity import Learner
 from sg_core.db import get_sessionmaker
 from sg_core.logging import get_logger
 from sg_core.memory import build_briefing
+from sg_core.memory.ranking import sanitize
 from sg_core.models.identity import User
 
 log = get_logger(__name__)
@@ -56,8 +57,8 @@ class StubBriefingProvider:
         )
         return SessionBriefing(
             text="No memories recorded yet. Treat this as the learner's first session.",
-            focus_concept=focus_concept_id or "none",
-            focus_concept_title=title,
+            focus_concept=sanitize(focus_concept_id, 120) if focus_concept_id else "none",
+            focus_concept_title=sanitize(title, 120),
         )
 
 
@@ -96,12 +97,13 @@ class MemoryBriefingProvider:
         except Exception:
             log.warning("briefing.failed", character=character, exc_info=True)
             return await self._fallback.build(learner, character, focus_concept_id, query_hint)
+        # Learner- and client-supplied values become agent dynamic variables: flatten them.
         return SessionBriefing(
             text=briefing.text,
-            focus_concept=briefing.focus_concept,
-            focus_concept_title=briefing.focus_concept_title,
+            focus_concept=sanitize(briefing.focus_concept, 120),
+            focus_concept_title=sanitize(briefing.focus_concept_title, 120),
             due_concepts=briefing.due_concepts,
-            target_role=briefing.target_role,
+            target_role=sanitize(briefing.target_role, 120),
         )
 
 

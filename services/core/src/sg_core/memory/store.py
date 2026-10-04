@@ -179,11 +179,13 @@ class MemoryStore:
         return memory
 
     async def forget_private(self, memory_id: uuid.UUID, user_id: uuid.UUID) -> None:
-        """Delete one of the learner's own private reflections (the only hard delete)."""
+        """Delete one of the learner's own private reflections (the only hard delete), with every
+        revision in its chain, so no earlier wording of it survives."""
         memory = await self._get(memory_id, user_id)
         if memory.layer is not MemoryLayer.PRIVATE:
             raise MemoryRuleViolation("only private reflections can be deleted; correct instead")
-        await self.session.delete(memory)
+        for revision in await self.history(memory_id, user_id):
+            await self.session.delete(revision)
         await self.session.flush()
 
     async def backfill_embeddings(self, limit: int = 100) -> int:
@@ -254,16 +256,21 @@ class MemoryStore:
         return sorted(keys)
 
     # ── internals ──
-    async def _get(self, memory_id: uuid.UUID, user_id: uuid.UUID) -> Memory:
-        memory = await self.session.scalar(
-            select(Memory).where(and_(Memory.id == memory_id, Memory.user_id == user_id))
-        )
+    async def _get(
+        self, memory_id: uuid.UUID, user_id: uuid.UUID, *, for_update: bool = False
+    ) -> Memory:
+        query = select(Memory).where(and_(Memory.id == memory_id, Memory.user_id == user_id))
+        if for_update:  # lock and re-read, so a concurrent revision sees the row superseded
+            query = query.with_for_update().execution_options(populate_existing=True)
+        memory = await self.session.scalar(query)
         if memory is None:
             raise MemoryNotFound(str(memory_id))
         return memory
 
     async def _get_live(self, memory_id: uuid.UUID, user_id: uuid.UUID) -> Memory:
-        memory = await self._get(memory_id, user_id)
+        """The row about to be revised, locked until commit: two concurrent corrections of one
+        memory must not both supersede it and leave two live revisions."""
+        memory = await self._get(memory_id, user_id, for_update=True)
         if memory.status is MemoryStatus.SUPERSEDED:
             raise MemoryRuleViolation("memory is already superseded; use the latest revision")
         return memory
