@@ -15,7 +15,7 @@ done, and the real integration waits.
 | ID | Component | Phase | Depends on | Status | Owner (branch) | Notes |
 |---|---|---|---|---|---|---|
 | C00 | Repo, monorepo and tooling foundations | 0 | none | done | `chore/phase-0-foundations` | Tiger dev DB connected (PG 18, timescaledb 2.30, vector 0.8) |
-| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | todo | | Owner allowlist comes from `ADMIN_OWNER_EMAILS` |
+| C01 | Identity and RBAC: Clerk (one app), JWKS verification, admin allowlist plus MFA, capabilities, audit log | 1 | C00, C02 | done | `feat/c01-identity` | Owner allowlist + MFA enforced by the API and the console. Built against interfaces while C02 was in flight; **follow-up now that C02 tables exist**: DB-backed `GrantStore` (`admin_users`, `admin_role_grants`, `role_capabilities`; seed `capabilities` from `sg_core.identity.Capability`), `AuditSink` writing `audit_log`, and `users`/`profiles` upsert (onboarding answers live in Clerk `publicMetadata.onboarding` until then) |
 | C02 | DB baseline: Alembic, extensions, core tables, hypertables | 1 | C00 | done | `feat/c02-db-baseline` | Baseline `0001` is applied to the dedicated Skill Garden Tiger service. The old dev DB holds prototype tables, so point `DATABASE_URL` at the new service |
 | C03 | Provider adapters (ElevenLabs, OpenRouter, OpenAI, E2B, ObjectStore), usage ledger, budget reservations | 2 | C02 | todo | | |
 | C04 | Job infrastructure: Hatchet workflows, idempotency keys, webhook ingestion (HMAC) into `provider_events` | 2 | C02 | todo | | |
@@ -37,10 +37,10 @@ done, and the real integration waits.
 | C20 | Living soundscape (Music and SFX asset script, audio engine) and Sanjaya weekly recap | 11 | C03 (assets), C11 and C13 (recap) | todo | | The asset script can start once C03 is done |
 | C21 | Owner Console: 6 pages, Call now | 12 | C01, C03 | todo | | |
 | C22 | MCP gateway and owner assistant (ElevenLabs hosted MCP, Tiger MCP read-only) | 12 | C21 | todo | | |
-| C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | |
+| C23 | Hardening and demo: observability, security review, load tests, judge calibration, demo seed | 13 | most | todo | | The landing page (`apps/web/src/app/page.tsx`, `apps/web/src/app/_landing/`) was built early in the C01 PR. **Review it when C23 starts**: copy, three.js hero performance budget, demo path |
 | C24 | Production AWS migration (Terraform, ECS) | 14 | C23 | todo | | Later |
 
-**Ready now** (dependencies met): C01, C03, C04, C05, C06 (except the token endpoint), C07, C09, C13, C15.
+**Ready now** (dependencies met): C03, C04, C05, C06 (including the token endpoint, now that C01 is done), C07, C09, C13, C15.
 
 ## Shared interfaces
 When a component exposes something others build on (an API route, table, TS type, Python module,
@@ -53,6 +53,12 @@ event name or SSE channel), record it here in the same PR.
 | Hatchet client (Cloud, or embedded locally) | C00 | `services/worker/src/sg_worker/client.py` | |
 | Domain enums (`Character`, `Dimension`, `PlantStage`) | C00 | `packages/contracts/src/index.ts` | |
 | Design tokens | C00 | `packages/ui/src/index.ts`, `apps/*/src/app/globals.css` | |
+| `GET /v1/me`, `GET /v1/admin/me` | C01 | `services/api/src/sg_api/routers/{me,admin}.py` | Bearer = Clerk session token. Admin routes need owner allowlist or grant, verified email, and a second factor in the session |
+| Auth dependencies | C01 | `services/api/src/sg_api/auth/` | `current_session`, `current_admin`, `require_capability(cap)`, `admin_origin_guard` (CSRF), `record_audit(...)`. Mount admin routers under `/v1/admin` so `AuditMiddleware` audits every mutation |
+| `sg_core.identity` | C01 | `services/core/src/sg_core/identity/` | `ClerkTokenVerifier` (JWKS), `ClerkUserDirectory`, `Capability`, `GrantStore`, `AuditSink`/`AuditEvent`; for the API and the MCP gateway |
+| Identity contracts | C01 | `packages/contracts/src/identity.ts` | `Capability`, `Me`, `AdminMe`, `OnboardingProfile`; mirror of the Python side |
+| Next auth helpers | C01 | `apps/web/src/lib/{session,api}.ts`, `apps/admin/src/lib/{owner,api}.ts` | `requireOnboardedLearner()`, `requireOwner()`, `apiGet()` (server-side, forwards the Clerk token). `src/proxy.ts` in each app is optimistic only |
+| Clerk appearance | C01 | `packages/ui/src/index.ts` (`clerkAppearance`) | |
 | SQLAlchemy models for all 37 core tables (`Base`, `HYPERTABLES`, `EMBEDDING_DIM`=1536) | C02 | `services/core/src/sg_core/models/` | One module per domain: identity, curriculum, knowledge, sessions, evidence, memory, accountability, economics. Table semantics are owned by the component named in each module docstring |
 | Python domain enums (`Character`, `Dimension`, `PlantStatus`, `MemoryLayer`, `CallState`, …) | C02 | `services/core/src/sg_core/models/enums.py` | Stored as VARCHAR(40) + named CHECK `ck_<table>_<column>`. Adding a value needs a migration that recreates the CHECK. `Character`/`PlantStatus` mirror `packages/contracts` (a test enforces it) |
 | Alembic (async, URL from `get_settings()`) | C02 | `alembic.ini`, `services/core/migrations/` | Baseline revision `0001`. Run from the repo root |
@@ -63,5 +69,6 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
+- 2026-10-04 · C01 · [#9](https://github.com/Virum9520/Project_X/pull/9) · Clerk identity (JWKS), owner allowlist + MFA, capabilities, CSRF guard and audit middleware, learner onboarding, owner-console gate, and an early landing page (review in C23).
 - 2026-10-04 · C02 · [#6](https://github.com/Virum9520/Project_X/pull/6) · DB baseline: Alembic (async), models for all 37 core tables, `session_events`/`usage_events` hypertables, pgvector HNSW indexes, analytics schemas, CI migrations job.
 - 2026-10-04 · C00 · Phase 0 foundations: monorepo, Python services, CI, Tiger dev DB connected, coordination docs.
