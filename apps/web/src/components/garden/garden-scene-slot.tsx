@@ -1,321 +1,220 @@
 "use client";
 
-import type { FocusTarget, Grove, PlantState } from "@sg/contracts";
-import { useMemo } from "react";
+import {
+  DIMENSION_TO_PART,
+  type EvidenceItem,
+  type FocusTarget,
+  type GroveId,
+  type PrerequisiteEdge,
+} from "@sg/contracts";
+import {
+  evidenceCardsFor,
+  snapshotFromPlants,
+  type EvidenceCardData,
+  type GardenFocus,
+} from "@sg/three";
+import dynamic from "next/dynamic";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
-import { STAGE_META } from "./primitives";
+import { GardenMap2D, type GardenMapProps } from "./garden-map-2d";
 
-/**
- * ┌──────────────────────────────────────────────────────────────────────────────────────────┐
- * │ 3D GARDEN SLOT. Owned by C14 (the dashboard); FILLED BY C13 (packages/three scene).      │
- * └──────────────────────────────────────────────────────────────────────────────────────────┘
- *
- * The dashboard renders exactly one thing here: `<GardenSceneSlot {...props} />`. Today it draws a
- * flat 2D "garden map" placeholder so the whole dashboard is demoable and the zoom, filter and
- * time-travel behaviour can be exercised. C13 integration, in one place:
- *
- *   1. Build the R3F scene in `packages/three` (client-only; load via a `'use client'` wrapper
- *      with `next/dynamic({ ssr: false })`).
- *   2. In this file, render that scene when WebGL is available, and keep `PlaceholderMap` as the
- *      no-WebGL / reduced-motion fallback (the product also promises a 2D synced table).
- *   3. Honour the props below. Nothing else in the dashboard needs to change.
- *
- * Contract the scene must honour:
- * - `plants` is the complete garden state *as of `asOf`*. `matched === false` plants render dimmed
- *   (a filter is active), never removed. `stage` drives the look; `independent[d]` drives solid
- *   parts and `assisted[d]` drives ghost/translucent parts (assisted must read differently from
- *   independent); `wilting` means a review is overdue.
- * - `focus` is where the camera should be. Fly there when it changes (the voice `focus_plant` tool
- *   and the rails both change it).
- * - Clicking a grove, plant or part calls `onFocusChange`. Never mutate dashboard state directly.
- * - `recentGrowthPlantKeys` should glow (live provisional growth over SSE, later).
- */
-export interface GardenSceneSlotProps {
-  groves: Grove[];
-  /** Every plant, as of `asOf`, with filter state in `matched`. */
-  plants: PlantState[];
-  focus: FocusTarget;
-  onFocusChange: (target: FocusTarget) => void;
-  /** ISO timestamp the state is as of (equals "now" unless time travel is active). */
-  asOf: string;
-  /** True while scrubbing the past; the scene should look read-only (e.g. dusk tint). */
-  isTimeTravel: boolean;
-  /** Plants that just grew; pulse or glow them. */
-  recentGrowthPlantKeys?: string[];
+/** The 3D scene touches `window` and WebGL, so it loads client-side only. */
+const GardenScene = dynamic(() => import("@sg/three/scene").then((m) => m.GardenScene), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center text-sm text-foreground/60">
+      Growing the garden…
+    </div>
+  ),
+});
+
+export interface GardenSceneSlotProps extends GardenMapProps {
+  /** Evidence visible under the current filters and time travel; feeds the evidence cards. */
+  evidence: EvidenceItem[];
+  prerequisites?: PrerequisiteEdge[];
+  /** Newest garden revision visible at `asOf`. */
+  revision: number;
+  ruleVersion: string;
 }
 
-const W = 600;
-const H = 420;
-const CX = W / 2;
-const CY = H / 2;
+const PART_TO_DIMENSION = Object.fromEntries(
+  Object.entries(DIMENSION_TO_PART).map(([d, p]) => [p, d]),
+) as Record<string, keyof typeof DIMENSION_TO_PART>;
 
-interface Placed {
-  plant: PlantState;
-  x: number;
-  y: number;
-  r: number;
-}
-
-function layout(groves: Grove[], plants: PlantState[]) {
-  const centers = new Map<string, { x: number; y: number }>();
-  groves.forEach((g, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / groves.length;
-    centers.set(g.id, { x: CX + Math.cos(a) * 200, y: CY + Math.sin(a) * 125 });
-  });
-  const placed: Placed[] = [];
-  for (const g of groves) {
-    const c = centers.get(g.id)!;
-    plants
-      .filter((p) => p.meta.grove === g.id)
-      .forEach((plant, i) => {
-        // Phyllotaxis spiral keeps each grove a tidy, deterministic cluster.
-        const rad = 15 * Math.sqrt(i + 0.6);
-        const ang = i * 2.399963;
-        placed.push({
-          plant,
-          x: c.x + Math.cos(ang) * rad,
-          y: c.y + Math.sin(ang) * rad * 0.8,
-          r: 5.5 + plant.meta.difficulty * 0.8,
-        });
-      });
+/** Dashboard focus (plant keys) to the scene's focus (concept ids). They are the same strings. */
+function toSceneFocus(focus: FocusTarget): GardenFocus {
+  switch (focus.level) {
+    case "garden":
+      return focus;
+    case "grove":
+      return focus;
+    case "plant":
+      return { level: "plant", conceptId: focus.plantKey };
+    case "part":
+      return {
+        level: "part",
+        conceptId: focus.plantKey,
+        part: DIMENSION_TO_PART[focus.part],
+      };
   }
-  return { centers, placed };
 }
 
-function cameraFor(
-  focus: FocusTarget,
-  centers: Map<string, { x: number; y: number }>,
-  placed: Placed[],
-) {
-  let scale = 1;
-  let at = { x: CX, y: CY };
-  if (focus.level === "grove") {
-    scale = 2;
-    at = centers.get(focus.groveId) ?? at;
-  } else if (focus.level === "plant" || focus.level === "part") {
-    const p = placed.find((q) => q.plant.meta.key === focus.plantKey);
-    if (p) {
-      scale = focus.level === "part" ? 4.2 : 3.2;
-      at = p;
+function fromSceneFocus(focus: GardenFocus): FocusTarget {
+  switch (focus.level) {
+    case "garden":
+      return focus;
+    case "grove":
+      return { level: "grove", groveId: focus.groveId as GroveId };
+    case "plant":
+      return { level: "plant", plantKey: focus.conceptId };
+    case "part": {
+      const part = PART_TO_DIMENSION[focus.part];
+      return part
+        ? { level: "part", plantKey: focus.conceptId, part }
+        : { level: "plant", plantKey: focus.conceptId };
     }
   }
-  return { scale, tx: CX - at.x * scale, ty: CY - at.y * scale };
 }
 
+let webglSupport: boolean | undefined;
+
+function hasWebGL(): boolean {
+  if (webglSupport !== undefined) return webglSupport;
+  try {
+    const canvas = document.createElement("canvas");
+    webglSupport = Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
+  } catch {
+    webglSupport = false;
+  }
+  return webglSupport;
+}
+
+const noSubscription = () => () => {};
+
+/**
+ * The dashboard's garden view: the real 3D scene from `@sg/three`, driven by the dashboard's
+ * state. Clicks and keyboard in the scene call `onFocusChange`; nothing here mutates dashboard
+ * state directly. Falls back to the flat 2D map when WebGL is unavailable, and the learner can
+ * switch to it. The plants table below the scene remains the text alternative.
+ */
 export function GardenSceneSlot(props: GardenSceneSlotProps) {
   const { groves, plants, focus, onFocusChange, asOf, isTimeTravel, recentGrowthPlantKeys } = props;
-  const { centers, placed } = useMemo(() => layout(groves, plants), [groves, plants]);
-  const cam = cameraFor(focus, centers, placed);
-  const recent = new Set(recentGrowthPlantKeys);
-  const focusedKey = focus.level === "plant" || focus.level === "part" ? focus.plantKey : null;
-  const focusedGrove =
-    focus.level === "grove"
-      ? focus.groveId
-      : focusedKey
-        ? plants.find((p) => p.meta.key === focusedKey)?.meta.grove
-        : null;
+  // `null` on the server and during hydration, then the real answer: no effect, no mismatch.
+  const webgl = useSyncExternalStore<boolean | null>(noSubscription, hasWebGL, () => null);
+  const [flat, setFlat] = useState(false);
+  const [selected, setSelected] = useState<EvidenceCardData | null>(null);
 
-  const moveSibling = (key: string, dir: 1 | -1) => {
-    const me = placed.find((p) => p.plant.meta.key === key);
-    if (!me) return;
-    const siblings = placed.filter((p) => p.plant.meta.grove === me.plant.meta.grove);
-    const next = siblings[(siblings.indexOf(me) + dir + siblings.length) % siblings.length];
-    if (!next) return;
-    onFocusChange({ level: "plant", plantKey: next.plant.meta.key });
-    requestAnimationFrame(() => document.getElementById(`plant-${next.plant.meta.key}`)?.focus());
-  };
+  const snapshot = useMemo(
+    () =>
+      snapshotFromPlants({
+        groves,
+        plants,
+        prerequisites: props.prerequisites,
+        asOf,
+        revision: props.revision,
+        ruleVersion: props.ruleVersion,
+      }),
+    [groves, plants, props.prerequisites, asOf, props.revision, props.ruleVersion],
+  );
+  const sceneFocus = useMemo(() => toSceneFocus(focus), [focus]);
+  const matched = useMemo(
+    () =>
+      plants.every((p) => p.matched)
+        ? null
+        : new Set(plants.filter((p) => p.matched).map((p) => p.meta.key)),
+    [plants],
+  );
+  const pulse = useMemo(() => new Set(recentGrowthPlantKeys), [recentGrowthPlantKeys]);
+  const evidenceFor = useCallback(
+    (conceptId: string, part: Parameters<typeof evidenceCardsFor>[2]) =>
+      evidenceCardsFor(props.evidence, conceptId, part),
+    [props.evidence],
+  );
+  const changeFocus = useCallback(
+    (next: GardenFocus) => {
+      setSelected(null);
+      onFocusChange(fromSceneFocus(next));
+    },
+    [onFocusChange],
+  );
+
+  if (webgl === false || flat) {
+    return (
+      <div className="flex flex-col gap-2">
+        <GardenMap2D {...props} />
+        {webgl && (
+          <button
+            type="button"
+            onClick={() => setFlat(false)}
+            className="self-end rounded-lg border border-white/10 px-2.5 py-1 text-xs text-foreground/70 outline-none hover:border-white/25 focus-visible:ring-2 focus-visible:ring-glow"
+          >
+            Show 3D garden
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-dashed border-glow/30 ${
-        isTimeTravel ? "bg-[#14122b]" : "bg-night/60"
-      }`}
-      data-testid="garden-scene-slot"
-    >
-      <div className="flex flex-wrap items-baseline gap-x-3 border-b border-dashed border-glow/20 px-3 py-2 text-[0.65rem] uppercase tracking-[0.18em] text-glow/80">
-        3D garden view · placeholder map
-        <span className="normal-case tracking-normal text-foreground/50">
-          The C13 scene replaces this, with the same props and behaviour.
-        </span>
+    <div className="flex flex-col gap-2">
+      <div
+        className="relative h-[26rem] overflow-hidden rounded-2xl border border-white/10 bg-night sm:h-[34rem]"
+        data-testid="garden-scene"
+      >
+        {webgl === null ? (
+          <div className="flex h-full items-center justify-center text-sm text-foreground/60">
+            Growing the garden…
+          </div>
+        ) : (
+          <GardenScene
+            snapshot={snapshot}
+            focus={sceneFocus}
+            onFocusChange={changeFocus}
+            matchedConceptIds={matched}
+            pulseConceptIds={pulse}
+            evidence={evidenceFor}
+            onEvidenceSelect={setSelected}
+            timeOfDay={isTimeTravel ? 21 : undefined}
+            quality="high"
+            keyboard="focus"
+            aria-label={`Garden as of ${asOf.slice(0, 10)}: ${plants.length} concept plants in ${groves.length} groves. The table below is a text version.`}
+          />
+        )}
+        {isTimeTravel && (
+          <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-night/70 px-2.5 py-1 text-xs text-glow backdrop-blur">
+            Replay · read only
+          </span>
+        )}
       </div>
-
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="block h-auto w-full"
-        role="group"
-        aria-label={`Garden map as of ${asOf.slice(0, 10)}. ${plants.length} concept plants in ${groves.length} groves. Use the table below for a text version.`}
-      >
-        <defs>
-          <pattern
-            id="slot-hatch"
-            width="5"
-            height="5"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
-          >
-            <rect width="5" height="5" fill="#f2a65a" opacity="0.25" />
-            <rect width="2" height="5" fill="#f2a65a" opacity="0.9" />
-          </pattern>
-          <radialGradient id="slot-island" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#1f2d52" />
-            <stop offset="100%" stopColor="#0b1020" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <g
-          className="garden-camera"
-          style={{ transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.scale})` }}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        {selected ? (
+          <figure className="min-w-0 flex-1 rounded-xl bg-white/5 px-3 py-2 text-sm">
+            <figcaption className="text-xs text-foreground/60">
+              {selected.title} · {selected.independent ? "independent" : "assisted"} ·{" "}
+              {selected.rubricVersion}
+            </figcaption>
+            <blockquote className="mt-1 whitespace-pre-wrap break-words text-foreground/90">
+              {selected.excerpt}
+            </blockquote>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="mt-1 rounded px-1 text-xs text-glow outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-glow"
+            >
+              Close
+            </button>
+          </figure>
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          onClick={() => setFlat(true)}
+          className="rounded-lg border border-white/10 px-2.5 py-1 text-xs text-foreground/70 outline-none hover:border-white/25 focus-visible:ring-2 focus-visible:ring-glow"
         >
-          <ellipse cx={CX} cy={CY} rx={285} ry={190} fill="url(#slot-island)" />
-          {groves.map((g) => {
-            const c = centers.get(g.id)!;
-            const dim = focusedGrove && focusedGrove !== g.id;
-            return (
-              <g key={g.id} opacity={dim ? 0.35 : 1}>
-                <circle
-                  cx={c.x}
-                  cy={c.y}
-                  r={58}
-                  fill="#9be7ff"
-                  opacity={0.04}
-                  stroke="#9be7ff"
-                  strokeOpacity={0.15}
-                  strokeDasharray="3 4"
-                />
-                <g
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Zoom to ${g.title} grove`}
-                  className="cursor-pointer outline-none [&:focus-visible>text]:fill-white"
-                  onClick={() => onFocusChange({ level: "grove", groveId: g.id })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onFocusChange({ level: "grove", groveId: g.id });
-                    }
-                  }}
-                >
-                  <text
-                    x={c.x}
-                    y={c.y - 62}
-                    textAnchor="middle"
-                    fontSize={9}
-                    fill="#a9b2c9"
-                    letterSpacing={1.2}
-                  >
-                    {g.title.split(" & ")[0]!.toUpperCase()}
-                  </text>
-                </g>
-              </g>
-            );
-          })}
-          {placed.map(({ plant, x, y, r }) => {
-            const key = plant.meta.key;
-            const meta = STAGE_META[plant.stage];
-            const selected = focusedKey === key;
-            const dim = !plant.matched || (focusedGrove && focusedGrove !== plant.meta.grove);
-            const assistedOnly = plant.stage === "assisted";
-            const showLabel = focusedGrove === plant.meta.grove && focus.level !== "garden";
-            return (
-              <g
-                key={key}
-                id={`plant-${key}`}
-                role="button"
-                tabIndex={0}
-                aria-pressed={selected}
-                aria-label={`${plant.meta.title}: ${meta.label}${plant.wilting ? ", review overdue" : ""}${plant.matched ? "" : ", filtered out"}`}
-                className="cursor-pointer outline-none [&:focus-visible>circle:first-child]:stroke-white"
-                opacity={dim ? 0.2 : 1}
-                onClick={() => onFocusChange({ level: "plant", plantKey: key })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onFocusChange({ level: "plant", plantKey: key });
-                  } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                    e.preventDefault();
-                    moveSibling(key, 1);
-                  } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                    e.preventDefault();
-                    moveSibling(key, -1);
-                  }
-                }}
-              >
-                {recent.has(key) && (
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={r + 5}
-                    fill="none"
-                    stroke="#9be7ff"
-                    strokeWidth={1.5}
-                    className="animate-ping"
-                    style={{ transformOrigin: `${x}px ${y}px` }}
-                  />
-                )}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={r}
-                  fill={assistedOnly ? "url(#slot-hatch)" : meta.color}
-                  fillOpacity={plant.stage === "unassessed" ? 0.5 : 1}
-                  stroke={
-                    selected
-                      ? "#fff"
-                      : assistedOnly
-                        ? "#f2a65a"
-                        : plant.wilting
-                          ? "#8a7f6a"
-                          : "#0b1020"
-                  }
-                  strokeWidth={selected ? 1.6 : 1}
-                  strokeDasharray={assistedOnly || plant.wilting ? "2.5 2" : undefined}
-                />
-                {plant.wilting && (
-                  <path
-                    d={`M${x - r * 0.5} ${y + r + 2} q ${r * 0.5} ${r * 0.9} ${r} 0`}
-                    stroke="#8a7f6a"
-                    strokeWidth={1.2}
-                    fill="none"
-                  />
-                )}
-                {showLabel && (
-                  <text
-                    x={x}
-                    y={y + r + 8}
-                    textAnchor="middle"
-                    fontSize={4.2}
-                    fill="#e8ecf6"
-                    style={{ paintOrder: "stroke" }}
-                    stroke="#0b1020"
-                    strokeWidth={1.2}
-                  >
-                    {plant.meta.title.slice(0, 22)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </g>
-      </svg>
-
-      <ul
-        className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-white/5 px-3 py-2 text-[0.7rem] text-foreground/70"
-        aria-label="Stage legend"
-      >
-        {(Object.keys(STAGE_META) as (keyof typeof STAGE_META)[]).map((s) => (
-          <li key={s} className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden
-              className={`inline-block size-2.5 rounded-full ${s === "assisted" ? "hatch" : ""}`}
-              style={{
-                background: s === "assisted" ? undefined : STAGE_META[s].color,
-                outline: s === "assisted" ? "1px dashed #f2a65a" : undefined,
-              }}
-            />
-            {STAGE_META[s].label}
-          </li>
-        ))}
-        <li className="text-foreground/50">Dashed grey outline: wilting</li>
-      </ul>
+          Show 2D map
+        </button>
+      </div>
     </div>
   );
 }

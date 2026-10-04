@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { GardenDashboard } from "@/components/garden/dashboard";
-import { getGardenDataset } from "@/lib/garden/data";
+import { getSampleGardenDataset } from "@/lib/garden/data";
 import { parseState } from "@/lib/garden/state";
 
 /**
@@ -10,6 +10,6 @@ import { parseState } from "@/lib/garden/state";
  */
 export default async function GardenPreviewPage({ searchParams }: PageProps<"/dev/garden">) {
   if (process.env.NODE_ENV === "production") notFound();
-  const [dataset, params] = await Promise.all([getGardenDataset(), searchParams]);
+  const [dataset, params] = await Promise.all([getSampleGardenDataset(), searchParams]);
   return <GardenDashboard dataset={dataset} initialState={parseState(params, dataset)} isMock />;
 }

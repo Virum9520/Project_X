@@ -8,7 +8,7 @@
  * - Assisted evidence (`kind: "assisted"`) is separate from independent evidence.
  * - Transcripts and quotes are data, rendered as text only.
  */
-import type { Character, Dimension, PlantStage } from "./index";
+import type { Character, Dimension, PlantStage, PrerequisiteEdge } from "./index";
 
 /** Evidence dimensions as filters see them: the four plant parts plus communication. */
 export type EvidenceDimension = Dimension | "communication";
@@ -145,6 +145,8 @@ export interface GardenDataset {
   nextBest: NextBestPractice[];
   /** Streak in days as of `generatedAt`. */
   streakDays: number;
+  /** Prerequisite edges between plant keys (`from` is a prerequisite of `to`), for the scene. */
+  prerequisites?: PrerequisiteEdge[];
 }
 
 // ─── Filters, zoom, and client tools ────────────────────────────────────────────────────────
@@ -205,4 +207,32 @@ export interface PlantState {
   /** Passes the active filters; unmatched plants dim. */
   matched: boolean;
   evidenceCount: { independent: number; assisted: number };
+}
+
+// ─── Analytics API (C14) ────────────────────────────────────────────────────────────────────
+
+/** `GET /v1/garden/analytics` and the `query_my_analytics` agent tool. */
+export interface AnalyticsResult {
+  metric: string;
+  asOf: string;
+  rulesVersion: string;
+  data: Record<string, unknown>;
+  /** Evidence ids that back the numbers. */
+  citations: string[];
+}
+
+/** `POST /v1/garden/ask`: Ask Sanjaya. */
+export interface AskSanjayaAnswer {
+  answer: string;
+  /** Evidence ids that exist for this learner. */
+  citations: string[];
+  metrics: string[];
+  /** False when the model was unavailable and the answer was composed from the numbers alone. */
+  grounded: boolean;
+}
+
+/** `GET /v1/garden/memories/{id}/impact`: plants a correction would touch. */
+export interface MemoryImpact {
+  memoryId: string;
+  affects: string[];
 }
