@@ -109,6 +109,29 @@ class RawVerdict:
 
 
 @dataclass(frozen=True, slots=True)
+class CodeRun:
+    """A hidden-tests run stored by Arjuna (C16) as `code_run` evidence, read back for judging.
+
+    The evidence row already exists (written with the sandbox run and code snapshot it cites);
+    `assistance` is what was recorded at run time and is only ever carried forward or raised.
+    """
+
+    concept_key: str
+    status: str  # passed | failed | timeout | error
+    passed: int
+    total: int
+    assistance: Assistance
+    quote: str
+    occurred_at: datetime
+    dedupe_key: str
+    problem_family: str | None = None
+    hint_count: int = 0
+    run_id: uuid.UUID | None = None
+    snapshot_id: uuid.UUID | None = None
+    evidence_id: uuid.UUID | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class Verdict:
     """A validated verdict: every field checked, every citation found in a learner turn."""
 
@@ -122,6 +145,8 @@ class Verdict:
     problem_family: str | None = None
     misconception: str | None = None
     flags: tuple[str, ...] = ()
+    # Set when the verdict was derived deterministically from a stored code run, not a transcript.
+    code_run: CodeRun | None = None
 
 
 @dataclass(frozen=True, slots=True)
