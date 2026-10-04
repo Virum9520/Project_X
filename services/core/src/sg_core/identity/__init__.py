@@ -11,6 +11,7 @@ from sg_core.identity.clerk import (
     UserDirectoryError,
 )
 from sg_core.identity.grants import GrantStore, StaticGrantStore
+from sg_core.identity.users import NullUserStore, UserStore
 
 __all__ = [
     "OWNER_CAPABILITIES",
@@ -23,7 +24,9 @@ __all__ = [
     "GrantStore",
     "InvalidTokenError",
     "LogAuditSink",
+    "NullUserStore",
     "SessionClaims",
     "StaticGrantStore",
     "UserDirectoryError",
+    "UserStore",
 ]

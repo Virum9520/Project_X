@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from sg_api.auth.deps import IdentityDep, SessionDep, capabilities_of, load_user
+from sg_api.auth.deps import IdentityDep, SessionDep, capabilities_of, load_user, sync_user
 from sg_core.identity import Capability
 
 router = APIRouter(prefix="/v1", tags=["identity"])
@@ -20,6 +20,8 @@ class Me(BaseModel):
 @router.get("/me", response_model=Me)
 async def me(identity: IdentityDep, claims: SessionDep) -> Me:
     user = await load_user(identity, claims.user_id)
+    # Mirrors `publicMetadata.onboarding` into `profiles` (Clerk remains the source of truth).
+    await sync_user(identity, user)
     _, capabilities = await capabilities_of(identity, user)
     return Me(
         user_id=user.id,
