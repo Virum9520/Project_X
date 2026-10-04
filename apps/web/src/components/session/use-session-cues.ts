@@ -29,7 +29,11 @@ export function useSessionCues() {
 
   useEffect(() => {
     if (!play) return;
-    const ring = () => play({ type: "ring" });
+    // The PWA call screen (C18) plays its own ring; stay quiet when it is mounted so it rings once.
+    const ring = (event: Event) => {
+      if (event.defaultPrevented || document.querySelector("[data-incoming-call-screen]")) return;
+      play({ type: "ring" });
+    };
     window.addEventListener(INCOMING_CALL_EVENT, ring);
     return () => window.removeEventListener(INCOMING_CALL_EVENT, ring);
   }, [play]);
