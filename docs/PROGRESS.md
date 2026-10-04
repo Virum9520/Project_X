@@ -94,7 +94,7 @@ event name or SSE channel), record it here in the same PR.
 ## Log
 Newest entries first. One line per merged PR: date, component, PR link, summary.
 
-- 2026-10-04 · C14 (UI on mocks) · PR_LINK · Garden Dashboard UI: shell, URL-synced filters, KPI and insights rails, evidence timeline, time-travel scrubber, memory panel, table view, client-tool handlers, 3D slot placeholder, garden contracts. API integration pending C09/C10/C13.
+- 2026-10-04 · C14 (UI on mocks) · [#20](https://github.com/Virum9520/Project_X/pull/20) · Garden Dashboard UI: shell, URL-synced filters, KPI and insights rails, evidence timeline, time-travel scrubber, memory panel, table view, client-tool handlers, 3D slot placeholder, garden contracts. API integration pending C09/C10/C13.
 - 2026-10-04 · C07 · [#12](https://github.com/Virum9520/Project_X/pull/12) · Curriculum `cs-core@v1`: 86 concepts across 6 groves with prerequisite DAG and per-concept rubrics, dimension and communication rubrics, typed loader/validator, idempotent DB sync and CLI.
 - 2026-10-04 · C05 · [#5](https://github.com/Virum9520/Project_X/pull/5) · Simple hosting: shared service image, Railway/Vercel config as code, `/readyz` deploy gate with Redis, migrations on deploy, smoke scripts, CI image builds, [hosting runbook](hosting.md).
 - 2026-10-04 · C06 · [#8](https://github.com/Virum9520/Project_X/pull/8) · ElevenLabs agents-as-code (8 agents, 15 tools, 14 tests, `sg-agents`), Voice Design prompts, `POST /v1/sessions` with signed tool tokens, spike ADRs 0001–0005. Voices and first sync pending the API key.
